@@ -1,0 +1,63 @@
+# ~/.agents/map.yaml — link map: rule ⇒ chain, plus base (always-on) and types (domains).
+# All chain values are arrays of strings (file/folder names in the matching library folder).
+# A rule with `{}` has no chain: its text is self-contained (CLI tools / behavioral / living).
+# If a rule named in `base`/`types` is absent from `rules` — bootstrap skips it with a warning.
+# Skills/agents/templates referenced below but not yet built are marked PENDING.
+
+rules:
+  # --- meta ---
+  rule-format:       {}
+
+  # --- coding quality gates (CLI tools, no skill needed) ---
+  quality-py:        {}
+  quality-js:        {}
+  quality-bash:      {}
+  quality-perl:      {}
+  quality-cpp:       {}
+
+  # --- behavioral ---
+  git-discipline:    {}
+  proof-loop:        {}
+  secrets:
+    skills: [secrets]            # PENDING: procedure skill (built after inventory)
+  search-escalation:
+    mcp: [playwright]            # L3 browser; websearch/fetch are agent-native
+
+  deploy-models:     {}
+
+  # --- living (extend via self-config, do not freeze) ---
+  css-practices:     {}
+  seo:               {}
+
+  # --- cross-domain instrumental ---
+  cf-wrangler:
+    mcp: [cloudflare]            # CF MCP for D1/KV/R2/Workers; wrangler is CLI
+  seo-analytics:
+    mcp: [gsc]                   # Google Search Console MCP; Playwright fallback
+
+  # --- domain pipelines ---
+  md2pdf:
+    skills:    [md2pdf-convert]  # PENDING
+    agents:    [doc-converter]   # PENDING
+    mcp:       [pandoc]
+    templates: [pdf-style]       # PENDING
+  extract-docs:
+    mcp: [pandoc]
+  viz-data:          {}
+
+# Always-on: applied unconditionally, NOT selectable. Kept separate from `types` on purpose.
+base: [rule-format, proof-loop, secrets, git-discipline]
+
+# Selectable domains (survey multi-selects; a project may pick several).
+# Final rule set = base ∪ rules of the selected domains (union dedups shared rules).
+types:
+  coding:   [quality-py, quality-js, quality-bash, quality-perl, quality-cpp]
+  web:      [quality-js, css-practices, seo, cf-wrangler]
+  research: [search-escalation, extract-docs, md2pdf]
+  office:   [md2pdf, extract-docs]
+  data:     [viz-data, extract-docs]
+  devops:   [deploy-models, cf-wrangler]
+  db:       [cf-wrangler]
+  content:  [seo, seo-analytics, md2pdf]
+  design:   []   # generative/terminal-graphics = CLI tools + future skills; no rule yet
+  qa:       []   # approach; proof-loop is in base; qa plan-template attaches later
