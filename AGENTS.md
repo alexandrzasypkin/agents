@@ -17,15 +17,17 @@ When a new project is initialized:
 
 1. **The skeleton is copied whole** — the `~/.agents/` folder structure is carried into
    the project as is (an empty frame).
-2. **A survey determines the type** — the user picks `code` / `research` / `office`.
-3. **The map deploys the chains** — the type selects a set of rules via the `types`
-   block in `map.yaml`, and for each rule its chain is read, and the linked skills,
-   agents, and MCP are copied into the project by value.
+2. **A survey determines the domains** — the user multi-selects domains. The domain list
+   lives in `map.yaml` (`types`), not here — it is data, not mechanism.
+3. **The map deploys the chains** — each selected domain contributes its rule set via the
+   `types` block in `map.yaml`, unioned over the always-on `base`; for each rule in the
+   resulting set its chain is read, and the linked skills, agents, and MCP are copied into
+   the project by value.
 4. **The project becomes autonomous** — all dependencies are pinned locally, the
    version is controlled via git.
 
-Result: any `code`-type project gets the same set of linters, formatters, and
-git hooks. Any `research` — the md→pdf pipeline, note templates, sources. Uniformity
+Result: the rule set = `base` ∪ the rules of the selected domains. Two projects that
+select the same domains get the same linters, formatters, hooks, and pipelines. Uniformity
 is delivered not by manual choice, but by the **link map** in the library.
 
 ---
@@ -98,28 +100,33 @@ the map, but are recorded in `./.agents/REGISTRY.md` by the self-configuration r
 
 ### `map.yaml` schema
 
-The key is a rule name; under it are listed the dependencies of its chain. The `types`
-block holds presets: which rules to pull when a type is chosen at the survey.
+The key is a rule name; under it are listed the dependencies of its chain. `base` is a
+top-level list of always-on rules (applied unconditionally). `types` holds the selectable
+domains the survey multi-selects. The two are separate keys on purpose: `base` is never a
+choice, the domains always are.
 
 ```yaml
 # ~/.agents/map.yaml
 # All values are arrays of strings (file/folder names in the corresponding folder).
-# If a rule is listed in `types` but absent from `rules` — skip it with a warning.
+# If a rule is listed in `base`/`types` but absent from `rules` — skip it with a warning.
 rules:
   md2pdf:
     skills:    [md2pdf-convert]   # from ~/.agents/skills/
     agents:    [doc-converter]    # from ~/.agents/agents/
     mcp:       [pandoc-mcp]        # MCP server names
     templates: [pdf-style]         # from ~/.agents/templates/
-  lint-py:
-    skills:    [ruff-run]
+  quality-py:
+    skills:    []                 # CLI tools (ruff/pyright/pytest), no skill needed
     agents:    []
     mcp:       []
 
-types:                            # type ⇒ set of rules
-  code:     [lint-py]
+base: [rule-format, proof-loop, secrets, git-discipline]   # always-on, NOT selectable
+
+types:                            # selectable domains (multi-select) ⇒ set of rules
+  coding:   [quality-py]
   research: [md2pdf]
   office:   [md2pdf]
+# Final rule set = base ∪ rules of the selected domains.
 ```
 
 ### `mcp-configs.yaml` schema
@@ -184,16 +191,18 @@ same name, different places. Steps:
    the map. The project copy is **editable** (unlike the immutable `~/.agents`). The
    root stays clean.
 
-2. **Survey.** The main question — the project type:
-   - `code` — development (linter, formatter, tests, git hooks);
-   - `research` — research (notes, sources, the md→pdf pipeline);
-   - `office` — document work (templates, styles, conversion).
+2. **Survey.** The main question — the project's **domains**: a **multi-select** from the
+   domains in `./.agents/map.yaml` (`types`). Do not hardcode the domain list here — it is
+   data and lives in the map. This is the `planning` meta-step: a dialog that combines the
+   chosen domains (a project may be multi-domain, e.g. coding+web+devops). The always-on
+   `base` is added unconditionally — it is not one of the selectable domains.
    Clarify: which MCP to attach — show the list of names from `./.agents/mcp-configs.yaml`
-   (the local copy); if the user is unsure — offer a preset by type. Whether environment
+   (the local copy); if the user is unsure — offer a preset by domain. Whether environment
    variables (`PYTHONPATH`, etc.) and extra skills are needed. Do not impose — the user
    is free to choose their own.
 
-3. **Fill `./.agents/` and write the snapshot.** For each chosen rule,
+3. **Fill `./.agents/` and write the snapshot.** Resolve the rule set = `base` ∪ the rules
+   of the selected domains (from `./.agents/map.yaml`). For each rule in that set,
    `./.agents/map.yaml` (the local copy) is read, and into `./.agents/{rules,skills,agents,templates}`
    the rule itself and its linked chain are copied. Names in the map are files or folders
    in the corresponding library folder: a file is copied with its extension, a folder
@@ -266,7 +275,7 @@ reproducibility and provenance without reaching into `~/.agents`:
 source: /home/<user>/.agents   # absolute path (not ~)
 commit: abc123                # git rev-parse HEAD (if ~/.agents is a git repo; otherwise empty or a date)
 generated_at: 2026-06-26T12:00:00Z
-type: research
+domains:  [research]          # multi-select; base is always included on top
 rules:    [md2pdf]
 skills:   [md2pdf-convert]
 agents:   [doc-converter]
@@ -331,7 +340,7 @@ Without the record, the next session does not know why the project environment i
 
 ## Attached at initialization
 - Library version: from `.agents.lock.yaml` (commit or date)
-- Project type: <code|research|office>
+- Domains: <multi-select> (always-on `base` included on top)
 - Rules: <list from the library>
 - Skills / agents: <lists>
 - MCP: <list; configs from `mcp-configs.yaml` → `.mcp.json` / `opencode.json` / codex config>
