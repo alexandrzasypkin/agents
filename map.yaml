@@ -17,10 +17,10 @@ rules:
 
   # --- behavioral ---
   env-setup:         {}
+  project-docs:      {}          # docs/ source-of-truth + plans active/done + ADR; must-have
   git-discipline:    {}
   proof-loop:        {}
-  secrets:
-    skills: [secrets]            # PENDING: procedure skill (built after inventory)
+  secrets:           {}          # universal PRINCIPLE (text-only): no values in chat/log/commit, gitignored. Concrete procedure is project-specific.
   search-escalation:
     mcp: [playwright]            # L3 browser; websearch/fetch are agent-native
 
@@ -31,7 +31,8 @@ rules:
   seo:               {}
 
   # --- cross-domain instrumental ---
-  cf-wrangler:       {}          # CF MCP is project-level (claude.ai-managed / per-project — see rule); wrangler is CLI
+  cf-wrangler:
+    skills: [cf-secrets]         # PENDING: CF-specific secrets procedure (list/put/rotate/distribute/check; from SKILL.md). cloudflare MCP is project-level — resolved per project (see rule).
   seo-analytics:     {}          # GSC MCP is project-level (not in baseline — see rule)
 
   # --- domain pipelines ---
@@ -44,7 +45,7 @@ rules:
   viz-data:          {}
 
 # Always-on: applied unconditionally, NOT selectable. Kept separate from `types` on purpose.
-base: [rule-format, env-setup, proof-loop, secrets, git-discipline]
+base: [rule-format, env-setup, project-docs, proof-loop, secrets, git-discipline]
 
 # Selectable domains (survey multi-selects; a project may pick several).
 # Final rule set = base ∪ rules of the selected domains (union dedups shared rules).
