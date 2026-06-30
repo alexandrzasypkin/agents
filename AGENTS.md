@@ -215,9 +215,9 @@ all other infrastructure under `./.agents/`:
 
 ```
 project/
-├── AGENTS.md  CLAUDE.md  opencode.json  .mcp.json   # runtime anchors (root required)
-├── .claude/settings.local.json
-├── .codex/config.toml
+├── AGENTS.md  CLAUDE.md                              # ALWAYS: project source of truth + Claude shim
+├── opencode.json  .mcp.json                          # only if: opencode is used / project has MCP
+├── .claude/settings.local.json  .codex/config.toml  .opencode/plugin/   # per-agent, only if hooks/permissions/MCP
 ├── .agents/                         # infrastructure, does not clutter the root
 │   ├── map.yaml  mcp-configs.yaml   # snapshot of the graph and configs (copy of the library)
 │   ├── REGISTRY.md                  # project adaptation log (why); empty if no changes
@@ -261,17 +261,21 @@ same name, different places. Steps:
    runtime formats. A snapshot (what was built and from which version) is written to
    `./.agents/generated/.agents.lock.yaml`. Copy by value (not a symlink).
 
-4. **Create the runtime anchors in the root** (fixed paths the agents require).
-   MCP is deployed from the configs resolved at step 3 into three formats:
+4. **Create the runtime anchors in the root.** **Always:** `./AGENTS.md` (project source of
+   truth + pointer) and `./CLAUDE.md` (the Claude shim). The per-agent files below are created
+   **only when there is content for that agent** — MCP servers, agent-hooks, or custom
+   permissions. A project with none of those gets just `AGENTS.md` + `CLAUDE.md`; the `.codex/`,
+   `.claude/`, `.opencode/` dirs are NOT created empty. MCP, when present, is deployed from the
+   step-3 configs into the per-agent formats:
 
    | File | Purpose |
    |------|---------|
    | `./AGENTS.md` | Autonomous project source of truth. Read natively by codex and opencode. Holds the pointer and the self-configuration rule (below). |
    | `./CLAUDE.md` | A shim `@AGENTS.md` in the root (next to `AGENTS.md`). Needed because Claude Code does not read `AGENTS.md` natively — only `CLAUDE.md`. The canon comes from the global symlink. |
-   | `./opencode.json` | Root required (opencode searches upward to the git root). `instructions` (the **OS-resolved** absolute path to the canon — `/home/<user>/.agents/AGENTS.md` on Linux/WSL2, `C:\Users\<user>\.agents\AGENTS.md` on Windows; resolve it for this machine, do not copy the example literally) + an `mcp` block. Returns the canon to context and does not expose `~`. |
-   | `./.mcp.json` | MCP servers for Claude Code (read separately from `CLAUDE.md`). |
-   | `./.codex/config.toml` | MCP for codex: `[mcp_servers.<name>]`. Loaded only if the project is "trusted" (codex asks on first run). codex merges it with the global `~/.codex/config.toml` itself — project values take priority. |
-   | `./.claude/settings.local.json` | Local Claude settings/permissions. opencode has permissions in `opencode.json`, codex — in `config.toml`. There is no single cross-agent settings file. |
+   | `./opencode.json` | Root required (opencode searches upward to the git root). `instructions` (the **OS-resolved** absolute path to the canon — `/home/<user>/.agents/AGENTS.md` on Linux/WSL2, `C:\Users\<user>\.agents\AGENTS.md` on Windows; resolve it for this machine, do not copy the example literally) + an `mcp` block. Returns the canon to context and does not expose `~`. **Only if opencode is used.** |
+   | `./.mcp.json` | MCP servers for Claude Code (read separately from `CLAUDE.md`). **Only if the project has MCP.** |
+   | `./.codex/config.toml` | MCP for codex: `[mcp_servers.<name>]`. Loaded only if the project is "trusted" (codex asks on first run). codex merges it with the global `~/.codex/config.toml` itself — project values take priority. **Only if codex has MCP or hooks.** |
+   | `./.claude/settings.local.json` | Local Claude settings/permissions. opencode has permissions in `opencode.json`, codex — in `config.toml`. There is no single cross-agent settings file. **Only if there are Claude permissions or hooks.** |
 
    If an anchor already exists — **do not overwrite**, print a warning
    ("file X already exists, skipped").
