@@ -10,9 +10,16 @@
 
 playwright:
   # Browser automation MCP (research L3 / web / qa). Transport differs per agent.
-  claude:   { type: stdio,  command: playwright-mcp }          # binary name; resolve via PATH, not an absolute path
-  codex:    { type: remote, url: "<resolve at bootstrap>" }    # local playwright server; resolve port (convention :8931 shared / :8932 headed)
-  opencode: { type: stdio,  command: playwright-mcp }
+  # Logical server = @playwright/mcp (Node 18+). Canonical launcher is `npx @playwright/mcp@latest`;
+  # the bare `playwright-mcp` binary exists only after `npm i -g @playwright/mcp`. The stdio command
+  # below is the POSIX-resolved value (works as-is on Linux/macOS/WSL2/Git-Bash). On NATIVE Windows
+  # bootstrap MUST wrap it `cmd /c npx -y @playwright/mcp@latest --browser chrome` — see the canon's
+  # "npx/node stdio MCP on native Windows" bootstrap rule (Node spawn can't resolve npx.cmd → ENOENT).
+  # `--browser chrome` is a Windows-only arg (registry-resolves Chrome, dodges the path bug); do NOT
+  # add it on POSIX, where Chrome may be absent and only chromium is installed.
+  claude:   { type: stdio,  command: playwright-mcp }          # POSIX default; native Windows → cmd /c npx wrapper (see canon)
+  codex:    { type: remote, url: "<resolve at bootstrap>" }    # local playwright server; resolve port (convention :8931 shared / :8932 headed); 9222 = Chrome CDP, a separate layer
+  opencode: { type: stdio,  command: playwright-mcp }          # POSIX default; native Windows → cmd /c npx wrapper (see canon)
 
 # NOT in the baseline — project-level self-config (record in REGISTRY when attached):
 # - cloudflare: claude.ai-managed integration for Claude (account-level, no local command);

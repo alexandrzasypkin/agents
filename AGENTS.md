@@ -153,12 +153,27 @@ inventorying the environment and records the resolved value in the project, not 
 (same principle as the cross-cutting CLI tools). A config may be **per-agent**: the same
 logical MCP can use a different transport per agent.
 
+**Per-OS launcher resolution (npx/node stdio MCP).** A stdio MCP whose command is `npx`/`node`
+is rendered per OS, because Node's `child_process.spawn` (used by stdio launchers like Claude's
+`.mcp.json`) cannot resolve `npx.cmd` on native Windows → `spawn npx ENOENT`. So at bootstrap:
+- **POSIX** (Linux / macOS / WSL2 / Git-Bash) — render the command **as-is**, no wrapper. This is
+  the value the recipe stores (the working baseline); it is never altered.
+- **Native Windows** (PowerShell/cmd, no POSIX `sh`) — wrap it `cmd /c npx -y <pkg>` (or use the
+  absolute `…\npx.cmd`). Any browser/path-specific flags that only Windows needs (e.g. playwright's
+  `--browser chrome`, which registry-resolves Chrome) are added **here only**, never on POSIX.
+
+This is the same env-inventory step as paths/ports above — the recipe holds the logical server and
+the POSIX-resolved default; the per-agent native file gets the OS-correct launcher. A project
+bootstrapped on Linux keeps the bare command; one bootstrapped on Windows gets the wrapper. (A
+Linux-rendered config later opened on native Windows is re-resolved by self-config on first
+`ENOENT`, logged in REGISTRY — the cross-OS edge, not the common path.)
+
 ```yaml
 # ~/.agents/mcp-configs.yaml
 playwright:
-  claude:   { type: stdio,  command: playwright-mcp }          # binary name, resolve via PATH
-  codex:    { type: remote, url: "<resolve at bootstrap>" }    # e.g. local server :8931
-  opencode: { type: stdio,  command: playwright-mcp }
+  claude:   { type: stdio,  command: playwright-mcp }          # POSIX default; native Windows → cmd /c npx wrapper (see rule above)
+  codex:    { type: remote, url: "<resolve at bootstrap>" }    # e.g. local server :8931 (9222 = Chrome CDP, separate layer)
+  opencode: { type: stdio,  command: playwright-mcp }          # POSIX default; native Windows → cmd /c npx wrapper
 # A simple, agent-uniform MCP may use a flat form instead:
 # some-mcp: { type: local, command: some-mcp, args: [] }
 ```
