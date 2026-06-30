@@ -123,9 +123,9 @@ in `./.agents/REGISTRY.md`.
 - **baseline-guard**: every write to `~/.agents` needs your explicit approval (native ask);
   reading/copying is free. Protects the shared baseline. The sole global guardrail.
 
-**Per-project — rendered from the `map.yaml` chain into the project at bootstrap:**
-- **secrets-guard** (rule `secrets`, PreToolUse): blocks read/write of secret files; exits cleanly otherwise.
-- **light-lint** (rules `quality-*`, PostToolUse, non-blocking): lints the edited file; no-op if no linter.
+**Per-project — rendered from the `map.yaml` chain into the project at bootstrap.** A project's
+hooks come from its active rules (declared per rule in `map.yaml`); the specifics live there and in
+the bootstrap step, not in this overview.
 
 **Git — installed unconditionally at bootstrap (into `.git/hooks/`):**
 - **git-quality-gate**: mandatory pre-commit/pre-push lint/type/test + an unconditional secret scan.
