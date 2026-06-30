@@ -34,6 +34,7 @@ rules:
   # --- living (extend via self-config, do not freeze) ---
   css-practices:     {}
   seo:               {}
+  writing-style:     {}          # prose dislikes (anti-AI-slop) for drafted output; living
 
   # --- cross-domain instrumental ---
   cf-auth:           {}          # CF API auth channels (OAuth / Global Key / Scoped Bearer); pick before any CF op
@@ -59,11 +60,11 @@ base: [rule-format, env-setup, project-docs, proof-loop, secrets, git-discipline
 types:
   coding:   [quality-py, quality-js, quality-bash, quality-perl, quality-cpp, code-search, code-review, user-docs]
   web:      [quality-js, css-practices, seo, cf-wrangler, cf-auth, edge-compat, user-docs]
-  research: [search-escalation, extract-docs, md2pdf]
+  research: [search-escalation, extract-docs, md2pdf, writing-style]
   office:   [md2pdf, extract-docs]
   data:     [viz-data, extract-docs]
   devops:   [deploy-models, cf-wrangler, cf-auth]
   db:       [cf-wrangler, cf-auth]
-  content:  [seo, seo-analytics, md2pdf]
+  content:  [seo, seo-analytics, md2pdf, writing-style]
   design:   []   # generative/terminal-graphics = CLI tools + future skills; no rule yet
   qa:       []   # approach; proof-loop is in base; qa plan-template attaches later
