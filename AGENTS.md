@@ -314,8 +314,11 @@ same name, different places. Steps:
    // ./.mcp.json — MCP for Claude
    { "mcpServers": { "pandoc-mcp": { "command": "pandoc-mcp", "args": [] } } }
 
-   // ./.claude/settings.local.json — permissions; env optional, set at the survey
-   { "permissions": { "allow": ["Bash", "Read", "Write"] } }
+   // ./.claude/settings.local.json — permissions (allow/deny) + hooks merged from the chain
+   { "permissions": { "allow": ["Bash", "Read", "Write"] },
+     "hooks": { "PreToolUse": [ { "matcher": "Read|Edit|Write|Bash",
+       "hooks": [ { "type": "command",
+         "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/secrets-guard/guard.sh\" --claude" } ] } ] } }
    ```
    ```toml
    # ./.codex/config.toml — MCP for codex (project-scoped, trusted)
@@ -324,13 +327,20 @@ same name, different places. Steps:
    args = []
    ```
 
-   **Config assembly (uniform across agents).** When several fragments target one agent file
-   — permissions, MCP, and agent hooks (secrets-guard, light-lint) — bootstrap **deep-merges**
-   them, it does not overwrite: object keys union, arrays append (Claude `settings.local.json`
-   `hooks.PreToolUse[]`; codex `config.toml` repeated `[[hooks.PreToolUse]]`). opencode keeps
-   each hook as its own `.opencode/plugin/<name>.ts` (no merge) and merges only MCP/permissions
-   into `opencode.json`. If a target file already exists — merge into it, never clobber an
-   existing block (same rule as the anchors above).
+   **Config assembly (uniform across agents).** Hooks are attached **by the `map.yaml` chain**
+   (`secrets → secrets-guard`, `quality-* → light-lint`) — a project gets a hook only when its
+   rule is active. Each hook in `./.agents/hooks/<name>/` ships per-agent fragments —
+   `claude.json`, `codex.toml`, `opencode.ts` — whose command points at the project's **own**
+   copied script: `bash "$CLAUDE_PROJECT_DIR/.agents/hooks/<name>/…sh"` (Claude), a project-relative
+   `bash ".agents/hooks/<name>/…sh"` (codex). `bash <posix-path>` is portable on Windows under Git
+   Bash, so no per-OS variant is needed. When several fragments target one agent file — permissions,
+   MCP, hooks — bootstrap **deep-merges**, it does not overwrite: object keys union, arrays append
+   (Claude `settings.local.json` `hooks.PreToolUse[]`; codex `config.toml` repeated
+   `[[hooks.PreToolUse]]`). opencode keeps each hook as its own `.opencode/plugin/<name>.ts`
+   (native TS, no merge) and merges only MCP/permissions into `opencode.json`. **`baseline-guard`
+   is NOT rendered here** — it is the one global, hand-installed guardrail (see README Setup); only
+   chain hooks land in the project. If a target file already exists — merge into it, never clobber
+   an existing block (same rule as the anchors above).
 
 5. **`git init` + install git hooks (mandatory).** `git init` only if `.git` is not found
    above in the tree (do not create a nested repository). `.gitignore` (copied from the
