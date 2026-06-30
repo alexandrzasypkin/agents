@@ -10,9 +10,12 @@ alongside the code.
 
 ## Layout
 - `docs/` — source of truth: architecture, contracts, key flows. Code follows docs.
-- `./.agents/plans/active/` — plans in progress; `./.agents/plans/done/` — completed (move a plan on completion).
+- `./.agents/plans/active/` — plans in progress; `./.agents/plans/done/` — completed (move a
+  plan on completion). Each active plan opens with a **handoff** note: what's done / what did
+  NOT work / the single next step — so the next session orients without re-deriving.
 - decisions — an ADR log under `docs/`: a one-line manifest entry + the full body in an
-  archive; grep the archive before working in a zone.
+  archive, capturing the decision **and dead-ends** (what was tried and rejected, and why);
+  grep the archive before working in a zone.
 
 ## Discipline
 - Contract-first: update the relevant doc (schema / contract / behavior) **before** the code change, then code.
