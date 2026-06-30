@@ -16,6 +16,7 @@ rules:
   quality-cpp:       {}
 
   # --- behavioral ---
+  env-setup:         {}
   git-discipline:    {}
   proof-loop:        {}
   secrets:
@@ -39,14 +40,13 @@ rules:
   md2pdf:
     skills:    [md2pdf-convert]  # PENDING
     agents:    [doc-converter]   # PENDING
-    mcp:       [pandoc]
     templates: [pdf-style]       # PENDING
-  extract-docs:
-    mcp: [pandoc]
+    # pandoc is a CLI tool (citations/office formats), not an MCP — handled in the skill
+  extract-docs:      {}          # pdftotext/pandoc/tesseract are CLI tools, not MCP
   viz-data:          {}
 
 # Always-on: applied unconditionally, NOT selectable. Kept separate from `types` on purpose.
-base: [rule-format, proof-loop, secrets, git-discipline]
+base: [rule-format, env-setup, proof-loop, secrets, git-discipline]
 
 # Selectable domains (survey multi-selects; a project may pick several).
 # Final rule set = base ∪ rules of the selected domains (union dedups shared rules).
