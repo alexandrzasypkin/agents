@@ -14,8 +14,11 @@ event, so it cannot be forgotten (see the canon Hooks section + BOOTSTRAP step 5
   (ruff / eslint|npm-lint / shellcheck / perl -c / g++ -fsyntax-only).
 - **pre-push** (full): the above + type-check (pyright / tsc) + tests (pytest / npm test).
 
-Checks follow the `quality-*` rules. A missing tool is reported and skipped, not fatal
-(install-when-needed is a project decision — see `env-setup`). A real failure exits 2 and
+The **secret scan is built-in (grep) and unconditional** — it is NEVER skip-if-missing
+(secrets are base/[CRITICAL]); it catches staged secret files and private-key material, and
+external scanners like `gitleaks` only *add* to it, never replace it. The **linters /
+type-check / tests** follow the `quality-*` rules and ARE skip-if-missing — a missing tool
+is reported, not fatal (install-when-needed — see `env-setup`). A real failure exits 2 and
 blocks the git operation.
 
 ## Install (bootstrap, mandatory)

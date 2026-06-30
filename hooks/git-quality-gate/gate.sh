@@ -17,12 +17,22 @@ miss()    { printf 'git-quality-gate: %s not found - skipped (install per env-se
 run()     { echo "+ $*" >&2; "$@" || fail=1; }
 tracked() { git ls-files -- "$@" | grep -q .; }
 
-# --- secret scan (commit) ---
+# --- secret scan (commit) — BUILT-IN grep, UNCONDITIONAL. NEVER skip-if-missing:
+#     secrets are base/[CRITICAL]. External scanners only ADD to this, never replace it. ---
 if [ "$mode" = commit ]; then
-  if git diff --cached --name-only --diff-filter=ACM \
-       | grep -qiE '(^|/)(\.env(\..+)?|\.dev\.vars|\.secrets)$'; then
-    echo "git-quality-gate: BLOCK - a secret file is staged (.env/.dev.vars/.secrets)" >&2
-    fail=1
+  staged="$(git diff --cached --name-only --diff-filter=ACM)"
+  # secret files staged (templates .example/.sample/.template are allowed)
+  if printf '%s\n' "$staged" | grep -iE '(^|/)(\.env(\..+)?|\.dev\.vars|\.secrets)$' \
+       | grep -ivqE '\.(example|sample|template)$'; then
+    echo "git-quality-gate: BLOCK - a secret file is staged (.env/.dev.vars/.secrets)" >&2; fail=1
+  fi
+  # private key material in staged content
+  if git diff --cached -U0 --diff-filter=ACM | grep -qE -- '-----BEGIN [A-Z ]*PRIVATE KEY-----'; then
+    echo "git-quality-gate: BLOCK - private key material is staged" >&2; fail=1
+  fi
+  # optional deeper scanner ADDS to the built-in (never the sole mechanism)
+  if have gitleaks; then
+    gitleaks protect --staged >/dev/null 2>&1 || { echo "git-quality-gate: gitleaks flagged staged content" >&2; fail=1; }
   fi
 fi
 
