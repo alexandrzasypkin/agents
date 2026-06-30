@@ -101,9 +101,13 @@ New-Item -ItemType SymbolicLink -Path "$HOME\.codex\AGENTS.md"  -Target "$HOME\.
 New-Item -ItemType SymbolicLink -Path "$HOME\.claude\CLAUDE.md" -Target "$HOME\.agents\AGENTS.md"
 ```
 
-Optional but recommended: install the global `hooks/baseline-guard/` so writes to `~/.agents`
-need your explicit approval (see its README). Per-project hooks and anchors are created by
-bootstrap, not here.
+**Required — install the global `hooks/baseline-guard/` into each agent's global config**
+(Claude `~/.claude/settings.json`, Codex `~/.codex/config.toml`, opencode
+`~/.config/opencode/plugin/`). It makes every write to `~/.agents` need your explicit approval,
+so an agent can't silently rewrite the shared baseline that every project copies from. This is the
+**one** guardrail bootstrap does NOT install — bootstrap never writes global config — so install it
+here, by hand, once per machine (and again whenever you add a new agent). Per-project hooks and
+anchors are created by bootstrap, not here.
 
 ## How a project is set up (bootstrap)
 
@@ -115,10 +119,16 @@ in `./.agents/REGISTRY.md`.
 
 ## Guardrails
 
-- **baseline-guard** (global): writing to `~/.agents` needs your explicit approval (native ask);
-  reading/copying from it is free.
+**Global — installed by hand, once per machine (bootstrap never writes global config):**
+- **baseline-guard**: every write to `~/.agents` needs your explicit approval (native ask);
+  reading/copying is free. Protects the shared baseline. The sole global guardrail.
+
+**Per-project — rendered from the `map.yaml` chain into the project at bootstrap:**
+- **secrets-guard** (rule `secrets`, PreToolUse): blocks read/write of secret files; exits cleanly otherwise.
+- **light-lint** (rules `quality-*`, PostToolUse, non-blocking): lints the edited file; no-op if no linter.
+
+**Git — installed unconditionally at bootstrap (into `.git/hooks/`):**
 - **git-quality-gate**: mandatory pre-commit/pre-push lint/type/test + an unconditional secret scan.
-- **secrets-guard / light-lint**: per-agent PreToolUse/PostToolUse hooks.
 
 ## Pointers
 
