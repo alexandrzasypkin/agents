@@ -27,6 +27,8 @@ rules:
   search-escalation:
     mcp:    [playwright]         # L3 browser; websearch/fetch are agent-native
     agents: [searcher]
+  browser-use:
+    mcp: [playwright]            # interactive browser: console-result vs UI/user-in-the-loop
 
   deploy-models:
     skills: [remote-tmux-ops]    # safe ssh->tmux server ops (deploy/inspect)
@@ -61,7 +63,7 @@ base: [rule-format, env-setup, project-docs, proof-loop, secrets, git-discipline
 # Final rule set = base ∪ rules of the selected domains (union dedups shared rules).
 types:
   coding:   [quality-py, quality-js, quality-bash, quality-perl, quality-cpp, code-search, code-review, user-docs]
-  web:      [quality-js, css-practices, seo, cf-wrangler, cf-auth, edge-compat, user-docs]
+  web:      [quality-js, css-practices, seo, cf-wrangler, cf-auth, edge-compat, browser-use, user-docs]
   research: [search-escalation, extract-docs, md2pdf, writing-style]
   office:   [md2pdf, extract-docs]
   data:     [viz-data, extract-docs]
@@ -69,4 +71,4 @@ types:
   db:       [cf-wrangler, cf-auth]
   content:  [seo, seo-analytics, md2pdf, writing-style, media]
   design:   [media]   # CLI media (ffmpeg/imagemagick); AI-gen models resolved per project
-  qa:       []   # approach; proof-loop is in base; qa plan-template attaches later
+  qa:       [browser-use]   # E2E/UI verification; proof-loop is in base
