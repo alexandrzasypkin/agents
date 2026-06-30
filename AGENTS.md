@@ -215,7 +215,7 @@ all other infrastructure under `./.agents/`:
 
 ```
 project/
-├── AGENTS.md  CLAUDE.md                              # ALWAYS: project source of truth + Claude shim
+├── AGENTS.md  CLAUDE.md                              # ALWAYS: AGENTS.md = project's own source of truth (real file); CLAUDE.md = symlink → AGENTS.md
 ├── opencode.json  .mcp.json                          # only if: opencode is used / project has MCP
 ├── .claude/settings.local.json  .codex/config.toml  .opencode/plugin/   # per-agent, only if hooks/permissions/MCP
 ├── .agents/                         # infrastructure, does not clutter the root
@@ -261,21 +261,23 @@ same name, different places. Steps:
    runtime formats. A snapshot (what was built and from which version) is written to
    `./.agents/generated/.agents.lock.yaml`. Copy by value (not a symlink).
 
-4. **Create the runtime anchors in the root.** **Always:** `./AGENTS.md` (project source of
-   truth + pointer) and `./CLAUDE.md` (the Claude shim). The per-agent files below are created
-   **only when there is content for that agent** — MCP servers, agent-hooks, or custom
-   permissions. A project with none of those gets just `AGENTS.md` + `CLAUDE.md`; the `.codex/`,
-   `.claude/`, `.opencode/` dirs are NOT created empty. These per-agent files are the **rendered
-   runtime** of the `.agents/` definitions — each agent loads MCP / hooks / permissions *natively
-   at startup* from its own config, so (unlike skills and rules, which it reads from `.agents/`
-   via the pointer) it cannot consume them from `.agents/`. The single source stays in `.agents/`
-   (`mcp-configs.yaml`, `hooks/`); bootstrap renders it per agent. MCP, when present, is rendered
-   from the step-3 configs into the per-agent formats:
+4. **Create the runtime anchors in the root.** **Always:** `./AGENTS.md` — the project's OWN
+   source of truth (pointer + behavioral rules + self-config), a **real file** — and `./CLAUDE.md`,
+   a **symlink → `./AGENTS.md`** (Claude Code reads only `CLAUDE.md` natively, so the link feeds
+   it the project's own `AGENTS.md`). This is the **only symlink** bootstrap creates in a project.
+   The per-agent files below are the **project's own native config files**, in the locations each
+   agent natively loads MCP / hooks / permissions from at startup (rules and skills, by contrast,
+   the agent reads from `.agents/` via the pointer — never from these). Bootstrap writes them once
+   at init from the baseline (`./.agents/mcp-configs.yaml`, `./.agents/hooks/`); afterwards they
+   are the project's own and may diverge. They are created **only when there is such content** —
+   MCP servers, agent-hooks, or custom permissions; a project with none gets just `AGENTS.md` +
+   `CLAUDE.md`, and the `.codex/`, `.claude/`, `.opencode/` dirs are NOT created empty. The
+   per-agent formats:
 
    | File | Purpose |
    |------|---------|
    | `./AGENTS.md` | Autonomous project source of truth. Read natively by codex and opencode. Holds the pointer and the self-configuration rule (below). |
-   | `./CLAUDE.md` | A shim `@AGENTS.md` in the root (next to `AGENTS.md`). Needed because Claude Code does not read `AGENTS.md` natively — only `CLAUDE.md`. The canon comes from the global symlink. |
+   | `./CLAUDE.md` | A **symlink → `./AGENTS.md`** (next to it). Needed because Claude Code does not read `AGENTS.md` natively — only `CLAUDE.md`; the link feeds it the project's own `AGENTS.md`. The global canon arrives separately via the global `~/.claude/CLAUDE.md` symlink. |
    | `./opencode.json` | Root required (opencode searches upward to the git root). `instructions` (the **OS-resolved** absolute path to the canon — `/home/<user>/.agents/AGENTS.md` on Linux/WSL2, `C:\Users\<user>\.agents\AGENTS.md` on Windows; resolve it for this machine, do not copy the example literally) + an `mcp` block. Returns the canon to context and does not expose `~`. **Only if opencode is used.** |
    | `./.mcp.json` | MCP servers for Claude Code (read separately from `CLAUDE.md`). **Only if the project has MCP.** |
    | `./.codex/config.toml` | MCP for codex: `[mcp_servers.<name>]`. Loaded only if the project is "trusted" (codex asks on first run). codex merges it with the global `~/.codex/config.toml` itself — project values take priority. **Only if codex has MCP or hooks.** |
