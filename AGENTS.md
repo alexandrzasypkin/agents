@@ -221,7 +221,7 @@ project/
 ├── .agents/                         # infrastructure, does not clutter the root
 │   ├── map.yaml  mcp-configs.yaml   # snapshot of the graph and configs (copy of the library)
 │   ├── REGISTRY.md                  # project adaptation log (why); empty if no changes
-│   ├── rules/ skills/ agents/ templates/ hooks/ plans/   # copy of the library (EDITABLE)
+│   ├── rules/ skills/ agents/ templates/ hooks/ plans/{active,done}/   # copy of the library (EDITABLE)
 │   └── generated/                   # bootstrap output (do not edit)
 │       └── .agents.lock.yaml        # snapshot: what was built and from which version
 └── <src, package.json, …>           # the project itself
@@ -233,7 +233,8 @@ same name, different places. Steps:
 1. **Lay down the `./.agents/` skeleton.** The files `map.yaml` and `mcp-configs.yaml`
    are copied (snapshot of the graph and configs), an empty `./.agents/REGISTRY.md` is
    created (adaptation log, filled in over the course of work), plus an **empty**
-   skeleton of folders (`rules/`, `skills/`, `agents/`, `templates/`, `hooks/`, `plans/`) and an
+   skeleton of folders (`rules/`, `skills/`, `agents/`, `templates/`, `hooks/`, and `plans/`
+   with its `active/` and `done/` subfolders) and an
    empty `./.agents/generated/`. The folders are empty — they are filled at step 3 by
    the map. The project copy is **editable** (unlike the immutable `~/.agents`). The
    root stays clean.
