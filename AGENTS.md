@@ -82,7 +82,8 @@ the map:
 - `skills/` — execution of the rule (the procedure);
 - `agents/` — the executor (subagent);
 - `templates/` — file templates (styles, configs);
-- `map.yaml` — the **link map** `rule ⇒ skills / agents / MCP / templates` (a logical graph, names only);
+- `hooks/` — deterministic guardrails (git hooks + agent PreToolUse/PostToolUse); a rule asks, a hook guarantees;
+- `map.yaml` — the **link map** `rule ⇒ skills / agents / MCP / templates / hooks` (a logical graph, names only);
 - `mcp-configs.yaml` — MCP configurations by name (`command`, `args`, `type`); from these bootstrap generates the runtime formats.
 
 **Bootstrap pulls a rule's chain by the map** — the rule itself deploys nothing, it only
@@ -97,6 +98,18 @@ declares its dependencies. Deployment happens in two cases:
 What is carried over is recorded in the local `AGENTS.md` via the pointer. The user
 creates their own skills the normal way (via `/` in the agent); they are not part of
 the map, but are recorded in `./.agents/REGISTRY.md` by the self-configuration rule.
+
+### Language policy
+
+- **Canon and library artifacts** (`rules/`, `skills/`, `agents/`, `templates/`, `hooks/`,
+  and the comments in `map.yaml` / `mcp-configs.yaml`) — **English**. They are
+  agent-oriented, cross-agent (Claude / Codex / opencode), and load into context; English
+  is the consistent, token-cheap, instruction-reliable choice.
+- **User-facing and output documents** — working notes (plans, findings) and anything the
+  agent **generates for the user** (reports, content, summaries) — **free language**: the
+  user's language or the target market's locale. The agent must NOT force English onto an
+  output; output language follows the audience (the `content` locale-by-market principle).
+- Code, commands, paths, tool names — always as-is, regardless of the surrounding language.
 
 ### `map.yaml` schema
 
@@ -150,6 +163,32 @@ playwright:
 # some-mcp: { type: local, command: some-mcp, args: [] }
 ```
 
+### Hooks
+
+Deterministic guardrails — *a rule asks, a hook guarantees*. A rule is a soft instruction
+the agent may forget on a long session; a hook fires on an event, mechanically. Two
+delivery mechanisms:
+
+- **Git hooks** (`pre-commit` / `pre-push`) — universal shell scripts in `.git/hooks/`,
+  identical for every agent and for no-agent use. They carry the **main** quality gate
+  (lint / typecheck / tests, dispatched by project language) plus a staged-secret scan.
+  Installed **unconditionally** at bootstrap (mandatory — BOOTSTRAP step 5); the main check
+  cannot be forgotten because it runs on the git event.
+- **Agent hooks** — fire on the agent's tool calls; **per-agent format** (no cross-agent
+  standard, unlike skills):
+  - Claude: `settings.json` `hooks` (PreToolUse / PostToolUse; exit 2 or JSON `permissionDecision` to block);
+  - Codex: `config.toml` hooks (event → matcher → handler; JSON on stdin; return JSON `permissionDecision:"deny"` to block — `async` is ignored, all hooks block);
+  - opencode: a JS/TS plugin under `.opencode/plugin/` exporting `tool.execute.before` (throw to block) / `tool.execute.after`.
+
+  Two baseline agent hooks: a **secrets-guard** (PreToolUse — block read/write/edit of secret
+  files; ties to the `secrets` rule) and a **light-lint** (PostToolUse — fast, non-blocking
+  lint of the just-edited file; ties to `quality-*`).
+
+The `hooks/` library folder holds the definitions (universal git scripts + per-agent
+agent-hook recipes). Bootstrap installs git hooks (step 5) and writes agent hooks into each
+agent's config/plugin (step 4). Like `mcp-configs.yaml`, agent-hook recipes are a **portable
+intent** — env-specifics resolve at bootstrap.
+
 ---
 
 ## BOOTSTRAP (only in an uninitialized folder)
@@ -177,7 +216,7 @@ project/
 ├── .agents/                         # infrastructure, does not clutter the root
 │   ├── map.yaml  mcp-configs.yaml   # snapshot of the graph and configs (copy of the library)
 │   ├── REGISTRY.md                  # project adaptation log (why); empty if no changes
-│   ├── rules/ skills/ agents/ templates/ plans/     # copy of the library (EDITABLE)
+│   ├── rules/ skills/ agents/ templates/ hooks/ plans/   # copy of the library (EDITABLE)
 │   └── generated/                   # bootstrap output (do not edit)
 │       └── .agents.lock.yaml        # snapshot: what was built and from which version
 └── <src, package.json, …>           # the project itself
@@ -189,7 +228,7 @@ same name, different places. Steps:
 1. **Lay down the `./.agents/` skeleton.** The files `map.yaml` and `mcp-configs.yaml`
    are copied (snapshot of the graph and configs), an empty `./.agents/REGISTRY.md` is
    created (adaptation log, filled in over the course of work), plus an **empty**
-   skeleton of folders (`rules/`, `skills/`, `agents/`, `templates/`, `plans/`) and an
+   skeleton of folders (`rules/`, `skills/`, `agents/`, `templates/`, `hooks/`, `plans/`) and an
    empty `./.agents/generated/`. The folders are empty — they are filled at step 3 by
    the map. The project copy is **editable** (unlike the immutable `~/.agents`). The
    root stays clean.
@@ -206,7 +245,7 @@ same name, different places. Steps:
 
 3. **Fill `./.agents/` and write the snapshot.** Resolve the rule set = `base` ∪ the rules
    of the selected domains (from `./.agents/map.yaml`). For each rule in that set,
-   `./.agents/map.yaml` (the local copy) is read, and into `./.agents/{rules,skills,agents,templates}`
+   `./.agents/map.yaml` (the local copy) is read, and into `./.agents/{rules,skills,agents,templates,hooks}`
    the rule itself and its linked chain are copied. Names in the map are files or folders
    in the corresponding library folder: a file is copied with its extension, a folder
    recursively whole. MCP names are resolved into an in-memory structure during bootstrap
@@ -251,10 +290,13 @@ same name, different places. Steps:
    args = []
    ```
 
-5. **`git init`** — only if `.git` is not found above in the tree (do not create a
-   nested repository). `.gitattributes` and `.editorconfig` (LF, UTF-8) are created
-   only if `git init` was performed (otherwise they land in someone else's parent repo) —
-   before the first commit, so they go into it right away.
+5. **`git init` + install git hooks (mandatory).** `git init` only if `.git` is not found
+   above in the tree (do not create a nested repository). `.gitattributes` and `.editorconfig`
+   (LF, UTF-8) are created only if `git init` was performed (otherwise they land in someone
+   else's parent repo) — before the first commit. Then **install the git hooks
+   unconditionally** (not a survey option): `pre-commit` (light gate on staged files + secret
+   scan) and `pre-push` (full quality gate), dispatching to the active `quality-*` rules by
+   project language. The main lint/test gate runs on the git event, so it cannot be forgotten.
 
 6. **Report** — print the list of what was created. Example:
    ```
@@ -364,6 +406,7 @@ Do not duplicate the contents of `map.yaml` — links are taken from `./.agents/
 ├── skills/           # skills, loaded on demand; cross-agent
 ├── agents/           # agent/subagent definitions for reuse
 ├── templates/        # file and config templates
+├── hooks/            # deterministic guardrails (git hooks + agent hooks)
 └── plans/            # plan stubs (may be empty)
 ```
 
