@@ -34,6 +34,7 @@ rules:
   seo:               {}
 
   # --- cross-domain instrumental ---
+  cf-auth:           {}          # CF API auth channels (OAuth / Global Key / Scoped Bearer); pick before any CF op
   cf-wrangler:
     skills: [cf-secrets]         # PENDING: CF-specific secrets procedure (list/put/rotate/distribute/check; from SKILL.md). cloudflare MCP is project-level — resolved per project (see rule).
   seo-analytics:     {}          # GSC MCP is project-level (not in baseline — see rule)
@@ -54,12 +55,12 @@ base: [rule-format, env-setup, project-docs, proof-loop, secrets, git-discipline
 # Final rule set = base ∪ rules of the selected domains (union dedups shared rules).
 types:
   coding:   [quality-py, quality-js, quality-bash, quality-perl, quality-cpp, code-search, user-docs]
-  web:      [quality-js, css-practices, seo, cf-wrangler, user-docs]
+  web:      [quality-js, css-practices, seo, cf-wrangler, cf-auth, user-docs]
   research: [search-escalation, extract-docs, md2pdf]
   office:   [md2pdf, extract-docs]
   data:     [viz-data, extract-docs]
-  devops:   [deploy-models, cf-wrangler]
-  db:       [cf-wrangler]
+  devops:   [deploy-models, cf-wrangler, cf-auth]
+  db:       [cf-wrangler, cf-auth]
   content:  [seo, seo-analytics, md2pdf]
   design:   []   # generative/terminal-graphics = CLI tools + future skills; no rule yet
   qa:       []   # approach; proof-loop is in base; qa plan-template attaches later

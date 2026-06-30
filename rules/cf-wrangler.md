@@ -12,11 +12,9 @@ Two paths — split by purpose:
 - management / queries (D1, KV) → Cloudflare MCP;
 - deploy, local dev, migrations → `wrangler` CLI.
 
-Access:
-
-- OAuth (`wrangler login`) — beware a different account may be logged in on the machine.
-- Scoped API token (`export CLOUDFLARE_API_TOKEN=…`) — main path for prod when OAuth points elsewhere.
-- Always `wrangler whoami` → verify `account_id` before a prod operation.
+Access: pick the auth channel (OAuth / Global API Key / Scoped Bearer Token) per `cf-auth` —
+a wrong header (`1000`/`9109`/`10000`) means the wrong channel, not a broken key. Always
+`wrangler whoami` → verify `account_id` before a prod operation.
 
 Chain: `wrangler` CLI + Cloudflare MCP (D1/KV/R2/Workers) + TS checks (`tsc`, `eslint`).
 Stack: TS, D1. Token handling → see `secrets`.
