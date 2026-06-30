@@ -9,7 +9,7 @@ rules:
   rule-format:       {}
 
   # --- coding quality gates (CLI tools, no skill needed) ---
-  quality-py:        {hooks: [light-lint]}   # PENDING light-lint: PostToolUse fast lint of the edited file
+  quality-py:        {hooks: [light-lint]}   # light-lint: PostToolUse fast lint of the edited file
   quality-js:        {hooks: [light-lint]}
   quality-bash:      {hooks: [light-lint]}
   quality-perl:      {hooks: [light-lint]}
