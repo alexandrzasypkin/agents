@@ -44,4 +44,6 @@ is marginally more reliable. Code, commands, paths, tool names stay as-is.
 ## Keep it thin
 
 If removing a line would not make the agent err, remove it. A bloated rule buries the
-part that matters (long context degrades attention).
+part that matters (long context degrades attention). Before adding a NEW rule, check it is
+not already covered by an existing one — a duplicate rule is bloat (this is the rule
+counterpart of `skill-creator`; rules need no separate creator, just this discipline).

@@ -405,7 +405,8 @@ The ladder, when the project needs a tool/skill/rule:
 Accounting: `./.agents/map.yaml` = WHAT is attached (the graph). `./.agents/REGISTRY.md` = WHY
 (change log: what, version/source, date, rationale). Write ONLY changes —
 no changes, the file is empty. Do not duplicate the graph in REGISTRY. Own skills
-(created via `/`) are also recorded in REGISTRY.
+(created via `/`) are also recorded in REGISTRY; author them via the `skill-creator`
+library skill (draft → forward-test → iterate).
 
 Autonomy boundaries:
 - adapting the PROJECT (layers 1–3) — without asking, standard;
