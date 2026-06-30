@@ -19,3 +19,5 @@ playwright:
 #               codex/opencode need their own Cloudflare MCP (remote) set up per project.
 # - gsc (Google Search Console): not configured anywhere; connect when a project needs it
 #               (auth: OAuth or service account).
+# - codegraph / gortex: structural code-index MCP; set up per project on measured grep-scan
+#               pain (see the code-search rule). Index is a regenerable, gitignored cache.

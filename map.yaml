@@ -14,6 +14,7 @@ rules:
   quality-bash:      {}
   quality-perl:      {}
   quality-cpp:       {}
+  code-search:       {}          # prefer structural index over grep; codegraph/gortex is project-level
 
   # --- behavioral ---
   env-setup:         {}
@@ -51,7 +52,7 @@ base: [rule-format, env-setup, project-docs, proof-loop, secrets, git-discipline
 # Selectable domains (survey multi-selects; a project may pick several).
 # Final rule set = base ∪ rules of the selected domains (union dedups shared rules).
 types:
-  coding:   [quality-py, quality-js, quality-bash, quality-perl, quality-cpp, user-docs]
+  coding:   [quality-py, quality-js, quality-bash, quality-perl, quality-cpp, code-search, user-docs]
   web:      [quality-js, css-practices, seo, cf-wrangler, user-docs]
   research: [search-escalation, extract-docs, md2pdf]
   office:   [md2pdf, extract-docs]
