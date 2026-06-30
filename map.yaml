@@ -2,7 +2,7 @@
 # All chain values are arrays of strings (file/folder names in the matching library folder).
 # A rule with `{}` has no chain: its text is self-contained (CLI tools / behavioral / living).
 # If a rule named in `base`/`types` is absent from `rules` — bootstrap skips it with a warning.
-# Skills/agents/templates referenced below but not yet built are marked PENDING.
+# All skills/agents/templates referenced below are built and present in the library.
 
 rules:
   # --- meta ---
@@ -45,16 +45,16 @@ rules:
   cf-free-tier:      {}          # WebFetch live CF limits before designing on a CF service (never from memory)
   i18n:              {}          # frontend localization: UI vs content layer, namespaced keys, all-locales
   cf-wrangler:
-    skills: [cf-secrets]         # PENDING: CF-specific secrets procedure (list/put/rotate/distribute/check; from SKILL.md). cloudflare MCP is project-level — resolved per project (see rule).
+    skills: [cf-secrets]         # CF-specific secrets procedure (list/put/rotate/distribute/check). cloudflare MCP is project-level — resolved per project (see rule).
   seo-analytics:     {}          # GSC MCP is project-level (not in baseline — see rule)
   media:
     skills: [ffmpeg-recipes]     # CLI media (ffmpeg/imagemagick) for content/design
 
   # --- domain pipelines ---
   md2pdf:
-    skills:    [md2pdf-convert]  # PENDING
-    agents:    [doc-converter]   # PENDING
-    templates: [pdf-style]       # PENDING
+    skills:    [md2pdf-convert]
+    agents:    [doc-converter]
+    templates: [pdf-style]
     # pandoc is a CLI tool (citations/office formats), not an MCP — handled in the skill
   extract-docs:      {}          # pdftotext/pandoc/tesseract are CLI tools, not MCP
   viz-data:          {}
