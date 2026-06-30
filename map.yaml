@@ -17,7 +17,8 @@ rules:
 
   # --- behavioral ---
   env-setup:         {}
-  project-docs:      {}          # docs/ source-of-truth + plans active/done + ADR; must-have
+  project-docs:      {}          # docs/ source-of-truth + plans active/done + ADR; must-have (base)
+  user-docs:         {}          # README + user docs (doc folder name varies); conditional (product surface)
   git-discipline:    {}
   proof-loop:        {}
   secrets:           {}          # universal PRINCIPLE (text-only): no values in chat/log/commit, gitignored. Concrete procedure is project-specific.
@@ -50,8 +51,8 @@ base: [rule-format, env-setup, project-docs, proof-loop, secrets, git-discipline
 # Selectable domains (survey multi-selects; a project may pick several).
 # Final rule set = base ∪ rules of the selected domains (union dedups shared rules).
 types:
-  coding:   [quality-py, quality-js, quality-bash, quality-perl, quality-cpp]
-  web:      [quality-js, css-practices, seo, cf-wrangler]
+  coding:   [quality-py, quality-js, quality-bash, quality-perl, quality-cpp, user-docs]
+  web:      [quality-js, css-practices, seo, cf-wrangler, user-docs]
   research: [search-escalation, extract-docs, md2pdf]
   office:   [md2pdf, extract-docs]
   data:     [viz-data, extract-docs]
