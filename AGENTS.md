@@ -361,7 +361,7 @@ but is absent from the local `./.agents/map.yaml` — take its chain from the fr
 
 ### What to write into the project `./AGENTS.md`
 
-The generated file must contain at least three blocks:
+The generated file must contain at least four blocks:
 
 ```markdown
 # <Project> — AGENTS.md
@@ -372,6 +372,21 @@ The generated file must contain at least three blocks:
 - Links and MCP configs: first the local `./.agents/map.yaml` + `./.agents/mcp-configs.yaml`; `~/.agents/...` — only to deploy a new rule. The build snapshot — in `.agents.lock.yaml`.
 - Adaptation registry: `./.agents/REGISTRY.md` — WHY something was added/changed (the WHAT graph — in `map.yaml`, do not duplicate).
 - On conflict the project wins (more specific overrides more general).
+
+## Behavioral rules (base seed — expand as you work)
+- **Think before coding.** State assumptions; if uncertain, ask. Present competing
+  interpretations — don't pick silently. Name what's unclear and stop. Push back when a simpler path exists.
+- **Simplicity first.** Minimum code that solves the problem — no speculative features,
+  abstractions, flexibility, or error handling for impossible cases. 200 lines that could be 50 → rewrite.
+- **Surgical changes.** Touch only what the request needs; every changed line traces to it.
+  Match existing style; don't refactor what isn't broken or delete pre-existing dead code (mention it).
+  Remove only the orphans your change created.
+- **Goal-driven + verify.** Turn the task into a verifiable goal; brief plan, per-step verification;
+  confirm by an independent check, not assertion (see `proof-loop`, `code-review`).
+
+The project agent **expands this section** with project-specific behavioral lessons learned
+during work (a living layer — append, don't restate the base). Behavioral lessons go here;
+tool/skill/rule adaptations go to `REGISTRY.md`.
 
 ## Self-configuration (adapt and explain)
 `~/.agents` provides a minimal shared baseline. Adapting to the project is standard work.
