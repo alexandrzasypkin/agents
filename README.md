@@ -45,6 +45,24 @@ permissions + hooks runtime anchor).
 final rule set = `base ∪ selected domains`. Library artifacts are **English**; a project's
 user-facing and output docs use the audience's language.
 
+## Setup
+
+The canon is attached to each agent by symlink, so it loads every session (even in an empty
+folder). After you have `~/.agents` — and whenever you install a new agent — link it:
+
+```bash
+ln -sfn ~/.agents/AGENTS.md ~/.codex/AGENTS.md    # Codex reads AGENTS.md
+ln -sfn ~/.agents/AGENTS.md ~/.claude/CLAUDE.md   # Claude reads CLAUDE.md (no native AGENTS.md)
+```
+
+opencode reads `~/.agents` natively and gets the canon path from each project's `opencode.json`
+(written at bootstrap) — no global symlink needed. On native Windows use `mklink` (Developer
+Mode) or run setup from Git Bash / WSL2.
+
+Optional but recommended: install the global `hooks/baseline-guard/` so writes to `~/.agents`
+need your explicit approval (see its README). Per-project hooks and anchors are created by
+bootstrap, not here.
+
 ## How a project is set up (bootstrap)
 
 A fresh agent in an uninitialized folder reads the canon and runs BOOTSTRAP: survey the
