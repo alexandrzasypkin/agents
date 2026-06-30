@@ -9,6 +9,8 @@ description: Handling secrets. Apply whenever a secret (key, token, password, cr
   called (`.env`, `.env.local`, `.dev.vars`, `.secrets`, vault, CI secrets).
 - Separate runtime-prod from local desired-state; what implements each is the project's choice.
 - Write secrets via a stdin pipe, not interactively (interactive entry leaks into shell history).
+- Never open a secret file with the `Read` tool — its values would enter your context/transcript.
+  To use a value, pipe it (`grep ^KEY= … | cut -d= -f2- | …`); it must never appear in chat.
 - Shred temp files holding secrets (`shred -u`). After changing a secret — redeploy.
 
 [CRITICAL] Never put a secret value in chat, logs, commits, or error messages.

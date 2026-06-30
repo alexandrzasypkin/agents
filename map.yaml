@@ -31,7 +31,7 @@ rules:
     mcp: [playwright]            # interactive browser: console-result vs UI/user-in-the-loop
 
   deploy-models:
-    skills: [remote-tmux-ops]    # safe ssh->tmux server ops (deploy/inspect)
+    skills: [remote-tmux-ops, deploy-verify, fastapi-scaffold]   # service lifecycle: scaffold, deploy+verify, remote ops
 
   # --- living (extend via self-config, do not freeze) ---
   css-practices:     {}
@@ -42,6 +42,8 @@ rules:
   cf-auth:           {}          # CF API auth channels (OAuth / Global Key / Scoped Bearer); pick before any CF op
   sql-migrations:    {}          # numbered immutable additive migrations + ledger (DB-agnostic)
   edge-compat:       {}          # CF Workers runtime constraints (no Node API, Web Crypto, edge-compat deps)
+  cf-free-tier:      {}          # WebFetch live CF limits before designing on a CF service (never from memory)
+  i18n:              {}          # frontend localization: UI vs content layer, namespaced keys, all-locales
   cf-wrangler:
     skills: [cf-secrets]         # PENDING: CF-specific secrets procedure (list/put/rotate/distribute/check; from SKILL.md). cloudflare MCP is project-level — resolved per project (see rule).
   seo-analytics:     {}          # GSC MCP is project-level (not in baseline — see rule)
@@ -64,12 +66,12 @@ base: [rule-format, env-setup, project-docs, proof-loop, secrets, git-discipline
 # Final rule set = base ∪ rules of the selected domains (union dedups shared rules).
 types:
   coding:   [quality-py, quality-js, quality-bash, quality-perl, quality-cpp, code-search, code-review, user-docs]
-  web:      [quality-js, css-practices, seo, cf-wrangler, cf-auth, edge-compat, browser-use, user-docs]
+  web:      [quality-js, css-practices, seo, cf-wrangler, cf-auth, edge-compat, cf-free-tier, i18n, browser-use, user-docs]
   research: [search-escalation, extract-docs, md2pdf, writing-style]
   office:   [md2pdf, extract-docs]
   data:     [viz-data, extract-docs]
-  devops:   [deploy-models, cf-wrangler, cf-auth, sql-migrations]
-  db:       [cf-wrangler, cf-auth, sql-migrations]
+  devops:   [deploy-models, cf-wrangler, cf-auth, sql-migrations, cf-free-tier]
+  db:       [cf-wrangler, cf-auth, sql-migrations, cf-free-tier]
   content:  [seo, seo-analytics, md2pdf, writing-style, media]
   design:   [media]   # CLI media (ffmpeg/imagemagick); AI-gen models resolved per project
   qa:       [browser-use]   # E2E/UI verification; proof-loop is in base
