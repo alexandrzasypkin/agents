@@ -266,7 +266,7 @@ same name, different places. Steps:
    |------|---------|
    | `./AGENTS.md` | Autonomous project source of truth. Read natively by codex and opencode. Holds the pointer and the self-configuration rule (below). |
    | `./CLAUDE.md` | A shim `@AGENTS.md` in the root (next to `AGENTS.md`). Needed because Claude Code does not read `AGENTS.md` natively — only `CLAUDE.md`. The canon comes from the global symlink. |
-   | `./opencode.json` | Root required (opencode searches upward to the git root). `instructions` (absolute path to the canon) + an `mcp` block. Returns the canon to context and does not expose `~`. |
+   | `./opencode.json` | Root required (opencode searches upward to the git root). `instructions` (the **OS-resolved** absolute path to the canon — `/home/<user>/.agents/AGENTS.md` on Linux/WSL2, `C:\Users\<user>\.agents\AGENTS.md` on Windows; resolve it for this machine, do not copy the example literally) + an `mcp` block. Returns the canon to context and does not expose `~`. |
    | `./.mcp.json` | MCP servers for Claude Code (read separately from `CLAUDE.md`). |
    | `./.codex/config.toml` | MCP for codex: `[mcp_servers.<name>]`. Loaded only if the project is "trusted" (codex asks on first run). codex merges it with the global `~/.codex/config.toml` itself — project values take priority. |
    | `./.claude/settings.local.json` | Local Claude settings/permissions. opencode has permissions in `opencode.json`, codex — in `config.toml`. There is no single cross-agent settings file. |
@@ -278,6 +278,7 @@ same name, different places. Steps:
 
    ```jsonc
    // ./opencode.json — the mcp key (type local/remote; command is an array)
+   // instructions: OS-resolved absolute canon path (Windows: C:\Users\<user>\.agents\AGENTS.md)
    {
      "instructions": ["/home/<user>/.agents/AGENTS.md"],
      "mcp": { "pandoc-mcp": { "type": "local", "command": ["pandoc-mcp"], "enabled": true } }
@@ -333,7 +334,7 @@ reproducibility and provenance without reaching into `~/.agents`:
 
 ```yaml
 # ./.agents/generated/.agents.lock.yaml
-source: /home/<user>/.agents   # absolute path (not ~)
+source: /home/<user>/.agents   # absolute path (not ~); OS-resolved (Windows: C:\Users\<user>\.agents)
 commit: abc123                # git rev-parse HEAD (if ~/.agents is a git repo; otherwise empty or a date)
 generated_at: 2026-06-26T12:00:00Z
 domains:  [research]          # multi-select; base is always included on top
