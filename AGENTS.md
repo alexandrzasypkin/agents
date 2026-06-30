@@ -265,8 +265,12 @@ same name, different places. Steps:
    truth + pointer) and `./CLAUDE.md` (the Claude shim). The per-agent files below are created
    **only when there is content for that agent** — MCP servers, agent-hooks, or custom
    permissions. A project with none of those gets just `AGENTS.md` + `CLAUDE.md`; the `.codex/`,
-   `.claude/`, `.opencode/` dirs are NOT created empty. MCP, when present, is deployed from the
-   step-3 configs into the per-agent formats:
+   `.claude/`, `.opencode/` dirs are NOT created empty. These per-agent files are the **rendered
+   runtime** of the `.agents/` definitions — each agent loads MCP / hooks / permissions *natively
+   at startup* from its own config, so (unlike skills and rules, which it reads from `.agents/`
+   via the pointer) it cannot consume them from `.agents/`. The single source stays in `.agents/`
+   (`mcp-configs.yaml`, `hooks/`); bootstrap renders it per agent. MCP, when present, is rendered
+   from the step-3 configs into the per-agent formats:
 
    | File | Purpose |
    |------|---------|
