@@ -42,6 +42,8 @@ rules:
   cf-wrangler:
     skills: [cf-secrets]         # PENDING: CF-specific secrets procedure (list/put/rotate/distribute/check; from SKILL.md). cloudflare MCP is project-level — resolved per project (see rule).
   seo-analytics:     {}          # GSC MCP is project-level (not in baseline — see rule)
+  media:
+    skills: [ffmpeg-recipes]     # CLI media (ffmpeg/imagemagick) for content/design
 
   # --- domain pipelines ---
   md2pdf:
@@ -65,6 +67,6 @@ types:
   data:     [viz-data, extract-docs]
   devops:   [deploy-models, cf-wrangler, cf-auth]
   db:       [cf-wrangler, cf-auth]
-  content:  [seo, seo-analytics, md2pdf, writing-style]
-  design:   []   # generative/terminal-graphics = CLI tools + future skills; no rule yet
+  content:  [seo, seo-analytics, md2pdf, writing-style, media]
+  design:   [media]   # CLI media (ffmpeg/imagemagick); AI-gen models resolved per project
   qa:       []   # approach; proof-loop is in base; qa plan-template attaches later
