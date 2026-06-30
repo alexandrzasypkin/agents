@@ -1,0 +1,38 @@
+/* pdf-style — baseline A4 document CSS for md2pdf-convert (weasyprint).
+   Brand-neutral. Copy into a project and customize: --accent color, masthead/logo, badges.
+   The single accent below is the main thing to rebrand per project. */
+
+@page {
+  size: A4; margin: 18mm 17mm 16mm 17mm;
+  @top-right    { content: string(doctitle); font-family:'DejaVu Sans'; font-size:7.5pt; color:#a1a1aa; }
+  @bottom-right { content: "p. " counter(page) " / " counter(pages);
+                  font-family:'DejaVu Sans'; font-size:7.5pt; color:#a1a1aa; }
+}
+@page :first { @top-right { content:""; } }
+
+:root { /* rebrand here */ }
+* { box-sizing:border-box; }
+body { font-family:'DejaVu Sans', sans-serif; font-size:10pt; line-height:1.5; color:#1c2426; }
+
+/* accent line at the top — set your brand color here */
+.topbar { height:4px; background:#2b7a78; margin:-2mm 0 7mm 0; border-radius:2px; }
+
+h1 { font-size:20pt; color:#13141c; margin:0 0 2pt 0; line-height:1.18; string-set: doctitle content(); }
+h2 { font-size:13pt; color:#13141c; margin:19pt 0 7pt 0; padding-bottom:3pt;
+     border-bottom:2px solid #2b7a78; page-break-after:avoid; }
+h3 { font-size:11pt; color:#2b7a78; margin:12pt 0 5pt 0; page-break-after:avoid; }
+h2 + p, h2 + ul, h2 + ol, h2 + table { page-break-before:avoid; }
+p { margin:6pt 0; } ul,ol { margin:6pt 0; padding-left:18pt; } li { margin:3pt 0; }
+strong { color:#13141c; }
+
+code { font-family:'DejaVu Sans Mono',monospace; font-size:8.6pt; background:#eef3f2;
+       padding:0.5pt 3pt; border-radius:3px; color:#0a6b5e; }
+blockquote { margin:8pt 0; padding:7pt 11pt; background:#f2f8f7; border-left:3px solid #2b7a78;
+             color:#2f3e42; font-size:9pt; border-radius:0 4px 4px 0; }
+
+table { width:100%; border-collapse:collapse; margin:9pt 0; font-size:8.8pt; }
+thead { display:table-header-group; }
+th { background:#13141c; color:#fff; text-align:left; padding:5pt 7pt; }
+td { padding:4.5pt 7pt; border-bottom:1px solid #e2ece9; vertical-align:top; }
+tbody tr:nth-child(even) { background:#f5faf9; } tr { page-break-inside:avoid; }
+hr { border:none; border-top:1px solid #dbeae6; margin:13pt 0; }
