@@ -11,7 +11,7 @@ event, so it cannot be forgotten (see the canon Hooks section + BOOTSTRAP step 5
 
 ## What it runs
 - **pre-commit** (fast): staged-secret scan + linters for the languages present
-  (ruff / eslint|npm-lint / shellcheck / perl -c / g++ -fsyntax-only).
+  (ruff / eslint|npm-lint / `bash -n` + shellcheck / perl -c / g++ -fsyntax-only).
 - **pre-push** (full): the above + type-check (pyright / tsc) + tests (pytest / npm test).
 
 The **secret scan is built-in (grep) and unconditional** — it is NEVER skip-if-missing

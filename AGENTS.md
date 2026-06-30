@@ -189,6 +189,11 @@ agent-hook recipes). Bootstrap installs git hooks (step 5) and writes agent hook
 agent's config/plugin (step 4). Like `mcp-configs.yaml`, agent-hook recipes are a **portable
 intent** — env-specifics resolve at bootstrap.
 
+All hook scripts (the git gate and the secrets-guard/light-lint helpers) are POSIX shell —
+they run on Linux, WSL2, macOS, and Windows via Git Bash (Git for Windows bundles `sh`, so
+git hooks execute). On native Windows without a POSIX shell the agent adapts per its
+environment inventory (e.g. Claude's `shell: powershell`); no per-OS matrix is shipped.
+
 ---
 
 ## BOOTSTRAP (only in an uninitialized folder)
