@@ -1,0 +1,8 @@
+# Merge into the GLOBAL ~/.codex/config.toml (not a project file).
+[[hooks.PreToolUse]]
+matcher = "apply_patch|Bash"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = 'bash "$HOME/.agents/hooks/baseline-guard/guard.sh"'
+statusMessage = "baseline-guard"
