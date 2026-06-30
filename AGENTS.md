@@ -132,19 +132,22 @@ types:                            # selectable domains (multi-select) ⇒ set of
 ### `mcp-configs.yaml` schema
 
 The map stores only MCP names; their configurations are here, by name. Bootstrap takes
-the name from the map, the config from here, and deploys it into the agents' runtime
-formats.
+the name from the map, the config from here, and deploys it into the agents' runtime formats.
+
+This file is a **portable recipe, not frozen machine state**. Env-specifics (absolute paths,
+ports, whether a server is running) are NOT hardcoded — bootstrap resolves them by
+inventorying the environment and records the resolved value in the project, not the baseline
+(same principle as the cross-cutting CLI tools). A config may be **per-agent**: the same
+logical MCP can use a different transport per agent.
 
 ```yaml
 # ~/.agents/mcp-configs.yaml
-pandoc-mcp:
-  type: local            # local | remote
-  command: pandoc-mcp
-  args: []
-git-mcp:
-  type: local
-  command: git-mcp
-  args: []
+playwright:
+  claude:   { type: stdio,  command: playwright-mcp }          # binary name, resolve via PATH
+  codex:    { type: remote, url: "<resolve at bootstrap>" }    # e.g. local server :8931
+  opencode: { type: stdio,  command: playwright-mcp }
+# A simple, agent-uniform MCP may use a flat form instead:
+# some-mcp: { type: local, command: some-mcp, args: [] }
 ```
 
 ---

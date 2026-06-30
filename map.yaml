@@ -31,10 +31,8 @@ rules:
   seo:               {}
 
   # --- cross-domain instrumental ---
-  cf-wrangler:
-    mcp: [cloudflare]            # CF MCP for D1/KV/R2/Workers; wrangler is CLI
-  seo-analytics:
-    mcp: [gsc]                   # Google Search Console MCP; Playwright fallback
+  cf-wrangler:       {}          # CF MCP is project-level (claude.ai-managed / per-project — see rule); wrangler is CLI
+  seo-analytics:     {}          # GSC MCP is project-level (not in baseline — see rule)
 
   # --- domain pipelines ---
   md2pdf:

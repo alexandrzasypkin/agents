@@ -1,0 +1,21 @@
+# ~/.agents/mcp-configs.yaml — PORTABLE RECIPE, not frozen machine state.
+#
+# Env-specifics (absolute paths, ports, whether a server is running) are NOT hardcoded here.
+# Bootstrap resolves them by inventorying the environment (command -v, running server, ...),
+# writes the resolved config into the project (./.mcp.json / ./.codex/config.toml /
+# ./opencode.json) and records it in ./.agents/REGISTRY.md. Baseline = intent; agent resolves
+# the concrete value — same principle as the cross-cutting CLI tools.
+#
+# A config may be PER-AGENT: the same logical MCP can use a different transport per agent.
+
+playwright:
+  # Browser automation MCP (research L3 / web / qa). Transport differs per agent.
+  claude:   { type: stdio,  command: playwright-mcp }          # binary name; resolve via PATH, not an absolute path
+  codex:    { type: remote, url: "<resolve at bootstrap>" }    # local playwright server; resolve port (convention :8931 shared / :8932 headed)
+  opencode: { type: stdio,  command: playwright-mcp }
+
+# NOT in the baseline — project-level self-config (record in REGISTRY when attached):
+# - cloudflare: claude.ai-managed integration for Claude (account-level, no local command);
+#               codex/opencode need their own Cloudflare MCP (remote) set up per project.
+# - gsc (Google Search Console): not configured anywhere; connect when a project needs it
+#               (auth: OAuth or service account).
