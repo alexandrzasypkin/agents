@@ -8,7 +8,9 @@ description: Git hygiene. Apply in any project under version control.
 - Commit after each completed step of a task — small, traceable commits.
 - Stage explicit paths (`git add <files>`), not `git add -A` by default — guards against
   committing secrets or generated artifacts.
-- Commit message: `<scope>: <imperative summary>`; add a body for details when needed.
+- Commit message: Conventional Commits — `<type>(<scope>): <imperative summary>`, where
+  `type` ∈ feat / fix / docs / refactor / test / chore / perf. Body explains **why** (not
+  what — the diff shows what) when non-trivial; footer for refs / trailers. **No emoji.**
 - Do not push to `main` directly without an explicit request — work via a branch/PR or an
   explicit merge after review.
 - Do not skip pre-commit / pre-push hooks without an explicit request.
