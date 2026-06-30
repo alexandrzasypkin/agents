@@ -290,6 +290,14 @@ same name, different places. Steps:
    args = []
    ```
 
+   **Config assembly (uniform across agents).** When several fragments target one agent file
+   — permissions, MCP, and agent hooks (secrets-guard, light-lint) — bootstrap **deep-merges**
+   them, it does not overwrite: object keys union, arrays append (Claude `settings.local.json`
+   `hooks.PreToolUse[]`; codex `config.toml` repeated `[[hooks.PreToolUse]]`). opencode keeps
+   each hook as its own `.opencode/plugin/<name>.ts` (no merge) and merges only MCP/permissions
+   into `opencode.json`. If a target file already exists — merge into it, never clobber an
+   existing block (same rule as the anchors above).
+
 5. **`git init` + install git hooks (mandatory).** `git init` only if `.git` is not found
    above in the tree (do not create a nested repository). `.gitattributes` and `.editorconfig`
    (LF, UTF-8) are created only if `git init` was performed (otherwise they land in someone

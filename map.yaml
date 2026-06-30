@@ -9,11 +9,11 @@ rules:
   rule-format:       {}
 
   # --- coding quality gates (CLI tools, no skill needed) ---
-  quality-py:        {}
-  quality-js:        {}
-  quality-bash:      {}
-  quality-perl:      {}
-  quality-cpp:       {}
+  quality-py:        {hooks: [light-lint]}   # PENDING light-lint: PostToolUse fast lint of the edited file
+  quality-js:        {hooks: [light-lint]}
+  quality-bash:      {hooks: [light-lint]}
+  quality-perl:      {hooks: [light-lint]}
+  quality-cpp:       {hooks: [light-lint]}
   code-search:       {}          # prefer structural index over grep; codegraph/gortex is project-level
 
   # --- behavioral ---
@@ -22,7 +22,7 @@ rules:
   user-docs:         {}          # README + user docs (doc folder name varies); conditional (product surface)
   git-discipline:    {}
   proof-loop:        {}
-  secrets:           {}          # universal PRINCIPLE (text-only): no values in chat/log/commit, gitignored. Concrete procedure is project-specific.
+  secrets:           {hooks: [secrets-guard]}   # principle (text); PreToolUse guard blocks read/write of secret files
   search-escalation:
     mcp: [playwright]            # L3 browser; websearch/fetch are agent-native
 
