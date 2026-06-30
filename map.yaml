@@ -22,6 +22,7 @@ rules:
   user-docs:         {}          # README + user docs (doc folder name varies); conditional (product surface)
   git-discipline:    {}
   proof-loop:        {}
+  code-review:       {}          # review protocol: gates -> trace -> Critical/Warning/Info
   secrets:           {hooks: [secrets-guard]}   # principle (text); PreToolUse guard blocks read/write of secret files
   search-escalation:
     mcp: [playwright]            # L3 browser; websearch/fetch are agent-native
@@ -35,6 +36,7 @@ rules:
 
   # --- cross-domain instrumental ---
   cf-auth:           {}          # CF API auth channels (OAuth / Global Key / Scoped Bearer); pick before any CF op
+  edge-compat:       {}          # CF Workers runtime constraints (no Node API, Web Crypto, edge-compat deps)
   cf-wrangler:
     skills: [cf-secrets]         # PENDING: CF-specific secrets procedure (list/put/rotate/distribute/check; from SKILL.md). cloudflare MCP is project-level — resolved per project (see rule).
   seo-analytics:     {}          # GSC MCP is project-level (not in baseline — see rule)
@@ -54,8 +56,8 @@ base: [rule-format, env-setup, project-docs, proof-loop, secrets, git-discipline
 # Selectable domains (survey multi-selects; a project may pick several).
 # Final rule set = base ∪ rules of the selected domains (union dedups shared rules).
 types:
-  coding:   [quality-py, quality-js, quality-bash, quality-perl, quality-cpp, code-search, user-docs]
-  web:      [quality-js, css-practices, seo, cf-wrangler, cf-auth, user-docs]
+  coding:   [quality-py, quality-js, quality-bash, quality-perl, quality-cpp, code-search, code-review, user-docs]
+  web:      [quality-js, css-practices, seo, cf-wrangler, cf-auth, edge-compat, user-docs]
   research: [search-escalation, extract-docs, md2pdf]
   office:   [md2pdf, extract-docs]
   data:     [viz-data, extract-docs]
