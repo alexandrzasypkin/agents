@@ -56,8 +56,20 @@ ln -sfn ~/.agents/AGENTS.md ~/.claude/CLAUDE.md   # Claude reads CLAUDE.md (no n
 ```
 
 opencode reads `~/.agents` natively and gets the canon path from each project's `opencode.json`
-(written at bootstrap) — no global symlink needed. On native Windows use `mklink` (Developer
-Mode) or run setup from Git Bash / WSL2.
+(written at bootstrap) — no global symlink needed.
+
+On native Windows the `ln` form works from Git Bash / WSL2. In cmd or PowerShell create the
+links directly — needs Developer Mode on (or an elevated shell), the parent dirs must exist,
+and the link/target order is the **reverse** of `ln`:
+
+```cmd
+mklink "%USERPROFILE%\.codex\AGENTS.md"  "%USERPROFILE%\.agents\AGENTS.md"
+mklink "%USERPROFILE%\.claude\CLAUDE.md" "%USERPROFILE%\.agents\AGENTS.md"
+```
+```powershell
+New-Item -ItemType SymbolicLink -Path "$HOME\.codex\AGENTS.md"  -Target "$HOME\.agents\AGENTS.md"
+New-Item -ItemType SymbolicLink -Path "$HOME\.claude\CLAUDE.md" -Target "$HOME\.agents\AGENTS.md"
+```
 
 Optional but recommended: install the global `hooks/baseline-guard/` so writes to `~/.agents`
 need your explicit approval (see its README). Per-project hooks and anchors are created by
