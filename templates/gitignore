@@ -1,0 +1,32 @@
+# Baseline .gitignore — bootstrap copies this to ./.gitignore at git init.
+# Extend per project for its stack (see the env-setup rule). Lock file in
+# .agents/generated/ IS committed (provenance) — do not ignore it.
+
+# secrets — never commit (templates like .env.example are kept)
+.env
+.env.*
+!.env.example
+.dev.vars
+.secrets
+*.pem
+id_rsa
+id_ed25519
+
+# dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+
+# build / generated artifacts
+dist/
+build/
+.astro/
+.wrangler/
+*.log
+
+# code index cache (code-search)
+.codegraph/
+
+# OS junk
+.DS_Store
