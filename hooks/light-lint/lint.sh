@@ -2,6 +2,7 @@
 # light-lint — PostToolUse hook: fast, NON-BLOCKING lint of the just-edited file(s).
 # Reads the tool-call JSON on stdin, lints changed files by extension, ALWAYS exits 0
 # (info only — feedback to the agent on stderr). Skip-if-missing (a convenience, not a gate).
+[ -n "${AGENTS_DEBUG:-}" ] && set -x   # opt-in trace: AGENTS_DEBUG=1
 have() { command -v "$1" >/dev/null 2>&1; }
 
 lint_one() {

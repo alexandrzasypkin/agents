@@ -8,8 +8,12 @@ Deps: pip install markdown weasyprint   (default font: DejaVu Sans).
 from __future__ import annotations
 
 import argparse
+import html as _html
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 try:
@@ -52,9 +56,38 @@ def render(md: str) -> str:
     )
 
 
+_MERMAID = re.compile(r'<pre><code class="(?:language-)?mermaid">(.*?)</code></pre>', re.S)
+
+
+def render_mermaid(html_body: str) -> str:
+    """Render ```mermaid``` blocks to inline SVG via mmdc. weasyprint runs no JS, so the
+    diagram is rendered at build time. Fallback (no mmdc/Chromium): keep the block + a
+    disclosure note, never fail."""
+    if "mermaid" not in html_body:
+        return html_body
+    have_mmdc = shutil.which("mmdc") is not None
+
+    def repl(m: re.Match[str]) -> str:
+        src = _html.unescape(m.group(1))
+        if have_mmdc:
+            try:
+                with tempfile.TemporaryDirectory() as d:
+                    inp, out = Path(d) / "d.mmd", Path(d) / "d.svg"
+                    inp.write_text(src, encoding="utf-8")
+                    subprocess.run(["mmdc", "-i", str(inp), "-o", str(out), "-b", "white"],
+                                   check=True, capture_output=True)
+                    return f'<div class="mermaid">{out.read_text(encoding="utf-8")}</div>'
+            except Exception:  # pragma: no cover  # fall through to disclosure
+                pass
+        return (f'<div class="mermaid-fallback"><em>(diagram not rendered — mmdc/Chromium '
+                f'unavailable)</em>{m.group(0)}</div>')
+
+    return _MERMAID.sub(repl, html_body)
+
+
 def convert(src: Path, out: Path, style: Path | None) -> Path:
     css = style.read_text(encoding="utf-8") if style and style.exists() else DEFAULT_CSS
-    body = render(preprocess(src.read_text(encoding="utf-8")))
+    body = render_mermaid(render(preprocess(src.read_text(encoding="utf-8"))))
     html = (f'<!DOCTYPE html><html><head><meta charset="utf-8">'
             f'<style>{css}</style></head><body>{body}</body></html>')
     HTML(string=html).write_pdf(str(out))

@@ -4,6 +4,7 @@
 # Reads the tool-call JSON on stdin; checks file paths AND shell commands (cross-agent,
 # catches e.g. `cat .env`). *.example/.sample/.template are allowed (templates).
 # python3 absent -> fail-open (allow); python3 is always present in our baseline.
+[ -n "${AGENTS_DEBUG:-}" ] && set -x   # opt-in trace: AGENTS_DEBUG=1
 mode="${1:---claude}"
 verdict="$(python3 -c '
 import sys,json,re

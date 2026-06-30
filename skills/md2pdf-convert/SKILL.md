@@ -21,10 +21,11 @@ priority badges, confidence markers) belongs to the **project** — pass `--styl
 project CSS generalized from the `pdf-style` template. Do not hardcode brand specifics in
 the baseline script.
 
-## mermaid (optional +1 step)
-weasyprint runs no JS. To include mermaid: preprocess ```` ```mermaid ```` blocks -> mmdc ->
-SVG -> inline into the HTML. Fallback (no Chromium/mmdc): keep the code block + a disclosure
-note, do not fail. See the `md2pdf` rule for the path choice (weasyprint vs Playwright vs LaTeX).
+## mermaid
+Built in: ```` ```mermaid ```` blocks are rendered to inline SVG via `mmdc` at build time
+(weasyprint runs no JS). Fallback if `mmdc`/Chromium is unavailable — the block is kept with
+a disclosure note, never fails. `mmdc` needs Chromium (heavy, WSL2-finicky) — install it only
+when you need diagrams. See the `md2pdf` rule for the path choice (weasyprint vs Playwright vs LaTeX).
 
 ## Verify
 Open/inspect the produced PDF before declaring done (proof-loop).

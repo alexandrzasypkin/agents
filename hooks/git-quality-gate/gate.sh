@@ -7,6 +7,7 @@
 # (install-when-needed is a project decision; see the env-setup rule).
 
 set -uo pipefail
+[ -n "${AGENTS_DEBUG:-}" ] && set -x   # opt-in trace: AGENTS_DEBUG=1
 mode="${1:-commit}"
 root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 cd "$root" || exit 0
