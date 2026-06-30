@@ -26,7 +26,8 @@ rules:
   search-escalation:
     mcp: [playwright]            # L3 browser; websearch/fetch are agent-native
 
-  deploy-models:     {}
+  deploy-models:
+    skills: [remote-tmux-ops]    # safe ssh->tmux server ops (deploy/inspect)
 
   # --- living (extend via self-config, do not freeze) ---
   css-practices:     {}
