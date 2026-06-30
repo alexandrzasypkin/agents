@@ -224,7 +224,7 @@ project/
 │   ├── rules/ skills/ agents/ templates/ hooks/ plans/{active,done}/   # copy of the library (EDITABLE)
 │   └── generated/                   # bootstrap output (do not edit)
 │       └── .agents.lock.yaml        # snapshot: what was built and from which version
-└── <src, package.json, …>           # the project itself
+└── …                                # the project's OWN existing files (src/, package.json, …) — bootstrap does NOT create these
 ```
 
 `~/.agents` (source, immutable) and `./.agents` (copy in the project, editable) —
@@ -237,7 +237,9 @@ same name, different places. Steps:
    with its `active/` and `done/` subfolders) and an
    empty `./.agents/generated/`. The folders are empty — they are filled at step 3 by
    the map. The project copy is **editable** (unlike the immutable `~/.agents`). The
-   root stays clean.
+   root stays clean. Bootstrap creates ONLY the runtime anchors and the `./.agents/`
+   skeleton — it never creates or edits the project's own source (no `src/`, `package.json`,
+   etc.); those belong to the project and are left untouched.
 
 2. **Survey.** The main question — the project's **domains**: a **multi-select** from the
    domains in `./.agents/map.yaml` (`types`). Do not hardcode the domain list here — it is
