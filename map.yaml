@@ -40,6 +40,7 @@ rules:
 
   # --- cross-domain instrumental ---
   cf-auth:           {}          # CF API auth channels (OAuth / Global Key / Scoped Bearer); pick before any CF op
+  sql-migrations:    {}          # numbered immutable additive migrations + ledger (DB-agnostic)
   edge-compat:       {}          # CF Workers runtime constraints (no Node API, Web Crypto, edge-compat deps)
   cf-wrangler:
     skills: [cf-secrets]         # PENDING: CF-specific secrets procedure (list/put/rotate/distribute/check; from SKILL.md). cloudflare MCP is project-level — resolved per project (see rule).
@@ -67,8 +68,8 @@ types:
   research: [search-escalation, extract-docs, md2pdf, writing-style]
   office:   [md2pdf, extract-docs]
   data:     [viz-data, extract-docs]
-  devops:   [deploy-models, cf-wrangler, cf-auth]
-  db:       [cf-wrangler, cf-auth]
+  devops:   [deploy-models, cf-wrangler, cf-auth, sql-migrations]
+  db:       [cf-wrangler, cf-auth, sql-migrations]
   content:  [seo, seo-analytics, md2pdf, writing-style, media]
   design:   [media]   # CLI media (ffmpeg/imagemagick); AI-gen models resolved per project
   qa:       [browser-use]   # E2E/UI verification; proof-loop is in base
