@@ -144,38 +144,39 @@ types:                            # selectable domains (multi-select) ⇒ set of
 
 ### `mcp-configs.yaml` schema
 
-The map stores only MCP names; their configurations are here, by name. Bootstrap takes
-the name from the map, the config from here, and deploys it into the agents' runtime formats.
+The map stores only MCP names; their configurations are here, by name. Bootstrap takes the name
+from the map and the config from here; **project-bound** MCP it deploys into the agents' runtime
+formats, **global-infra** MCP it leaves at the machine level (see the two classes below).
 
 This file is a **portable recipe, not frozen machine state**. Env-specifics (absolute paths,
-ports, whether a server is running) are NOT hardcoded — bootstrap resolves them by
-inventorying the environment and records the resolved value in the project, not the baseline
-(same principle as the cross-cutting CLI tools). A config may be **per-agent**: the same
-logical MCP can use a different transport per agent.
+ports, whether a server is running) are NOT hardcoded — bootstrap resolves them by inventorying
+the environment.
 
-**Per-OS launcher resolution (npx/node stdio MCP).** A stdio MCP whose command is `npx`/`node`
-is rendered per OS, because Node's `child_process.spawn` (used by stdio launchers like Claude's
-`.mcp.json`) cannot resolve `npx.cmd` on native Windows → `spawn npx ENOENT`. So at bootstrap:
-- **POSIX** (Linux / macOS / WSL2 / Git-Bash) — render the command **as-is**, no wrapper. This is
-  the value the recipe stores (the working baseline); it is never altered.
-- **Native Windows** (PowerShell/cmd, no POSIX `sh`) — wrap it `cmd /c npx -y <pkg>` (or use the
-  absolute `…\npx.cmd`). Any browser/path-specific flags that only Windows needs (e.g. playwright's
-  `--browser chrome`, which registry-resolves Chrome) are added **here only**, never on POSIX.
+**Two classes — the same global/local split as hooks & permissions** (*is the MCP tied to THIS
+project's account / resource / repo?*):
+- **GLOBAL infra** — shared, tied to no project (e.g. `playwright`, a shared browser server).
+  Installed **once per machine** at Setup (like `baseline-guard`) into each agent's GLOBAL config.
+  Bootstrap does **NOT** render it into project configs — a project that needs it simply USES the
+  global server. Marked `scope: global` in the recipe.
+- **PROJECT-BOUND** — tied to an account/site/repo (cloudflare, gsc, codegraph). Rendered
+  per-project into the project's native MCP config and recorded in REGISTRY.
 
-This is the same env-inventory step as paths/ports above — the recipe holds the logical server and
-the POSIX-resolved default; the per-agent native file gets the OS-correct launcher. A project
-bootstrapped on Linux keeps the bare command; one bootstrapped on Windows gets the wrapper. (A
-Linux-rendered config later opened on native Windows is re-resolved by self-config on first
-`ENOENT`, logged in REGISTRY — the cross-OS edge, not the common path.)
+So bootstrap writes per-project **only project-bound MCP**; shared infra stays machine-level (never
+duplicated into `./.mcp.json` / `./.codex/config.toml`).
+
+**Per-OS launcher resolution (npx/node stdio MCP).** When a stdio MCP's command is `npx`/`node`,
+Node's `child_process.spawn` cannot resolve `npx.cmd` on native Windows → `spawn npx ENOENT`. So
+whoever writes it (the machine-level global install, or a project-bound npx MCP): **POSIX** (Linux /
+macOS / WSL2 / Git-Bash) renders the command **as-is**; **native Windows** wraps it `cmd /c npx -y
+<pkg>` (or the absolute `…\npx.cmd`). Windows-only flags (e.g. playwright's `--browser chrome`, which
+registry-resolves Chrome) are added there only, never on POSIX.
 
 ```yaml
-# ~/.agents/mcp-configs.yaml
-playwright:
-  claude:   { type: stdio,  command: playwright-mcp }          # POSIX default; native Windows → cmd /c npx wrapper (see rule above)
-  codex:    { type: remote, url: "<resolve at bootstrap>" }    # e.g. local server :8931 (9222 = Chrome CDP, separate layer)
-  opencode: { type: stdio,  command: playwright-mcp }          # POSIX default; native Windows → cmd /c npx wrapper
-# A simple, agent-uniform MCP may use a flat form instead:
-# some-mcp: { type: local, command: some-mcp, args: [] }
+# ~/.agents/mcp-configs.yaml — two classes:
+playwright:           # GLOBAL infra — installed once per machine, NOT rendered per-project
+  scope: global       #   Claude/opencode stdio `playwright-mcp` (POSIX) / cmd /c npx (Windows);
+                      #   codex remote http://localhost:8931/mcp (streamable-HTTP /mcp, not /sse)
+# PROJECT-BOUND (rendered per-project, logged in REGISTRY): cloudflare / gsc / codegraph
 ```
 
 ### Hooks
@@ -272,8 +273,9 @@ same name, different places. Steps:
    the rule itself and its linked chain are copied. Names in the map are files or folders
    in the corresponding library folder: a file is copied with its extension, a folder
    recursively whole. MCP names are resolved into an in-memory structure during bootstrap
-   from `./.agents/mcp-configs.yaml`, from which they are deployed at step 4 into the
-   runtime formats. A snapshot (what was built and from which version) is written to
+   from `./.agents/mcp-configs.yaml`; **only project-bound** ones are deployed at step 4 into the
+   per-agent formats (`scope: global` infra like playwright is machine-level — used, not rendered
+   per-project). A snapshot (what was built and from which version) is written to
    `./.agents/generated/.agents.lock.yaml`. Copy by value (not a symlink).
 
 4. **Create the runtime anchors in the root.** **Always:** `./AGENTS.md` — the project's OWN
@@ -294,8 +296,8 @@ same name, different places. Steps:
    | `./AGENTS.md` | Autonomous project source of truth. Read natively by codex and opencode. Holds the pointer and the self-configuration rule (below). |
    | `./CLAUDE.md` | A **symlink → `./AGENTS.md`** (next to it). Needed because Claude Code does not read `AGENTS.md` natively — only `CLAUDE.md`; the link feeds it the project's own `AGENTS.md`. The global canon arrives separately via the global `~/.claude/CLAUDE.md` symlink. |
    | `./opencode.json` | Root required (opencode searches upward to the git root). `instructions` (the **OS-resolved** absolute path to the canon — `/home/<user>/.agents/AGENTS.md` on Linux/WSL2, `C:\Users\<user>\.agents\AGENTS.md` on Windows; resolve it for this machine, do not copy the example literally) + an `mcp` block. Returns the canon to context and does not expose `~`. **Only if opencode is used.** |
-   | `./.mcp.json` | MCP servers for Claude Code (read separately from `CLAUDE.md`). **Only if the project has MCP.** |
-   | `./.codex/config.toml` | MCP for codex: `[mcp_servers.<name>]`. Loaded only if the project is "trusted" (codex asks on first run). codex merges it with the global `~/.codex/config.toml` itself — project values take priority. **Only if codex has MCP or hooks.** |
+   | `./.mcp.json` | **Project-bound** MCP for Claude Code (read separately from `CLAUDE.md`). **Only if the project has project-bound MCP** — shared infra like playwright is global, not written here. |
+   | `./.codex/config.toml` | **Project-bound** MCP for codex: `[mcp_servers.<name>]`, plus chain hooks. Loaded only if the project is "trusted" (codex asks on first run). codex merges it with the global `~/.codex/config.toml` — project values take priority; the global `playwright-shared` is used from there, not duplicated here. **Only if codex has project-bound MCP or hooks.** |
    | `./.claude/settings.local.json` | Local Claude settings/permissions. opencode has permissions in `opencode.json`, codex — in `config.toml`. There is no single cross-agent settings file. **Only if there are Claude permissions or hooks.** |
 
    If an anchor already exists — **do not overwrite**, print a warning

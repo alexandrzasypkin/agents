@@ -1,27 +1,33 @@
-# ~/.agents/mcp-configs.yaml — PORTABLE RECIPE, not frozen machine state.
+# ~/.agents/mcp-configs.yaml — MCP recipes by name, split into GLOBAL infra vs PROJECT-BOUND.
 #
-# Env-specifics (absolute paths, ports, whether a server is running) are NOT hardcoded here.
-# Bootstrap resolves them by inventorying the environment (command -v, running server, ...),
-# writes the resolved config into the project (./.mcp.json / ./.codex/config.toml /
-# ./opencode.json) and records it in ./.agents/REGISTRY.md. Baseline = intent; agent resolves
-# the concrete value — same principle as the cross-cutting CLI tools.
+# PORTABLE RECIPE, not frozen machine state. Env-specifics (absolute paths, ports, whether a
+# server is running) are NOT hardcoded — resolved by inventorying the environment.
 #
-# A config may be PER-AGENT: the same logical MCP can use a different transport per agent.
+# TWO CLASSES (the same global/local criterion as hooks & permissions — is it tied to THIS
+# project's account/resource/repo?):
+#  • GLOBAL infra — shared, tied to no project. Installed ONCE per machine (Setup step, like
+#    baseline-guard) into each agent's GLOBAL config. Bootstrap does NOT render it into project
+#    configs; a project that needs it simply USES the global server. Do NOT duplicate it into
+#    ./.mcp.json / ./.codex/config.toml / ./opencode.json.
+#  • PROJECT-BOUND — tied to a project's account/resource/repo. Rendered per-project into the
+#    project's native MCP config and recorded in ./.agents/REGISTRY.md.
 
+# ── GLOBAL infra (installed once per machine; NOT rendered per-project) ────────
 playwright:
-  # Browser automation MCP (research L3 / web / qa). Transport differs per agent.
-  # Logical server = @playwright/mcp (Node 18+). Canonical launcher is `npx @playwright/mcp@latest`;
-  # the bare `playwright-mcp` binary exists only after `npm i -g @playwright/mcp`. The stdio command
-  # below is the POSIX-resolved value (works as-is on Linux/macOS/WSL2/Git-Bash). On NATIVE Windows
-  # bootstrap MUST wrap it `cmd /c npx -y @playwright/mcp@latest --browser chrome` — see the canon's
-  # "npx/node stdio MCP on native Windows" bootstrap rule (Node spawn can't resolve npx.cmd → ENOENT).
-  # `--browser chrome` is a Windows-only arg (registry-resolves Chrome, dodges the path bug); do NOT
-  # add it on POSIX, where Chrome may be absent and only chromium is installed.
-  claude:   { type: stdio,  command: playwright-mcp }          # POSIX default; native Windows → cmd /c npx wrapper (see canon)
-  codex:    { type: remote, url: "<resolve at bootstrap>" }    # local playwright server; resolve port (convention :8931 shared / :8932 headed); 9222 = Chrome CDP, a separate layer
-  opencode: { type: stdio,  command: playwright-mcp }          # POSIX default; native Windows → cmd /c npx wrapper (see canon)
+  scope: global   # shared browser server — do NOT write into ./.mcp.json / ./.codex/config.toml
+  # Logical server = @playwright/mcp (Node 18+). Installed once per machine into each agent's
+  # GLOBAL config; a project needing a browser (research L3 / web / qa) uses the global one.
+  #   Claude   — ~/.claude/settings.json `mcpServers` (or `claude mcp add -s user`):
+  #              stdio `playwright-mcp` (POSIX) / native Windows `cmd /c npx -y @playwright/mcp@latest --browser chrome`.
+  #   codex    — ~/.codex/config.toml `[mcp_servers.playwright-shared] url=http://localhost:8931/mcp`
+  #              (+ `playwright-headed` :8932). Streamable-HTTP endpoint is /mcp (NOT legacy /sse).
+  #              Server: `playwright-mcp --port 8931`. (9222 = Chrome CDP, a separate layer.)
+  #   opencode — ~/.config/opencode global config: stdio like Claude.
+  # Canonical launcher `npx @playwright/mcp@latest`; bare `playwright-mcp` exists only after
+  # `npm i -g @playwright/mcp`. `--browser chrome` is Windows-only (registry-resolves Chrome);
+  # do NOT add it on POSIX (Chrome may be absent, only chromium installed).
 
-# NOT in the baseline — project-level self-config (record in REGISTRY when attached):
+# ── PROJECT-BOUND (rendered per-project on demand; record in REGISTRY) ─────────
 # - cloudflare: claude.ai-managed integration for Claude (account-level, no local command);
 #               codex/opencode need their own Cloudflare MCP (remote) set up per project.
 # - gsc (Google Search Console): not configured anywhere; connect when a project needs it
