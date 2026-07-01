@@ -298,7 +298,8 @@ same name, different places. Steps:
    | `./opencode.json` | Root required (opencode searches upward to the git root). `instructions` (the **OS-resolved** absolute path to the canon — `/home/<user>/.agents/AGENTS.md` on Linux/WSL2, `C:\Users\<user>\.agents\AGENTS.md` on Windows; resolve it for this machine, do not copy the example literally) + an `mcp` block. Returns the canon to context and does not expose `~`. **Only if opencode is used.** |
    | `./.mcp.json` | **Project-bound** MCP for Claude Code (read separately from `CLAUDE.md`). **Only if the project has project-bound MCP** — shared infra like playwright is global, not written here. |
    | `./.codex/config.toml` | **Project-bound** MCP for codex: `[mcp_servers.<name>]`, plus chain hooks. Loaded only if the project is "trusted" (codex asks on first run). codex merges it with the global `~/.codex/config.toml` — project values take priority; the global `playwright-shared` is used from there, not duplicated here. **Only if codex has project-bound MCP or hooks.** |
-   | `./.claude/settings.local.json` | Local Claude settings/permissions. opencode has permissions in `opencode.json`, codex — in `config.toml`. There is no single cross-agent settings file. **Only if there are Claude permissions or hooks.** |
+   | `./.claude/settings.json` | **Committed** Claude settings — the project's chain **hooks** land here so they are git-pinned (a clone gets them). **Only if the project has chain hooks (usually yes — `secrets` is base).** |
+   | `./.claude/settings.local.json` | **Gitignored, personal** Claude settings — only project **permissions** (allow/deny). NOT hooks: `**/.claude/settings.local.json` is git-ignored by convention, so hooks placed here would not be pinned (a clone would lose them). opencode permissions live in `opencode.json`, codex in `config.toml`. **Only if there are project-specific permissions.** |
 
    If an anchor already exists — **do not overwrite**, print a warning
    ("file X already exists, skipped").
@@ -316,11 +317,13 @@ same name, different places. Steps:
    // ./.mcp.json — MCP for Claude
    { "mcpServers": { "pandoc-mcp": { "command": "pandoc-mcp", "args": [] } } }
 
-   // ./.claude/settings.local.json — permissions (allow/deny) + hooks merged from the chain
-   { "permissions": { "allow": ["Bash", "Read", "Write"] },
-     "hooks": { "PreToolUse": [ { "matcher": "Read|Edit|Write|Bash",
+   // ./.claude/settings.json — COMMITTED: chain hooks (so they are git-pinned)
+   { "hooks": { "PreToolUse": [ { "matcher": "Read|Edit|Write|Bash",
        "hooks": [ { "type": "command",
          "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/secrets-guard/guard.sh\" --claude" } ] } ] } }
+
+   // ./.claude/settings.local.json — GITIGNORED, personal: permissions only (no hooks)
+   { "permissions": { "allow": ["Bash", "Read", "Write"] } }
    ```
    ```toml
    # ./.codex/config.toml — MCP for codex (project-scoped, trusted)
@@ -337,11 +340,13 @@ same name, different places. Steps:
    `bash ".agents/hooks/<name>/…sh"` (codex). `bash <posix-path>` is portable on Windows under Git
    Bash, so no per-OS variant is needed. When several fragments target one agent file — permissions,
    MCP, hooks — bootstrap **deep-merges**, it does not overwrite: object keys union, arrays append
-   (Claude `settings.local.json` `hooks.PreToolUse[]`; codex `config.toml` repeated
+   (Claude `settings.json` `hooks.PreToolUse[]`; codex `config.toml` repeated
    `[[hooks.PreToolUse]]`). opencode keeps each hook as its own `.opencode/plugin/<name>.ts`
-   (native TS, no merge) and merges only MCP/permissions into `opencode.json`. **`baseline-guard`
-   is NOT rendered here** — it is the one global, hand-installed guardrail (see README Setup); only
-   chain hooks land in the project. If a target file already exists — merge into it, never clobber
+   (native TS, no merge) and merges only MCP/permissions into `opencode.json`. **Claude split:
+   chain hooks go into the COMMITTED `.claude/settings.json` (so they are git-pinned); only personal
+   `permissions` go into the gitignored `.claude/settings.local.json`** — otherwise a clone loses the
+   hooks. **`baseline-guard` is NOT rendered here** — it is the one global, hand-installed guardrail
+   (see README Setup); only chain hooks land in the project. If a target file already exists — merge into it, never clobber
    an existing block (same rule as the anchors above).
 
 5. **`git init` + install git hooks (mandatory).** `git init` only if `.git` is not found

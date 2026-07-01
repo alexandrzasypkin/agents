@@ -9,8 +9,9 @@ It checks the tool's **file path** and its **shell command** (so `cat .env` is b
 Templates (`.env.example`, …) are allowed.
 
 ## Per-agent install (bootstrap, step 4)
-- **Claude** → merge `claude.json` into `./.claude/settings.local.json` (`hooks.PreToolUse`).
-  The command runs `guard.sh --claude` (exit 2 + stderr blocks the call).
+- **Claude** → merge `claude.json` into `./.claude/settings.json` (`hooks.PreToolUse`) — the
+  COMMITTED file, so the hook is git-pinned (`settings.local.json` is gitignored; personal
+  `permissions` go there). The command runs `guard.sh --claude` (exit 2 + stderr blocks the call).
 - **Codex** → merge `codex.toml` into `./.codex/config.toml`. `guard.sh --codex` returns
   `{"hookSpecificOutput":{...,"permissionDecision":"deny"}}`. Verify the `matcher` tool names
   against your codex version.
