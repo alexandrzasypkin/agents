@@ -119,7 +119,9 @@ domains the survey multi-selects. The two are separate keys on purpose: `base` i
 choice, the domains always are.
 
 ```yaml
-# ~/.agents/map.yaml
+# ~/.agents/map.yaml — ABBREVIATED SCHEMA EXAMPLE, illustration only.
+# [!] NOT the real data. The actual rules / base / domains live in ~/.agents/map.yaml —
+#     bootstrap MUST read that file. Do NOT take the base/types entries below as the real set.
 # All values are arrays of strings (file/folder names in the corresponding folder).
 # If a rule is listed in `base`/`types` but absent from `rules` — skip it with a warning.
 rules:
@@ -135,7 +137,7 @@ rules:
 
 base: [rule-format, proof-loop, secrets, git-discipline]   # always-on, NOT selectable
 
-types:                            # selectable domains (multi-select) ⇒ set of rules
+types:                            # selectable domains — EXAMPLE subset only; the real map.yaml lists ALL domains
   coding:   [quality-py]
   research: [md2pdf]
   office:   [md2pdf]
