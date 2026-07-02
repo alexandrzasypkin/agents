@@ -28,3 +28,10 @@ A visible browser; the agent acts on the page like a user.
 - Confirm destructive operations (delete, bulk, deploy, pay) with the user; use dry-run where available.
 - Log the result in the conversation (audit trail).
 - Endpoint, auth, and account specifics are project-specific — see the project, not this rule.
+
+## Cost & limits (Playwright MCP)
+Each step is an API call, so a multi-step flow is token-heavy (a full scenario can run 100K+ tokens);
+there are no built-in asserts or retry, and the accessibility tree may not match the visual state.
+Use the browser for interactive work, verification, and **smoke** testing — not large regression
+suites (for CI use a real test runner like Playwright Test, not the MCP). Structured UI / E2E testing
+— read-only, UI-only (no direct API), screenshot per step, pass/fail report — → the `e2e` agent.

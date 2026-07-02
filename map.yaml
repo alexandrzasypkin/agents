@@ -28,7 +28,8 @@ rules:
     mcp:    [playwright]         # L3 browser; websearch/fetch are agent-native
     agents: [searcher]
   browser-use:
-    mcp: [playwright]            # interactive browser: console-result vs UI/user-in-the-loop
+    mcp:    [playwright]         # interactive browser: console-result vs UI/user-in-the-loop
+    agents: [e2e]                # read-only UI/E2E smoke tester (report + Playwright limits)
 
   deploy-models:
     skills: [remote-tmux-ops, deploy-verify, fastapi-scaffold]   # service lifecycle: scaffold, deploy+verify, remote ops
