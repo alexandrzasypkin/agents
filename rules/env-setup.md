@@ -19,8 +19,10 @@ Quality tools follow the same rule, by **coupling to the project's dependency tr
   Pin per-project only when version reproducibility matters.
 - cross-cutting media / doc / retrieval CLIs → **global**, installed **when a project needs them**:
   ffmpeg, imagemagick, **yt-dlp**, **whisper** (whisper.cpp / faster-whisper), pandoc, pdftotext,
-  tesseract. Standalone binaries, no project coupling — yt-dlp fetches video/audio + subtitles and
-  whisper does local speech-to-text (no API key) for `search-escalation` / `media`.
+  tesseract, **libreoffice** (office read/gen — `soffice.exe` on Windows, resolve path), **xlsx2csv**.
+  Standalone binaries, no project coupling — yt-dlp fetches video/audio + subtitles, whisper does
+  local speech-to-text, libreoffice/pandoc handle office docs (`extract-docs`), for
+  `search-escalation` / `media` / `extract-docs`.
 
 ## Manager by language
 - New project: Node → **pnpm**, Python → **uv** (no migration cost, faster, lockfile).
