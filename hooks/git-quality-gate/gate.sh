@@ -2,7 +2,7 @@
 # git-quality-gate — run the project's quality checks by language.
 # Usage: gate.sh <commit|push>
 #   commit -> fast: secret scan (staged) + linters
-#   push   -> full: linters + type-check + tests
+#   push   -> full: linters + type-check + build + tests
 # Exit 2 blocks the git operation. A missing tool is reported, not fatal
 # (install-when-needed is a project decision; see the env-setup rule).
 
@@ -57,6 +57,7 @@ if [ -f package.json ]; then
     if grep -q '"typecheck"' package.json; then run npm run -s typecheck
     elif npx --no-install tsc --version >/dev/null 2>&1; then run npx --no-install tsc --noEmit
     else miss tsc; fi
+    grep -q '"build"' package.json && run npm run -s build   # compile check (bundler / wrangler)
     grep -q '"test"' package.json && run npm test --silent
   fi
 fi
