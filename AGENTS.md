@@ -261,6 +261,7 @@ project/
 │   ├── rules/ skills/ agents/ templates/ hooks/ plans/{active,done}/   # copy of the library (EDITABLE)
 │   └── generated/                   # bootstrap output (do not edit)
 │       └── .agents.lock.yaml        # snapshot: what was built and from which version
+├── docs/                            # MANDATORY (project-docs, base): source of truth + decisions/ (ADR) + backlog index; or reuse existing docs/|wiki/|guide/
 └── …                                # the project's OWN existing files (src/, package.json, …) — bootstrap does NOT create these
 ```
 
@@ -273,10 +274,14 @@ same name, different places. Steps:
    skeleton of folders (`rules/`, `skills/`, `agents/`, `templates/`, `hooks/`, and `plans/`
    with its `active/` and `done/` subfolders) and an
    empty `./.agents/generated/`. The folders are empty — they are filled at step 3 by
-   the map. The project copy is **editable** (unlike the immutable `~/.agents`). The
-   root stays clean. Bootstrap creates ONLY the runtime anchors and the `./.agents/`
-   skeleton — it never creates or edits the project's own source (no `src/`, `package.json`,
-   etc.); those belong to the project and are left untouched.
+   the map. The project copy is **editable** (unlike the immutable `~/.agents`). The root stays clean.
+   **Also lay down the docs skeleton (MANDATORY — `project-docs` is base):** `docs/` (source of truth)
+   + `docs/decisions/` (ADR archive) + a backlog index (`docs/TODO.md`, or a root `ROADMAP.md`). If the
+   project **already has** a docs folder (`docs/`, `wiki/`, `guide/`, …), **use it — do not impose a
+   name** (`user-docs`), and just add the missing pieces (e.g. `decisions/`, the backlog) inside it.
+   Docs are agent-maintained **infrastructure, not project source**. Apart from the runtime anchors,
+   the `./.agents/` skeleton, and this docs skeleton, bootstrap never creates or edits the project's
+   own source (no `src/`, `package.json`, etc.); those belong to the project and are left untouched.
 
 2. **Survey.** The main question — the project's **domains**: a **multi-select** from the
    domains in `./.agents/map.yaml` (`types`). Do not hardcode the domain list here — it is
