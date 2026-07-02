@@ -31,16 +31,16 @@ LOC alone does **not** make a project large, and a big-but-single-concern repo s
 - **Change-protected files** (the project's rules / canon) are not edited by a scoped agent without
   the lead's explicit go.
 
-## Native subagents — the mechanism (NOT pointer/chain)
-Spawning, isolation, and parallelism are a **native** capability — they need the runtime's own
-subagent mechanism (Claude Code `.claude/agents/`, spawnable by `subagent_type`; codex's own
-equivalent). A pointer/chain role file in `./.agents/agents/` is **read** by the main agent: it
-carries the role's guidance but does **not** spawn an isolated parallel context. So a delegating
-project keeps its **spawnable roster as native subagents** (e.g. `.claude/agents/*.md`) — these stay
-native, not moved to `.agents/`. Portable `.agents/agents/` role-files remain the default for the
-non-spawned, cross-agent case (a single agent reads a role and follows it).
+## The mechanism — spawn from `.agents/`, don't rely on a native registry
+Spawning, isolation, and parallelism come from the **Task/Agent tool**, not from a native
+`.claude/agents` registry. The lead **loads a role from `./.agents/agents/<name>.md`** and **spawns a
+subagent** with that role as its brief — a real isolated, parallel context. (Claude Code's
+`subagent_type` registry in `.claude/agents/` is only a shortcut that turns a role into a system
+prompt; it is NOT required — loading the role from `.agents/` and spawning a general-purpose subagent
+gives the same isolation and parallelism, from a single portable source.) So the roster lives in
+`./.agents/agents/` like everything else; `.claude/` stays system-only (settings: hooks/permissions).
 
 ## Project-defined, not here
 The concrete **roster** (which agents), the **ownership map** (which path each owns), and the
-**phase order** live in the PROJECT — following its architecture — in the agent's **native** subagent
-location (`.claude/agents/` for Claude). This rule is the pattern; the roster is per-project.
+**phase order** live in the PROJECT (`./.agents/agents/` + `AGENTS.md`) — following its architecture.
+This rule is the pattern; the roster is per-project.

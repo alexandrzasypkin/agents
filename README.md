@@ -13,24 +13,19 @@ same domains get the same setup. Existing behavior is captured once and reused, 
 
 ## Key design: pointer / chain, NOT native menus
 
-By default, skills, subagents, and rules are NOT loaded through Claude's native systems
-(`.claude/skills`, `/` slash-commands, the Task subagent registry) — the one exception is spawned
-`delegation`, below. They live in `./.agents/` and are found two ways:
+Skills, subagents, and rules are NOT loaded through Claude's native menus (`.claude/skills`, `/`
+slash-commands, the `.claude/agents` registry). They live in `./.agents/` and are found two ways:
 
 - the **pointer** in the project `AGENTS.md` ("rules/skills/agents → `./.agents/`");
 - the **chain** in `map.yaml`: a rule names its skill / subagent / MCP, so a skill is pulled in
   *because its rule is active*, not because it sits in a native menu.
 
-Why: this makes the system identical across Claude / Codex / opencode and independent of any
-one agent's folder conventions (a project may have no `.claude/` at all). The trade is that the
-agent *uses* a skill or role by **reading its file** — portable, but no native `/command` and no
-spawn.
-
-**Exception — `delegation` (large projects):** true spawned, isolated, parallel subagents are a
-**native** capability that pointer/chain role-files cannot provide. A project that uses `delegation`
-keeps its spawnable roster as **native** subagents (`.claude/agents/*.md`, spawnable by
-`subagent_type`), not moved to `.agents/`. The portable `.agents/agents/` role-files stay the default
-for the non-spawned case. See the `delegation` rule.
+Why: this makes the system identical across Claude / Codex / opencode and independent of any one
+agent's folder conventions. A role is used two ways, **both from `.agents/`**: the main agent
+**reads** it and follows it (non-spawned), or — for `delegation` on a large project — a **lead loads
+the role from `.agents/agents/` and spawns a subagent** with it (real isolation/parallelism via the
+Task/Agent tool; see the `delegation` rule). The only trade vs native menus is the loss of the
+`/command` and `subagent_type` shortcuts — not of spawning. `.claude/` stays system-only (settings).
 
 ## Project settings: `map.yaml` → native config (hooks, MCP, permissions)
 
