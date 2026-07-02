@@ -464,10 +464,18 @@ The generated file must contain at least four blocks:
   No buzzwords or jargon; a genuine technical term (API, hook, symlink) is fine when it is the
   precise word, not decoration. This governs conversational replies; drafted output documents follow
   `writing-style`.
+- **Workspace hygiene — clean up when done.** Don't start or restart servers or spawn background
+  processes unless asked; when a task is finished, tidy up — kill the background processes / dev
+  servers you started, remove temp/scratch files. Leave the workspace as you found it, plus the
+  intended change.
+- **Don't block on a slow tool.** If a tool / MCP / index / server doesn't answer within a sensible
+  bound (a few seconds), proceed without it and say so — never hang waiting on it.
 
 The project agent **expands this section** with project-specific behavioral lessons learned
-during work (a living layer — append, don't restate the base). Behavioral lessons go here;
-tool/skill/rule adaptations go to `REGISTRY.md`.
+during work (a living layer — append, don't restate the base). Add a rule **only after a real
+incident** — a problem that actually happened — not speculatively: each line should trace to an
+incident, not a guess (this keeps the layer lean). Behavioral lessons go here; tool/skill/rule
+adaptations go to `REGISTRY.md`.
 
 ## Self-configuration (adapt and explain)
 `~/.agents` provides a minimal shared baseline. Adapting to the project is standard work.
