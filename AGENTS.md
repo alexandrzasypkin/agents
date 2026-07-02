@@ -166,6 +166,23 @@ project's account / resource / repo?*):
 So bootstrap writes per-project **only project-bound MCP**; shared infra stays machine-level (never
 duplicated into `./.mcp.json` / `./.codex/config.toml`).
 
+**Local server vs network MCP (within global infra).** A global-infra MCP is either a **local
+capability** (browser, files, code index) or a **remote cloud service** — decide by two questions:
+1. *Local capability, used often / interactively / needs shared warm state?* → run it as **ONE
+   persistent local server**, every agent connecting by localhost URL (e.g. playwright `:8931`
+   `--shared-browser-context`). Localhost ≈ 0 latency, a warm logged-in browser, no per-session cold
+   start → **fewer tokens** than spawning stdio each session. Cost: the server must stay up (machine
+   service/autostart). **The ladder (both Claude & codex):** (a) connect to `:8931`; (b) if down —
+   **ENSURE-SERVER**: install the binary when missing (`npm i -g @playwright/mcp`) and start it;
+   (c) if it still can't come up (install fails, offline, no permission) — **fall back to a
+   per-session stdio spawn** (`npx @playwright/mcp@latest`, or the `playwright-mcp` binary; native
+   Windows `cmd /c npx`), self-contained and costlier but always works. Never silently give up.
+2. *Cloud-account data with no local form (cloudflare, gsc, gmail, github)?* → a **network/remote
+   MCP** (project-bound, OAuth/key, REGISTRY) — network latency + round-trip tokens are the price of
+   data that only lives remotely.
+A rare local capability can stay a stdio spawn (zero-setup); reserve a persistent server for the
+frequent/interactive ones (this is why the shared `:8931` server beats a per-session spawn).
+
 **Per-OS launcher resolution (npx/node stdio MCP).** When a stdio MCP's command is `npx`/`node`,
 Node's `child_process.spawn` cannot resolve `npx.cmd` on native Windows → `spawn npx ENOENT`. So
 whoever writes it (the machine-level global install, or a project-bound npx MCP): **POSIX** (Linux /

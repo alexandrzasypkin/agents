@@ -14,18 +14,24 @@
 
 # ── GLOBAL infra (installed once per machine; NOT rendered per-project) ────────
 playwright:
-  scope: global   # shared browser server — do NOT write into ./.mcp.json / ./.codex/config.toml
-  # Logical server = @playwright/mcp (Node 18+). Installed once per machine into each agent's
-  # GLOBAL config; a project needing a browser (research L3 / web / qa) uses the global one.
-  #   Claude   — ~/.claude/settings.json `mcpServers` (or `claude mcp add -s user`):
-  #              stdio `playwright-mcp` (POSIX) / native Windows `cmd /c npx -y @playwright/mcp@latest --browser chrome`.
-  #   codex    — ~/.codex/config.toml `[mcp_servers.playwright-shared] url=http://localhost:8931/mcp`
-  #              (+ `playwright-headed` :8932). Streamable-HTTP endpoint is /mcp (NOT legacy /sse).
-  #              Server: `playwright-mcp --port 8931`. (9222 = Chrome CDP, a separate layer.)
-  #   opencode — ~/.config/opencode global config: stdio like Claude.
-  # Canonical launcher `npx @playwright/mcp@latest`; bare `playwright-mcp` exists only after
-  # `npm i -g @playwright/mcp`. `--browser chrome` is Windows-only (registry-resolves Chrome);
-  # do NOT add it on POSIX (Chrome may be absent, only chromium installed).
+  scope: global               # shared browser — do NOT write into ./.mcp.json / ./.codex/config.toml
+  transport: local-server     # ONE persistent local server; ALL agents connect by localhost URL (not stdio spawn)
+  # Logical server = @playwright/mcp (Node 18+). A single persistent server per machine, warm &
+  # shared (shared browser context → reused auth/cookies, no cold start) is cheaper than a
+  # per-session stdio spawn. Every agent connects to the SAME server:
+  #   Claude   — ~/.claude/settings.json mcpServers: { "type":"http", "url":"http://localhost:8931/mcp" }
+  #   codex    — ~/.codex/config.toml [mcp_servers.playwright-shared] url="http://localhost:8931/mcp"
+  #              (+ playwright-headed :8932 for a headed/auth profile)
+  #   opencode — ~/.config/opencode global config, same http url.
+  # Endpoint is streamable-HTTP /mcp (NOT legacy /sse). 9222 = Chrome CDP, a separate layer.
+  # LADDER (both Claude & codex):
+  #   (a) connect to http://localhost:8931/mcp;
+  #   (b) if down — ENSURE-SERVER: install the binary if missing (`npm i -g @playwright/mcp`), then
+  #       start `playwright-mcp --port 8931 --headless --shared-browser-context` (Windows: Git Bash / cmd /c npx);
+  #   (c) if it still can't come up (install fails / offline / no perm) — FALL BACK to a per-session
+  #       stdio spawn: Claude `{ "command": "npx", "args": ["-y","@playwright/mcp@latest"] }` (or the
+  #       `playwright-mcp` binary); native Windows `cmd /c npx …`. Self-contained, costlier, always works.
+  #   Best run the server as a machine service/autostart so it stays warm. Never silently give up.
 
 # ── PROJECT-BOUND (rendered per-project on demand; record in REGISTRY) ─────────
 # - cloudflare: claude.ai-managed integration for Claude (account-level, no local command);
