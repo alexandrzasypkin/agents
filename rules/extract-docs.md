@@ -12,7 +12,10 @@ Read from — and produce — local documents (PDF, office). CLI-first; tools ar
 - docx / odt / rtf → md: `pandoc` (reads office formats natively).
 - **xlsx / ods (spreadsheets)** → csv/data: `libreoffice --headless --convert-to csv`, `xlsx2csv`, or
   `pandas` / `openpyxl` (pandoc does **not** read spreadsheets).
-- scanned PDF (OCR): `tesseract` / `ocrmypdf` — only when the source is an image.
+- scanned PDF / image (OCR): `tesseract` / `ocrmypdf` — only when the source is an image. Pass the
+  **language(s)** (`--lang rus+eng`) and install the matching **tessdata** packs (default is
+  English-only — a common miss). Windows: `tesseract.exe` (UB-Mannheim build), not on PATH → resolve
+  the path (like `soffice`) and install the language data.
 - structured/table PDF: `pymupdf` (fitz) / `pdfplumber` — when `pdftotext` loses table structure.
 
 ## Produce (md / csv / html → office)
