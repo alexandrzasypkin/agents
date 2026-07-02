@@ -383,10 +383,12 @@ same name, different places. Steps:
    an existing block (same rule as the anchors above).
 
 5. **`git init` + install git hooks (mandatory).** `git init` only if `.git` is not found
-   above in the tree (do not create a nested repository). `.gitignore` (copied from the
-   `templates/gitignore` baseline — secrets + common artifacts, extended per project per
-   `env-setup`), `.gitattributes` and `.editorconfig` (LF, UTF-8) are created only if
-   `git init` was performed (otherwise they land in someone else's parent repo) — before the
+   above in the tree (do not create a nested repository). **`.gitignore` — ENSURE the baseline secret +
+   artifact ignores ALWAYS** (`secrets` is base/[CRITICAL]: a secret must never be committable): on a
+   fresh `git init`, copy the `templates/gitignore` baseline; on an **existing repo (migration), MERGE
+   the missing baseline lines** into the current `.gitignore` (append what is absent — never clobber),
+   extended per project per `env-setup`. `.gitattributes` and `.editorconfig` (LF, UTF-8) are created
+   only on a fresh `git init` (otherwise they'd override a parent repo's convention) — before the
    first commit. The `.agents/generated/.agents.lock.yaml` is committed (provenance), not ignored. Then **install the git hooks
    unconditionally** (not a survey option): `pre-commit` (light gate on staged files + secret
    scan) and `pre-push` (full quality gate), dispatching to the active `quality-*` rules by
