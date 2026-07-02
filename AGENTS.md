@@ -250,9 +250,11 @@ all other infrastructure under `./.agents/`:
 
 ```
 project/
-├── AGENTS.md  CLAUDE.md                              # ALWAYS: AGENTS.md = project's own source of truth (real file); CLAUDE.md = symlink → AGENTS.md
-├── opencode.json  .mcp.json                          # only if: opencode is used / project has MCP
-├── .claude/settings.local.json  .codex/config.toml  .opencode/plugin/   # per-agent, only if hooks/permissions/MCP
+├── AGENTS.md                                         # SHARED (first agent to run): project's own source of truth (real file)
+├── CLAUDE.md  .claude/settings.json  .mcp.json       # Claude's OWN (when Claude runs): symlink→AGENTS.md; hooks; project-bound MCP
+├── .codex/config.toml                                # codex's OWN (when codex runs): hooks + project-bound MCP
+├── opencode.json  .opencode/plugin/                  # opencode's OWN (when opencode runs): canon pointer + MCP; TS hook plugins
+│                                                     # each agent writes ONLY its own; never another agent's
 ├── .agents/                         # infrastructure, does not clutter the root
 │   ├── map.yaml  mcp-configs.yaml   # snapshot of the graph and configs (copy of the library)
 │   ├── REGISTRY.md                  # project adaptation log (why); empty if no changes
@@ -284,7 +286,8 @@ same name, different places. Steps:
    Clarify: which MCP to attach — show the list of names from `./.agents/mcp-configs.yaml`
    (the local copy); if the user is unsure — offer a preset by domain. Whether environment
    variables (`PYTHONPATH`, etc.) and extra skills are needed. Do not impose — the user
-   is free to choose their own.
+   is free to choose their own. **Do NOT ask "which agents will work in the project"** — an agent
+   configures only itself (step 4); another agent's environment is activated by running that agent.
 
 3. **Fill `./.agents/` and write the snapshot.** Resolve the rule set = `base` ∪ the rules
    of the selected domains (from `./.agents/map.yaml`). For each rule in that set,
@@ -297,26 +300,32 @@ same name, different places. Steps:
    per-project). A snapshot (what was built and from which version) is written to
    `./.agents/generated/.agents.lock.yaml`. Copy by value (not a symlink).
 
-4. **Create the runtime anchors in the root.** **Always:** `./AGENTS.md` — the project's OWN
-   source of truth (pointer + behavioral rules + self-config), a **real file** — and `./CLAUDE.md`,
-   a **symlink → `./AGENTS.md`** (Claude Code reads only `CLAUDE.md` natively, so the link feeds
-   it the project's own `AGENTS.md`). This is the **only symlink** bootstrap creates in a project.
-   The per-agent files below are the **project's own native config files**, in the locations each
-   agent natively loads MCP / hooks / permissions from at startup (rules and skills, by contrast,
-   the agent reads from `.agents/` via the pointer — never from these). Bootstrap writes them once
-   at init from the baseline (`./.agents/mcp-configs.yaml`, `./.agents/hooks/`); afterwards they
-   are the project's own and may diverge. They are created **only when there is such content** —
-   MCP servers, agent-hooks, or custom permissions; a project with none gets just `AGENTS.md` +
-   `CLAUDE.md`, and the `.codex/`, `.claude/`, `.opencode/` dirs are NOT created empty. The
-   per-agent formats:
+4. **Create the runtime anchors — SHARED once; per-agent config ONLY for the running agent.**
+   **Shared (whichever agent bootstraps first creates it; all agents reuse it):** `./AGENTS.md` —
+   the project's OWN source of truth (pointer + behavioral rules + self-config), a **real file**
+   (codex and opencode read it natively). Plus the `.agents/` skeleton (steps 1/3) and git + hooks
+   (step 5).
+   **Per-agent — an agent writes ONLY its OWN native config, never another agent's.** An agent is
+   part of the environment and owns its own format; it renders its own MCP/hooks from the chain into
+   its own file. Another agent's environment is **activated by running that agent**, which then
+   self-configures its own part (see self-config). So Claude does NOT write `.codex/config.toml`,
+   codex does NOT touch `.claude/`, and the survey does **not** ask "which agents". Each agent creates
+   its own file only when there is content for it (hooks / MCP / permissions); rules and skills stay
+   in `.agents/`, read via the pointer, never rendered here:
+   - **Claude** (when Claude runs) → `./CLAUDE.md` (symlink → `AGENTS.md`, the only symlink),
+     `./.claude/settings.json` (chain hooks), `./.mcp.json` (project-bound MCP).
+   - **codex** (when codex runs) → `./.codex/config.toml` (chain hooks + project-bound MCP; trust).
+   - **opencode** (when opencode runs) → `./opencode.json` (canon pointer + MCP) and
+     `./.opencode/plugin/*.ts` (hooks).
+   The per-agent formats:
 
    | File | Purpose |
    |------|---------|
    | `./AGENTS.md` | Autonomous project source of truth. Read natively by codex and opencode. Holds the pointer and the self-configuration rule (below). |
    | `./CLAUDE.md` | A **symlink → `./AGENTS.md`** (next to it). Needed because Claude Code does not read `AGENTS.md` natively — only `CLAUDE.md`; the link feeds it the project's own `AGENTS.md`. The global canon arrives separately via the global `~/.claude/CLAUDE.md` symlink. |
-   | `./opencode.json` | Root required (opencode searches upward to the git root). `instructions` (the **OS-resolved** absolute path to the canon — `/home/<user>/.agents/AGENTS.md` on Linux/WSL2, `C:\Users\<user>\.agents\AGENTS.md` on Windows; resolve it for this machine, do not copy the example literally) + an `mcp` block. Returns the canon to context and does not expose `~`. **Only if opencode is used.** |
+   | `./opencode.json` | Root required (opencode searches upward to the git root). `instructions` (the **OS-resolved** absolute path to the canon — `/home/<user>/.agents/AGENTS.md` on Linux/WSL2, `C:\Users\<user>\.agents\AGENTS.md` on Windows; resolve it for this machine, do not copy the example literally) + an `mcp` block. Returns the canon to context and does not expose `~`. **Written by opencode itself when it runs** (never by another agent). |
    | `./.mcp.json` | **Project-bound** MCP for Claude Code (read separately from `CLAUDE.md`). **Only if the project has project-bound MCP** — shared infra like playwright is global, not written here. |
-   | `./.codex/config.toml` | **Project-bound** MCP for codex: `[mcp_servers.<name>]`, plus chain hooks. Loaded only if the project is "trusted" (codex asks on first run). codex merges it with the global `~/.codex/config.toml` — project values take priority; the global `playwright-shared` is used from there, not duplicated here. **Only if codex has project-bound MCP or hooks.** |
+   | `./.codex/config.toml` | **Project-bound** MCP for codex: `[mcp_servers.<name>]`, plus chain hooks. Loaded only if the project is "trusted" (codex asks on first run). codex merges it with the global `~/.codex/config.toml` — project values take priority; the global `playwright-shared` is used from there, not duplicated here. **Written by codex itself when it runs** (never by another agent), when it has chain hooks or project-bound MCP. |
    | `./.claude/settings.json` | **Committed** Claude settings — the project's chain **hooks** land here so they are git-pinned (a clone gets them). **Only if the project has chain hooks (usually yes — `secrets` is base).** |
    | `./.claude/settings.local.json` | **Gitignored, personal** Claude settings — only project **permissions** (allow/deny). NOT hooks: `**/.claude/settings.local.json` is git-ignored by convention, so hooks placed here would not be pinned (a clone would lose them). opencode permissions live in `opencode.json`, codex in `config.toml`. **Only if there are project-specific permissions.** |
 
@@ -470,6 +479,12 @@ The ladder, when the project needs a tool/skill/rule:
    one-shot scan `find ~/.agents/rules/ -type f` (not a constant diff).
 3. Not anywhere → escalation: the `research` domain (websearch → fetch → browser)
    to compare/find, install/attach into the project, append to the local map.
+
+**Activate an agent by running it.** An agent entering an already-initialized project (`.agents/` +
+`AGENTS.md` present) that has **no native config of its own** renders its own part from the chain —
+its hooks/MCP into its own file (Claude → `.claude/settings.json` + the `CLAUDE.md` symlink; codex →
+`.codex/config.toml`; opencode → `opencode.json` + `.opencode/plugin/`), logged in REGISTRY. No agent
+sets up another agent's environment; each activates itself the first time it runs there.
 
 Accounting: `./.agents/map.yaml` = WHAT is attached (the graph). `./.agents/REGISTRY.md` = WHY
 (change log: what, version/source, date, rationale). Write ONLY changes —
