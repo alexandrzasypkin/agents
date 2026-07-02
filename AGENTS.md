@@ -450,6 +450,11 @@ The generated file must contain at least four blocks:
   Remove only the orphans your change created.
 - **Goal-driven + verify.** Turn the task into a verifiable goal; brief plan, per-step verification;
   confirm by an independent check, not assertion (see `proof-loop`, `code-review`).
+- **Chat answers: structured and plain.** Reply in the chat with structure (short paragraphs, a
+  list or a small table when it helps) and **plain language** — lead with the answer, then the why.
+  No buzzwords or jargon; a genuine technical term (API, hook, symlink) is fine when it is the
+  precise word, not decoration. This governs conversational replies; drafted output documents follow
+  `writing-style`.
 
 The project agent **expands this section** with project-specific behavioral lessons learned
 during work (a living layer — append, don't restate the base). Behavioral lessons go here;
