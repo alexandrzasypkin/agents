@@ -17,6 +17,9 @@ Quality tools follow the same rule, by **coupling to the project's dependency tr
   pyright, pytest, vitest, black. Run via npx / the project venv.
 - standalone binary, config-only → **global** ok: ruff, shellcheck, clang-tidy, clang-format.
   Pin per-project only when version reproducibility matters.
+- cross-cutting media / doc / retrieval CLIs → **global**, installed **when a project needs them**:
+  ffmpeg, imagemagick, **yt-dlp**, pandoc, pdftotext, tesseract. Standalone binaries, no project
+  coupling (yt-dlp fetches video + subtitles for `search-escalation` / `media`).
 
 ## Manager by language
 - New project: Node → **pnpm**, Python → **uv** (no migration cost, faster, lockfile).

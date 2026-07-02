@@ -9,6 +9,10 @@ CLI-first media — no GUI editor in the loop, so operations are repeatable and 
 Linux-reference tools; the agent inventories its environment (they may be absent on Windows —
 install or use an equivalent).
 
+- **yt-dlp** — **fetch a source clip before processing** (YouTube/Vimeo/…, no API key):
+  `-f` format selection, `--write-sub`/`--write-auto-sub` to also pull subtitles,
+  `-x --audio-format mp3` for audio-only. Hand the downloaded file to ffmpeg. (For *research*
+  retrieval — transcripts/metadata without downloading — see `search-escalation`.)
 - **ffmpeg** — video/audio/gif: transcode, frame extraction, text/watermark overlay,
   pixelate, subtitles, batch, contact sheets. Vetted commands → `ffmpeg-recipes`.
 - **imagemagick** — raster: resize, format convert, WebP, composition.
