@@ -14,13 +14,19 @@ Search is a ladder, not a flat attempt. Escalate — do not stop at level 1:
 [CRITICAL] "Not found" is allowed only after the ladder is exhausted, not at level 1.
 Report which level produced the result (fallback-with-disclosure).
 
-## Video sources (YouTube, Vimeo, TikTok, … — retrieval, not just processing)
-Use **yt-dlp** (CLI, no API key, 1000+ sites). Reading a video ≠ watching it — pull the text:
+## Video / audio / voice sources (YouTube, Vimeo, podcasts, live/recorded streams — retrieval)
+Use **yt-dlp** (CLI, no API key, 1000+ sites) plus local **whisper** for speech. Reading/hearing a
+source ≠ watching it — pull the text, cheapest tier first:
 
-- **subtitles / captions:** prefer real uploaded subs, fall back to auto-ASR.
+- **subtitles / captions (cheapest):** prefer real uploaded subs, fall back to auto-ASR.
   `yt-dlp --list-subs <url>` shows what exists; `--write-sub --sub-lang <lang> --skip-download`
   grabs human subtitles, `--write-auto-sub` the auto-generated ones. Read the `.vtt`/`.srt` as the
   transcript. `--sub-format srt/best` and `--convert-subs srt` normalize the format.
+- **no subtitles → speech-to-text:** for uncaptioned video, **podcasts, or streams**, or when only
+  an audio stream is reachable — get the audio (`yt-dlp -x --audio-format mp3 <url>`, or `ffmpeg` to
+  capture a stream URL / a live `yt-dlp` recording), then transcribe **locally with whisper**
+  (whisper.cpp / faster-whisper — no API key). A cloud S2T (Whisper API / Deepgram / AssemblyAI) →
+  **project-bound MCP** only if local whisper can't keep up (scale, diarization, real-time).
 - **metadata:** `yt-dlp --dump-json <url>` — title, description, chapters, duration, channel, views.
 - **search:** `yt-dlp "ytsearch10:<query>" --dump-json`.
 

@@ -18,8 +18,9 @@ Quality tools follow the same rule, by **coupling to the project's dependency tr
 - standalone binary, config-only → **global** ok: ruff, shellcheck, clang-tidy, clang-format.
   Pin per-project only when version reproducibility matters.
 - cross-cutting media / doc / retrieval CLIs → **global**, installed **when a project needs them**:
-  ffmpeg, imagemagick, **yt-dlp**, pandoc, pdftotext, tesseract. Standalone binaries, no project
-  coupling (yt-dlp fetches video + subtitles for `search-escalation` / `media`).
+  ffmpeg, imagemagick, **yt-dlp**, **whisper** (whisper.cpp / faster-whisper), pandoc, pdftotext,
+  tesseract. Standalone binaries, no project coupling — yt-dlp fetches video/audio + subtitles and
+  whisper does local speech-to-text (no API key) for `search-escalation` / `media`.
 
 ## Manager by language
 - New project: Node → **pnpm**, Python → **uv** (no migration cost, faster, lockfile).
