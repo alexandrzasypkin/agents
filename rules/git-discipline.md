@@ -5,7 +5,9 @@ description: Git hygiene. Apply in any project under version control.
 
 # git-discipline
 
-- Commit after each completed step of a task — small, traceable commits.
+- **Commit after each completed unit of plan/task work — MANDATORY, do NOT ask.** Git is cheap; the
+  commit IS the checkpoint (the plan-step boundary / handoff point), so "should I commit?" is noise —
+  just commit. Small, traceable commits. (**Pushing** is different — it still needs an explicit go; see below.)
 - Stage explicit paths (`git add <files>`), not `git add -A` by default — guards against
   committing secrets or generated artifacts.
 - Commit message: Conventional Commits — `<type>(<scope>): <imperative summary>`, where
