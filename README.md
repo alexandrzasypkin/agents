@@ -13,8 +13,9 @@ same domains get the same setup. Existing behavior is captured once and reused, 
 
 ## Key design: pointer / chain, NOT native menus
 
-Skills, subagents, and rules are NOT loaded through Claude's native systems (`.claude/skills`,
-`/` slash-commands, the Task subagent registry). They live in `./.agents/` and are found two ways:
+By default, skills, subagents, and rules are NOT loaded through Claude's native systems
+(`.claude/skills`, `/` slash-commands, the Task subagent registry) — the one exception is spawned
+`delegation`, below. They live in `./.agents/` and are found two ways:
 
 - the **pointer** in the project `AGENTS.md` ("rules/skills/agents → `./.agents/`");
 - the **chain** in `map.yaml`: a rule names its skill / subagent / MCP, so a skill is pulled in
@@ -22,9 +23,17 @@ Skills, subagents, and rules are NOT loaded through Claude's native systems (`.c
 
 Why: this makes the system identical across Claude / Codex / opencode and independent of any
 one agent's folder conventions (a project may have no `.claude/` at all). The trade is that the
-agent *uses* a skill or role by reading its file, with no native `/command` or Task-spawned
-isolated subagent. The only `.claude/` file we rely on is `settings.local.json` (Claude's
-permissions + hooks runtime anchor).
+agent *uses* a skill or role by **reading its file** — portable, but no native `/command` and no
+spawn.
+
+**Exception — `delegation` (large projects):** true spawned, isolated, parallel subagents are a
+**native** capability that pointer/chain role-files cannot provide. A project that uses `delegation`
+keeps its spawnable roster as **native** subagents (`.claude/agents/*.md`, spawnable by
+`subagent_type`), not moved to `.agents/`. The portable `.agents/agents/` role-files stay the default
+for the non-spawned case. See the `delegation` rule.
+
+The `.claude/` files we otherwise use: `settings.json` (chain hooks, committed) + `settings.local.json`
+(personal permissions, gitignored).
 
 ## Project settings: `map.yaml` → native config (hooks, MCP, permissions)
 
