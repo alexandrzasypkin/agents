@@ -32,9 +32,6 @@ keeps its spawnable roster as **native** subagents (`.claude/agents/*.md`, spawn
 `subagent_type`), not moved to `.agents/`. The portable `.agents/agents/` role-files stay the default
 for the non-spawned case. See the `delegation` rule.
 
-The `.claude/` files we otherwise use: `settings.json` (chain hooks, committed) + `settings.local.json`
-(personal permissions, gitignored).
-
 ## Project settings: `map.yaml` → native config (hooks, MCP, permissions)
 
 Rules, skills, and subagents are *read* from `.agents/` via the pointer. **Runtime wiring —
@@ -47,20 +44,12 @@ renders it into each agent's native format (the HOW). The agent never reads `map
 - **Rendered per project, conditionally:** bootstrap writes the wiring into the project's native
   files only for the rules/domains that are active. No secrets/code → those hooks aren't attached.
   Native install writes **only to the project**, never to global settings.
-- **Per agent (the HOW):**
-  - **Claude** — `.claude/settings.local.json`: `permissions` (allow/deny) + `hooks` (JSON;
-    `command` → `~/.agents/hooks/<name>/*.sh`).
-  - **Codex** — `.codex/config.toml`: `[[hooks.*]]` with `command` + `command_windows`; project-bound
-    `[mcp_servers.*]`. Trusted project; merges over `~/.codex/config.toml` (project wins).
-  - **opencode** — `opencode.json` (canon `instructions` + `mcp` + `permission`) and
-    `.opencode/plugin/*.ts` (hooks as native TS plugins — OS-agnostic, block via `throw`, no "ask").
+- **Per-agent formats & OS handling** — which file, the exact JSON/TOML/TS shape, the Windows form —
+  live in the canon (`AGENTS.md`, bootstrap step 4), not in this overview.
 - **Placement rule** — one test, *is it tied to this project's account / resource / repo?* Yes →
   the project layer (project-bound MCP like cloudflare/gsc, project permissions, project hooks).
   The lone universal exception is **`baseline-guard`**: installed globally **by hand**, it guards
   writes to `~/.agents` itself and sits in no chain. Bootstrap never writes global config.
-- **OS handling** is isolated to the bootstrap render (per-machine): the hook script is a single
-  POSIX `.sh` (run via Git Bash on Windows); Codex selects per-OS via `command_windows`; opencode's
-  TS plugin is OS-agnostic. Otherwise project file contents stay OS-agnostic.
 - **Invariant:** only `baseline-guard` is global; everything project-specific renders to the project
   layer, which loads only inside its own folder → no cross-project leakage. A base hook must exit
   cleanly (`exit 0` / no `throw`) when its context doesn't apply.
