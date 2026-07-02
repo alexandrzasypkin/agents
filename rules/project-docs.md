@@ -9,6 +9,7 @@ Documentation is **must-have**, not optional. The agent maintains it and keeps i
 alongside the code.
 
 ## Layout
+Everything here is **Markdown (`.md`) by default** — greppable, diffable, plain-text source.
 - `docs/` — source of truth: architecture, contracts, key flows. Code follows docs.
 - `./.agents/plans/active/` — plans in progress; `./.agents/plans/done/` — completed (move a
   plan on completion). Each active plan opens with a **handoff** note: what's done / what did
