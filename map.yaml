@@ -23,6 +23,7 @@ rules:
   git-discipline:    {}
   proof-loop:        {}
   code-review:       {agents: [reviewer]}      # review protocol: gates -> trace -> Critical/Warning/Info
+  delegation:        {}          # multi-agent lead+scoped-agents; NOT in any domain — self-config pulls it for LARGE projects only (roster is project-defined)
   secrets:           {hooks: [secrets-guard]}   # principle (text); PreToolUse guard blocks read/write of secret files
   search-escalation:
     mcp:    [playwright]         # L3 browser; websearch/fetch are agent-native
