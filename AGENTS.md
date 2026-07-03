@@ -454,6 +454,7 @@ The generated file must contain at least four blocks:
 - Skills/agents: first `./.agents/`, then the library.
 - Links and MCP configs: first the local `./.agents/map.yaml` + `./.agents/mcp-configs.yaml`; `~/.agents/...` — only to deploy a new rule. The build snapshot — in `.agents.lock.yaml`.
 - Adaptation registry: `./.agents/REGISTRY.md` — WHY something was added/changed (the WHAT graph — in `map.yaml`, do not duplicate).
+- **[CRITICAL] Plans, docs, and work-artifacts live ONLY in this project** — `./.agents/plans/{active,done}`, `./docs/`, the project tree. **NEVER write them to `~/.claude/`, `~/.codex/`, `~/.config/opencode/`, or any home/global agent folder** (see `project-docs`). Scratch/temp → session scratchpad or a gitignored project dir.
 - On conflict the project wins (more specific overrides more general).
 
 ## Behavioral rules (base seed — expand as you work)

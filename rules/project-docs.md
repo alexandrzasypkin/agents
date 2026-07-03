@@ -10,6 +10,13 @@ alongside the code.
 
 ## Layout
 Everything here is **Markdown (`.md`) by default** — greppable, diffable, plain-text source.
+
+[CRITICAL] Plans, docs, decisions, and intermediate work-artifacts live **ONLY in the project** —
+`./.agents/plans/{active,done}`, `./docs/`, and the project tree. **NEVER write them to `~/.claude/`,
+`~/.codex/`, `~/.config/opencode/`, or any home/global agent folder** — those hold the agent's own
+machine state, not the project's work (they don't travel with the repo and pollute other projects).
+Scratch/temp → the session scratchpad or a gitignored project dir, never home.
+
 - `docs/` — source of truth: architecture, contracts, key flows. Code follows docs.
 - `./.agents/plans/active/` — plans in progress; `./.agents/plans/done/` — completed (move a
   plan on completion). Each active plan opens with a **handoff** note: what's done / what did
