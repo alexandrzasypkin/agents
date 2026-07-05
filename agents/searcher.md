@@ -1,6 +1,8 @@
 ---
 name: searcher
 description: Read-only code/info search subagent. Use to locate symbols/callers/impact in a codebase or research a question, returning the conclusion not file dumps.
+tools: [Read, Grep, Glob]        # read-only — never Edit/Write/Bash
+model: haiku                      # cheap; search doesn't need a strong model
 ---
 
 # searcher

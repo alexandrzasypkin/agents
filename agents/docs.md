@@ -1,6 +1,7 @@
 ---
 name: docs
 description: Documentation-owner subagent — maintains project docs, decisions, and plans. Use for documentation tasks (architecture, runbooks, README, plans), not app code.
+tools: [Read, Grep, Glob, Write, Edit, WebFetch]   # writes docs only — no Bash, does not touch app code
 ---
 
 # docs

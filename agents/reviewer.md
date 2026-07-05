@@ -1,6 +1,7 @@
 ---
 name: reviewer
 description: Read-only code review + security audit subagent. Use to review a diff/PR against the code-review protocol without editing.
+tools: [Read, Grep, Glob, Bash]   # Bash only to run the quality gates (lint/type/build/test); never Edit/Write
 ---
 
 # reviewer

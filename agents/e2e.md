@@ -1,6 +1,7 @@
 ---
 name: e2e
 description: Read-only browser E2E / smoke tester subagent (Playwright). Use to exercise a running app through its UI and report pass/fail — no code edits.
+tools: [Read, Grep, Glob]        # + the Playwright browser tools (mcp__playwright__*); never Edit/Write
 ---
 
 # e2e
