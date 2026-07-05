@@ -23,6 +23,9 @@ Quality tools follow the same rule, by **coupling to the project's dependency tr
   Standalone binaries, no project coupling — yt-dlp fetches video/audio + subtitles, whisper does
   local speech-to-text, libreoffice/pandoc handle office docs (`extract-docs`), for
   `search-escalation` / `media` / `extract-docs`.
+- local-index deps — installed **when a project builds an index** (`code-search` / `content-vault`):
+  the `sqlite-vec` extension for the semantic doc-RAG (per-OS binary; SQLite must allow loadable
+  extensions). Regenerable, gitignored, local-filesystem-only (SQLite locks on network/cross-OS mounts).
 
 ## Manager by language
 - New project: Node → **pnpm**, Python → **uv** (no migration cost, faster, lockfile).

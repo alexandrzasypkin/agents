@@ -25,8 +25,12 @@ build/
 .wrangler/
 *.log
 
-# code index cache (code-search)
+# local indexes — regenerable caches (code-search / content-vault); never commit
 .codegraph/
+.docindex/
+
+# heavy consumed inputs — context/ is committed, but bulky media is not
+context/attachments/
 
 # OS junk
 .DS_Store

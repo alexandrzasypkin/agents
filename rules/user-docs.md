@@ -8,6 +8,10 @@ description: User-facing product documentation (README, wiki, API reference, usa
 User-facing docs, separate from internal `project-docs`. Language: the user's / target
 market's language (canon language policy), not English-by-default.
 
+Audience here = **product users** (people using the product). Deliverables for OTHER non-dev
+audiences — business / client / marketing / published content — are NOT user-docs; they live in
+`content/` (see `content-vault`). Internal dev docs → `project-docs` (`docs/`); consumed inputs → `context/`.
+
 ## Locations
 - `README` — the minimum: a brief description (what it is / how to run / how to use).
 - A documentation folder for fuller product / API reference — its name **varies by project**

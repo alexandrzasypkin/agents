@@ -39,6 +39,7 @@ rules:
   css-practices:     {}
   seo:               {}
   writing-style:     {}          # prose dislikes (anti-AI-slop) for drafted output; living
+  content-vault:     {}          # content/ for non-dev audiences + capture->publish/archive + doc-RAG (sqlite-vec, on-need)
 
   # --- cross-domain instrumental ---
   cf-auth:           {}          # CF API auth channels (OAuth / Global Key / Scoped Bearer); pick before any CF op
@@ -74,6 +75,6 @@ types:
   data:     [viz-data, extract-docs]
   devops:   [deploy-models, cf-wrangler, cf-auth, sql-migrations, cf-free-tier]
   db:       [cf-wrangler, cf-auth, sql-migrations, cf-free-tier]
-  content:  [seo, seo-analytics, md2pdf, writing-style, media]
+  content:  [seo, seo-analytics, md2pdf, writing-style, media, content-vault]
   design:   [media]   # CLI media (ffmpeg/imagemagick); AI-gen models resolved per project
   qa:       [browser-use]   # E2E/UI verification; proof-loop is in base

@@ -279,7 +279,9 @@ same name, different places. Steps:
    + `docs/decisions/` (ADR archive) + a backlog index (`docs/TODO.md`, or a root `ROADMAP.md`). If the
    project **already has** a docs folder (`docs/`, `wiki/`, `guide/`, …), **use it — do not impose a
    name** (`user-docs`), and just add the missing pieces (e.g. `decisions/`, the backlog) inside it.
-   Docs are agent-maintained **infrastructure, not project source**. Apart from the runtime anchors,
+   `context/` (consumed inputs) and `content/` (non-dev deliverables) are **not created empty** — they
+   appear **when the project needs them** (`context/` on the first input material; `content/` for the
+   `content` domain / `content-vault`). Docs are agent-maintained **infrastructure, not project source**. Apart from the runtime anchors,
    the `./.agents/` skeleton, and this docs skeleton, bootstrap never creates or edits the project's
    own source (no `src/`, `package.json`, etc.); those belong to the project and are left untouched.
 
