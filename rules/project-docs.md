@@ -33,6 +33,10 @@ by origin+role: as-received → `context/`; our derived artifact → the authore
   `type:` (decision|plan|note|draft|published) · `status:` (active|in_progress|done|archived) · `tags: [...]` · `project:`.
 - **Links — standard Markdown relative links** `[text](path.md)` (portable, render on GitHub, exact path).
   NOT `[[wiki-links]]` (Obsidian-only — plain text on GitHub) unless the project actually runs Obsidian.
+- **Diagrams — inline as code, not linked files (default).** Embed the diagram *source* as a fenced
+  ` ```mermaid ` block in the doc — single source of truth, diffable, GitHub renders it natively. NOT
+  `![](diagram.svg)` links to external image files (orphan assets, drift). Render to an image only at
+  **export** time (PDF/docx — see `md2pdf`); externalize a diagram only to reuse one across N docs.
 - **Read frontmatter first**, filter by `type`/`tags`/`status`, then read only the relevant bodies.
 - **Agent-ignore** — an ignore list (`.aiignore`, or reuse `.gitignore`) so the agent skips attachments /
   archives / heavy binaries instead of full-scanning them into context; archive completed work **out** of active context.

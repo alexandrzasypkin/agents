@@ -23,6 +23,11 @@ Quality tools follow the same rule, by **coupling to the project's dependency tr
   Standalone binaries, no project coupling — yt-dlp fetches video/audio + subtitles, whisper does
   local speech-to-text, libreoffice/pandoc handle office docs (`extract-docs`), for
   `search-escalation` / `media` / `extract-docs`.
+- diagram render → **mermaid-cli** (`mmdc`, `npm i -g @mermaid-js/mermaid-cli`), installed **only when a
+  doc needs a rendered diagram** (`md2pdf` inline-` ```mermaid ` → SVG at export). It drives a headless
+  Chromium — **reuse the shared one**, don't pull a second: point puppeteer at the global playwright
+  browser (`PUPPETEER_EXECUTABLE_PATH`, or `mmdc --puppeteerConfigFile`); on native Windows resolve the
+  Chrome path. No render backend available → `md2pdf` keeps the code block + a disclosure, never fails.
 - local-index deps — installed **when a project builds an index** (`code-search` / `content-vault`):
   the `sqlite-vec` extension for the semantic doc-RAG (per-OS binary; SQLite must allow loadable
   extensions). Regenerable, gitignored, local-filesystem-only (SQLite locks on network/cross-OS mounts).
