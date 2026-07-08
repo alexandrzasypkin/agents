@@ -18,10 +18,14 @@ Read from — and produce — local documents (PDF, office). CLI-first; tools ar
   the path (like `soffice`) and install the language data.
 - structured/table PDF: `pymupdf` (fitz) / `pdfplumber` — when `pdftotext` loses table structure.
 
-## Produce (md / csv / html → office)
-- md → docx: `pandoc` (`--reference-doc` for a template).
-- md / csv / html → docx / xlsx / ods: `libreoffice --headless --convert-to <fmt> --outdir <dir> <in>`.
-- programmatic build (cell/style control): `openpyxl` (xlsx), `python-docx` (docx), `odfpy` (ods).
+## Produce (→ office) — see the `office-convert` skill
+- md → **docx**: `pandoc` native (`--reference-doc` for A4 + font). **Do NOT** produce docx by feeding
+  HTML to `soffice` — it imports as a *Web document* and tables break; go via pandoc-docx.
+- **xlsx / ods**: `openpyxl` / `pandas` (pandoc can't), or `csv → soffice --convert-to`.
+- **pptx**: `pandoc --reference-doc` (or `python-pptx`). Programmatic (cell/style): `python-docx`, `odfpy`.
+
+The procedure, table verification (`<w:tbl>` check), A4/reference, and shared hazards (Cyrillic font,
+UTF-8, `soffice` lock) live in the **`office-convert`** skill.
 
 ## OS note (Windows)
 `pandoc` and the Python libs are cross-platform (pip/uv). **LibreOffice** differs: the binary is

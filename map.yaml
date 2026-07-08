@@ -59,7 +59,7 @@ rules:
     agents:    [doc-converter]
     templates: [pdf-style]
     # pandoc is a CLI tool (citations/office formats), not an MCP — handled in the skill
-  extract-docs:      {}          # pdftotext/pandoc/tesseract are CLI tools, not MCP
+  extract-docs:      {skills: [office-convert]}   # read: pdftotext/pandoc/tesseract (CLI); produce: office-convert skill
   viz-data:          {}
 
 # Always-on: applied unconditionally, NOT selectable. Kept separate from `types` on purpose.

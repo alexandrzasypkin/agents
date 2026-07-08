@@ -14,6 +14,8 @@ Pipeline: markdown -> preprocess -> markdown->HTML -> styling (CSS) -> weasyprin
 python3 scripts/convert.py <input.md> -o <output.pdf> [--style <css>]
 ```
 Deps: `pip install markdown weasyprint`. Font: DejaVu Sans (Cyrillic + diacritics + −≈→⚠).
+**Windows:** DejaVu is often absent — install it, or pass `--style` with an available Cyrillic font
+(Segoe UI / Noto); don't rely on the default or Cyrillic renders as □□□ (see `env-setup`).
 
 ## Styling / branding is project-specific
 `scripts/convert.py` ships a neutral built-in style. Branding (palette, logo masthead,

@@ -39,6 +39,16 @@ Quality tools follow the same rule, by **coupling to the project's dependency tr
   `requirements.txt`→pip+venv, `Pipfile`→pipenv).
 - npx — one-off CLI without install (`npx wrangler deploy`); frequent use → devDependency.
 
+## Encoding & fonts (esp. Windows)
+- **UTF-8 runtime.** File encoding is pinned at bootstrap (`.editorconfig` / `.gitattributes`, LF +
+  UTF-8); ensure the **runtime** is UTF-8 too — especially on Windows, where the default is a legacy
+  codepage: `PYTHONUTF8=1` for Python, `chcp 65001` for the console. Locale / language stays
+  **project-level** (a separate concern).
+- **Cyrillic-capable font is mandatory for document generation** (PDF / docx / pptx). The Windows
+  toolchain default breaks Cyrillic (□□□) — set the font explicitly (DejaVu Sans / Liberation / Noto)
+  in the template / reference doc. Font is a hard **generation parameter**, not a locale. See the
+  `office-convert` skill and `md2pdf`.
+
 ## Prohibitions
 [CRITICAL] Do not install project dependencies globally.
 
