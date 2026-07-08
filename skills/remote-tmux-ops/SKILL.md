@@ -6,8 +6,26 @@ description: Drive remote tmux sessions over SSH safely — discover panes, capt
 # remote-tmux-ops
 
 Remote work inside tmux on a project server. Always go local machine -> `ssh <host>` ->
-`tmux`. Host names and pane layouts are project-specific — read the project's docs; do not
-hardcode them here.
+`tmux`. `<host>` is a `~/.ssh/config` alias (below); pane layouts are project-specific — read the
+project's docs; do not hardcode hosts or panes here.
+
+## Connection — `~/.ssh/config` alias
+Address every remote host by a **`~/.ssh/config` alias** (`ssh <host>`), never a raw
+`user@ip -p <port> -i <key>` on the command line — the alias keeps IPs, ports, and key paths out of
+shell history and tmux scrollback (secrets hygiene) and gives one stable name.
+- Resolve/verify: `ssh -G <host>` (dumps the effective config); smoke-test `ssh <host> true` before driving tmux.
+- **Missing alias, or no config file → create it.** Ensure `~/.ssh` first
+  (`mkdir -p ~/.ssh && chmod 700 ~/.ssh`), then append a block and `chmod 600 ~/.ssh/config`:
+  ```
+  Host <alias>
+      HostName <ip-or-dns>
+      User <user>
+      Port <port>
+      IdentityFile ~/.ssh/<key>
+  ```
+  Take the connection details from the project docs / the user — don't invent them. Record the
+  **alias** in the project (`AGENTS.md` / `REGISTRY.md`); the config and the private key stay in
+  `~/.ssh/` (machine-level, never committed — the key is a secret).
 
 ## Rules
 - Never run local `tmux` for server operations — always through SSH: `ssh <host> "tmux ..."`.
