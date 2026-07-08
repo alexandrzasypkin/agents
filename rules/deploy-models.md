@@ -9,7 +9,10 @@ Pick by where the deploy trigger lives, not by a fixed tool:
 
 - **solo → cloud** (Cloudflare): direct deploy — `npm run ship`, `wrangler deploy`.
 - **solo → own server**: bare git + `post-receive` hook. Push to a `--bare` repo on the
-  server; the hook checks out the tree and restarts the service. Deploy = `git push`.
+  server; the hook checks out the tree and restarts the service. Deploy = `git push`. The git
+  remote goes through a **`~/.ssh/config` alias** (`git remote set-url origin <alias>:path/repo.git`),
+  never raw `user@ip:path` — one shared key can serve several hosts, so the **alias** (not the key)
+  is what disambiguates host + repo. See `remote-tmux-ops` for the alias/config convention.
 - **team → hosting CI/CD**: GitHub Actions / GitLab CI / Gitea Actions — depends on where the repo lives.
 
 Cross-cutting for any model:
