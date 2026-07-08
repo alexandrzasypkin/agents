@@ -22,7 +22,12 @@ shell history and tmux scrollback (secrets hygiene) and gives one stable name.
       User <user>
       Port <port>
       IdentityFile ~/.ssh/<key>
+      IdentitiesOnly yes
   ```
+  `IdentitiesOnly yes` = offer only the named key, not every key in the agent — avoids the server's
+  `MaxAuthTries` cutting you off with "Too many authentication failures". (Do **not** add
+  `IdentityAgent none` by default — it disables the agent, so a passphrased key is re-prompted on
+  every `ssh` call, which this skill makes many of; reserve it for hardened "on-disk key only" hosts.)
   Take the connection details from the project docs / the user — don't invent them. Record the
   **alias** in the project (`AGENTS.md` / `REGISTRY.md`); the config and the private key stay in
   `~/.ssh/` (machine-level, never committed — the key is a secret).
