@@ -391,7 +391,13 @@ same name, different places. Steps:
    the missing baseline lines** into the current `.gitignore` (append what is absent — never clobber),
    extended per project per `env-setup`. `.gitattributes` and `.editorconfig` (LF, UTF-8) are created
    only on a fresh `git init` (otherwise they'd override a parent repo's convention) — before the
-   first commit. The `.agents/generated/.agents.lock.yaml` is committed (provenance), not ignored. Then **install the git hooks
+   first commit. The `.agents/generated/.agents.lock.yaml` is committed (provenance), not ignored.
+   **Lint/typecheck exclude (when the project has JS/TS quality tooling):** the `.agents/` layer ships
+   `.ts` hook fragments (`opencode.ts`) that sit outside the project's `tsconfig` scope — MERGE
+   **`.agents/**`** (and `.claude/**`) into the project's eslint `ignores` (and `tsconfig` `exclude` if
+   its `include` globs `**/*.ts`), appending, never clobbering. Skip it and a type-aware lint/`tsc` gate
+   parse-errors on the new layer (see `quality-js`). Same merge discipline as the `.gitignore` step.
+   Then **install the git hooks
    unconditionally** (not a survey option): `pre-commit` (light gate on staged files + secret
    scan) and `pre-push` (full quality gate), dispatching to the active `quality-*` rules by
    project language. The main lint/test gate runs on the git event, so it cannot be forgotten.

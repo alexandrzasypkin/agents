@@ -22,6 +22,14 @@ Baseline tools — local to the project (devDependencies), run via npx / npm scr
 
 [CRITICAL] eslint does not validate types — tsc does. Keep them separate.
 
+[CRITICAL] Exclude the agent layer from type-aware lint/typecheck. The `.agents/` layer ships `.ts`
+hook fragments (e.g. `opencode.ts`) that are NOT project source and sit outside the project's
+`tsconfig` scope — type-aware eslint (`parserOptions.project`) and `tsc` throw a parse-error on them
+and fail the gate. Add **`.agents/**`** (and `.claude/**`) to eslint `ignores`, and to `tsconfig`
+`exclude` if its `include` globs `**/*.ts`. Same reasoning as ignoring `scripts/**/*.mjs`.
+Bootstrap/migration wires this automatically (see the canon); on an existing project, merge the
+pattern into whatever lint/typecheck config is already there — do not clobber it.
+
 Project specifics (eslint plugins such as eslint-plugin-astro, build adapter, edge-compat
 checks, workers-pool test config) are **not** baseline — they live in the project and are
 recorded in `./.agents/REGISTRY.md`.
