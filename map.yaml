@@ -23,7 +23,7 @@ rules:
   git-discipline:    {}
   proof-loop:        {}
   code-review:       {agents: [reviewer]}      # review protocol: gates -> trace -> Critical/Warning/Info
-  delegation:        {}          # multi-agent lead+scoped-agents; NOT in any domain — self-config pulls it for LARGE projects only (roster is project-defined)
+  delegation:        {hooks: [boundary-guard]}   # multi-agent lead+scoped-agents; NOT in any domain — self-config pulls it for LARGE projects only (roster is project-defined). boundary-guard: mechanical path-invariant enforcement.
   astro:             {skills: [astro]}   # Astro 5 + @astrojs/cloudflare; NOT in any domain — self-config pulls it when the project uses Astro (astro.config.* / @astrojs dep)
   secrets:           {hooks: [secrets-guard]}   # principle (text); PreToolUse guard blocks read/write of secret files
   search-escalation:

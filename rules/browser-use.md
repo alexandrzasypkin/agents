@@ -29,9 +29,17 @@ A visible browser; the agent acts on the page like a user.
 - Log the result in the conversation (audit trail).
 - Endpoint, auth, and account specifics are project-specific — see the project, not this rule.
 
-## Cost & limits (Playwright MCP)
-Each step is an API call, so a multi-step flow is token-heavy (a full scenario can run 100K+ tokens);
-there are no built-in asserts or retry, and the accessibility tree may not match the visual state.
-Use the browser for interactive work, verification, and **smoke** testing — not large regression
-suites (for CI use a real test runner like Playwright Test, not the MCP). Structured UI / E2E testing
-— read-only, UI-only (no direct API), screenshot per step, pass/fail report — → the `e2e` agent.
+## Three lanes — pick by goal
+1. **Scripted tests** (`playwright test`, `.spec.ts` in `tests/e2e/`) — deterministic, versioned,
+   network interception + built-in asserts/retry. Install-agnostic: native if present (no Docker),
+   Docker only where a native install is blocked, or CI. **Default for regression / CI / critical paths.**
+2. **Interactive MCP → QA** — the agent drives the real browser: exploratory checks, live debugging,
+   interactive auth (captcha/2FA/Turnstile). No built-in asserts/retry; the accessibility tree may not
+   match the visual state. (console vs UI mode above = who commits the consequential click.)
+3. **Interactive MCP → content** — the same drive-the-UI mechanic, but the OUTPUT is instructional
+   material: walk a real user flow, `browser_take_screenshot` each step, narrate → a how-to / onboarding
+   walkthrough. Feeds `user-docs` (product users) or `content` (marketing/onboarding); screenshots are
+   assets (by the guide / `content/attachments`).
+
+Structured UI / E2E testing (read-only, UI-only, screenshot per step, pass/fail report) → the `e2e` agent.
+(Local-first / interactive-only-when-needed is the general MCP principle — not restated per-tool here.)

@@ -68,3 +68,10 @@ gives the same isolation and parallelism, from a single portable source.) So the
 The concrete **roster** (which agents), the **ownership map** (which path each owns), and the
 **phase order** live in the PROJECT (`./.agents/agents/` + `AGENTS.md`) — following its architecture.
 This rule is the pattern; the roster is per-project.
+
+## Enforce hard invariants with a hook
+The `boundaries` ownership map is a **soft** rule the lead upholds. For the subset that is a hard,
+**role-agnostic path invariant** (generated files not hand-edited, committed migrations immutable,
+server-only dirs, `dist/`), back it with the **`boundary-guard`** hook (`patterns.conf`) — a PreToolUse
+guard that pauses a matching write for approval. A rule asks, a hook guarantees. Per-role write-zones a
+hook **cannot** see (it doesn't know which subagent is acting) — those stay the rule + lead arbitration.

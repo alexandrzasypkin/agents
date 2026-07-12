@@ -19,6 +19,8 @@ audiences — business / client / marketing / published content — are NOT user
 - **Format: Markdown (`.md`) by default** — author README, wiki pages, and guides in md (readable,
   diffable, renders in git/wiki). Export/render only when the surface needs it (PDF via `md2pdf`,
   a generated API reference) — the Markdown stays the source. Don't hand-author HTML/PDF/docx.
+- **How-to / walkthrough of a live UI** — capture it via `browser-use` (drive the real flow →
+  `browser_take_screenshot` each step → narrate), don't fake steps from memory. Screenshots sit by the guide.
 
 ## Duplicate here ONLY on an external-surface change
 - new feature / changed behavior / new-or-changed API or CLI usage / user-set config → update user-docs.

@@ -23,7 +23,9 @@ audience's / market's locale (see `user-docs`, `i18n`), not English-by-default.
 - **Archive** — superseded → `status: archived`, **out** of the agent's active context.
 
 Producer chain for the source material: research (`search-escalation` — web / yt-dlp / whisper) → draft
-(`writing-style`) → export (`md2pdf` / `media`) → publish (`seo` / `seo-analytics`).
+(`writing-style`) → export (`md2pdf` / `media`) → publish (`seo` / `seo-analytics`). For a **how-to /
+onboarding walkthrough of a live product UI**, capture the flow via `browser-use` (drive the real UI →
+screenshot each step → narrate) rather than describing it from memory.
 
 ## Semantic retrieval (doc-RAG) — later, on measured need
 When frontmatter-filtering over `docs/` + `context/` stops scaling, add a **local SQLite index**
