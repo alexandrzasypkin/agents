@@ -50,6 +50,7 @@ rules:
   i18n:              {}          # frontend localization: UI vs content layer, namespaced keys, all-locales
   cf-wrangler:
     skills: [cf-secrets]         # CF-specific secrets procedure (list/put/rotate/distribute/check). cloudflare MCP is project-level — resolved per project (see rule).
+    hooks:  [cf-prod-guard]      # PreToolUse Bash — pauses MUTATING prod ops (deploy / d1 --remote write / migrations apply / secret put|delete) for approval; read-only prod not gated.
   seo-analytics:     {}          # GSC MCP is project-level (not in baseline — see rule)
   media:
     skills: [ffmpeg-recipes]     # CLI media (ffmpeg/imagemagick) for content/design
