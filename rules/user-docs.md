@@ -27,6 +27,18 @@ audiences — business / client / marketing / published content — are NOT user
 - internal refactor, bug fix with no surface change, architecture / infra → stays in
   `project-docs` (agent docs), **NOT** duplicated here.
 
+## Lifecycle — working → final (the user doc is DISTILLED, not copied)
+Working material (dev docs in `docs/`, plans, decisions, session notes) is **not** the user doc — it
+answers "how it is built / why". The user doc answers "how do I do X". Promote by **distilling**, never
+by copy-pasting dev prose:
+- **Draft** — while shaping, mark `status: draft`.
+- **Final** — rewritten for the user's task, in the user's language, without internal rationale or ADR
+  reasoning; mark `status: published`. The single authoritative surface for users.
+- **Archive** — superseded → `status: archived`, out of the active surface.
+
+The dev source of truth stays in `project-docs` / `docs/decisions` and is **not** duplicated here — link
+to it only if a user genuinely needs it.
+
 ## Discipline
 - After a surface-changing change, correct or create the user doc in the same session.
 - Depth scales by project (library → API reference; CLI → usage; app → README + guide;
