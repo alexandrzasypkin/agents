@@ -454,6 +454,16 @@ a fresh copy from `~/.agents`. After deployment, the new item is also appended t
 local copy of the map. What was built at the moment of initialization is recorded in
 `.agents.lock.yaml`.
 
+[CRITICAL] **Refreshing a library file into a project MERGES — never blind-overwrites.** A project copy
+may differ from the library because the **project appended to it** (an agent role carrying a
+"Project delta" write-zone, a rule with project specifics, a hook README with provenance) — not because
+the library moved ahead. Before copying: check whether the library file actually changed
+(`git log -- <path>` in `~/.agents`). If the difference is the project's own addition, **keep it** — take
+the library body and re-apply the project delta. A blind `cp` silently destroys project memory. (Real
+incident: a roster refresh wiped the per-role write-zones and project checklists of `reviewer`/`docs`/`e2e`
+in two projects, while the library's `agents/` had not changed at all — recovered only because the
+projects had committed them. Hence also: **commit the project's memory**, see `project-docs`.)
+
 Self-configuration (see the project `AGENTS.md`): if a rule is found in `~/.agents/rules/`
 but is absent from the local `./.agents/map.yaml` — take its chain from the fresh
 `~/.agents/map.yaml`, deploy it into the project, and append it to the local copy of the map.
