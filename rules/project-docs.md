@@ -28,6 +28,26 @@ by origin+role: as-received → `context/`; our derived artifact → the authore
 - **user-docs** — README + a `docs/`|`wiki/`|`guide/` folder for **product users** (see `user-docs`).
 - backlog index (`ROADMAP.md` / `docs/TODO.md`) — the single list of open work → links to `plans/active/`.
 
+## Working memory — plans & decisions (triggers, not taste)
+- **Plan — REQUIRED** when the task is multi-step, touches more than one file/zone, or changes structure:
+  write `./.agents/plans/active/<slug>.md` **before** editing, show it, then work **against it** (tick
+  steps as you go). On completion `git mv` it to `plans/done/` — its own commit.
+- **The backlog index is NOT the plan.** `docs/TODO.md` / `ROADMAP.md` holds **one line per open item**,
+  linking to `plans/active/<slug>.md`. Decomposing and tracking a task *inside TODO* instead of in a plan
+  loses the plan, the handoff, and the `done/` archive. **Index in TODO, work in the plan.**
+- **Decision (ADR) — REQUIRED** whenever a choice is architectural, hard to reverse, or rejects a real
+  alternative (stack / storage / protocol / boundary / naming that others must follow). Write it to
+  `docs/decisions/`: context, decision, alternatives, dead-ends, consequences. If you catch yourself
+  explaining "why X and not Y" in chat, that is an ADR — not a chat message.
+- **Handoff**: every `plans/active/` file opens with *done / what did NOT work / the single next step* —
+  this is the cross-session memory. `REGISTRY.md` records WHY the **environment** changed (tools, rules,
+  attachments) — not task progress.
+- **The project's memory is COMMITTED.** `./.agents/` — rules/skills/agents/**plans**/lock — and
+  `docs/decisions/` travel with the repo (that is the point of copy-by-value, and the reason home folders
+  are forbidden: they don't travel). Mind the leading dot: **`./.agents/`**, never `agents/`. Only
+  regenerable caches and heavy/secret material stay out (`.codegraph/`, `.docindex/`,
+  `context/attachments/`, secrets, session scratch).
+
 ## Metadata, links, retrieval
 - **Frontmatter** on docs/notes, so the agent filters by metadata without reading the full text:
   `type:` (decision|plan|note|draft|published) · `status:` (active|in_progress|done|archived) · `tags: [...]` · `project:`.
