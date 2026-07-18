@@ -245,6 +245,14 @@ for a new project.
 
 ### Initialization steps
 
+[CRITICAL] **Finish initialization before ANY project work.** The survey (step 2) is **not** the finish
+line — steps 3–6 (deploy the chain, write the runtime anchors, git + hooks, report) must complete **in
+the same turn, before** you research, write code, or answer the substantive request. If the user's first
+message is already a task, **bootstrap first, then do the task**. Asking about domains and then jumping
+straight into the work leaves the project unconfigured, and the work has to be redone later against the
+structure that should have been there (a real incident). The **step-6 report is the completion signal** —
+until it is printed, initialization is not done and no project work starts.
+
 Layout after bootstrap — runtime anchors in the root (agents require them there),
 all other infrastructure under `./.agents/`:
 
