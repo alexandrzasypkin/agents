@@ -5,7 +5,7 @@
 # rule + lead arbitration. On a match it emits permissionDecision "ask" (approval, not a hard block).
 # Config: patterns.conf beside this script, one `<ERE-path><TAB><reason>` per line (blank/# ignored).
 # No patterns.conf -> no-op.
-here="$(cd "$(dirname "$0")" && pwd)"; conf="$here/patterns.conf"
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; conf="$here/patterns.conf"
 [ -f "$conf" ] || exit 0
 path="$(python3 -c 'import json,sys;print(json.load(sys.stdin).get("tool_input",{}).get("file_path",""))' 2>/dev/null)" || exit 0
 [ -n "$path" ] || exit 0
