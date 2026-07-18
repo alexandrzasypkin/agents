@@ -18,3 +18,13 @@ PreToolUse `Bash` guard: pauses **mutating production Cloudflare operations** fo
 
 The routine prod path is CI (push → the project's deploy workflow); this guard is the safety net for the
 occasional direct prod op. Attached via the `cf-wrangler` rule.
+
+## Per-agent install
+- **Claude** → merge `claude.json` into `./.claude/settings.json` (`hooks.PreToolUse`, matcher `Bash`).
+- **Codex** → merge `codex.toml` into `./.codex/config.toml`. If your codex version honours only
+  `"deny"`, the `"ask"` this guard returns is ignored and it degrades to advisory — verify per version.
+- **opencode** → copy `opencode.ts` to `./.opencode/plugin/cf-prod-guard.ts`. The opencode plugin API
+  can only block by throwing (no "ask"), and this guard is an approval prompt by design — so there it
+  is **advisory** (warns, does not block).
+
+`guard.sh` is the shared detector; the per-agent files only wire it in.

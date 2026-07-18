@@ -1,0 +1,12 @@
+# Merge into ./.codex/config.toml. Matcher = the codex tool names that carry a file path;
+# adjust to your codex version's tool names if they differ.
+# NOTE: this guard returns permissionDecision "ask" (an approval prompt, by design). If your codex
+# version honours only "deny", "ask" is ignored and the guard degrades to advisory (no block).
+# Without .agents/hooks/boundary-guard/patterns.conf the hook is a no-op.
+[[hooks.PreToolUse]]
+matcher = "Write|Edit|apply_patch"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = 'bash ".agents/hooks/boundary-guard/guard.sh"'
+statusMessage = "boundary-guard"

@@ -17,3 +17,13 @@ each line is `<ERE path pattern><TAB><reason>`. Without `patterns.conf` the hook
 ships safe/inactive. Wire the `claude.json` fragment (PreToolUse `Write|Edit`) into `.claude/settings.json`
 (the bootstrap deep-merge does this). For a hard block instead of a prompt on a specific pattern, change
 that path's decision to `"deny"` in `guard.sh` — default is `"ask"`.
+
+## Per-agent install
+- **Claude** → merge `claude.json` into `./.claude/settings.json` (`hooks.PreToolUse`, matcher `Write|Edit`).
+- **Codex** → merge `codex.toml` into `./.codex/config.toml`. If your codex version honours only
+  `"deny"`, the `"ask"` this guard returns is ignored and it degrades to advisory — verify per version.
+- **opencode** → copy `opencode.ts` to `./.opencode/plugin/boundary-guard.ts`. opencode can only block
+  by throwing (no "ask"), so there it is **advisory** (warns, does not block); it reads the same
+  `patterns.conf` from the project root.
+
+Without `patterns.conf` every agent's variant is a no-op.

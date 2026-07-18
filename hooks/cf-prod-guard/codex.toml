@@ -1,0 +1,12 @@
+# Merge into ./.codex/config.toml. Matcher = the codex tool name that carries a shell command;
+# adjust to your codex version's tool names if they differ.
+# NOTE: this guard returns permissionDecision "ask" (an approval prompt, by design — not a wall).
+# If your codex version honours only "deny", "ask" is ignored and the guard degrades to advisory
+# (no block). Verify against your version before relying on it as a gate.
+[[hooks.PreToolUse]]
+matcher = "Bash"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = 'bash ".agents/hooks/cf-prod-guard/guard.sh"'
+statusMessage = "cf-prod-guard"
