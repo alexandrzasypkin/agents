@@ -18,8 +18,20 @@ Secret files: `.env`, `.env.*` (except `*.example/.sample/.template`), `.dev.var
 | **ALLOW** — redirect to a file | `… > /tmp/secret_val` (then `shred -u` it). |
 | **ALLOW** — metadata-only ops | `ls`, `stat`, `test`, `wc`, `du`, `find`, `cp`, `mv`, `rm`, `chmod`, `git`, `shred` — they never print content. |
 | **ALLOW** — templates | `.env.example`, `.sample`, `.template`. |
+| **ALLOW** — a provably non-printing final stage | exit-code/count only (`grep -q`, `grep -c`) or key **NAMES** only (`cut -d= -f1`, `awk -F= '{print $1}'`) — checking *which* keys exist never prints a value. |
 
 Only the **final** pipeline stage matters — that is what returns to the agent.
+
+## Why a whitelist, and why not "ask"
+
+The name-listing allowance is a **fail-closed whitelist**: only the exact forms above match. A
+near-miss — `cut -d= -f1,2`, `cut -d= -f2-`, `awk '{print $2}'`, `grep` without `-q`/`-c` — does **not**
+match and falls through to DENY. Widen it only with a form you can prove prints no value.
+
+An "ask" tier for ambiguous filters was considered and **rejected**. Approving such a command *runs*
+it, and its stdout is then already in the transcript — the leak is irreversible, and an approval
+prompt on an ambiguous filter is a ~90% leak. A false DENY costs one rephrase; a false ALLOW cannot
+be undone. Hence: prove it safe (whitelist) or deny it.
 
 ## Per-agent install (bootstrap, step 4)
 - **Claude** → merge `claude.json` into `./.claude/settings.json` (`hooks.PreToolUse`) — the COMMITTED

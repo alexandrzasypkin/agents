@@ -45,6 +45,15 @@ if cmd and has_secret(cmd):
     if re.match(META, cmd.strip()):
         print("ALLOW"); sys.exit(0)                 # never prints file content
     last = cmd.split("|")[-1].strip()               # only the FINAL stage reaches stdout
+    # Provably non-printing final stages -> ALLOW: exit-code/count only, or key NAMES only (never
+    # values). FAIL-CLOSED: a near-miss variant (cut -f1,2 / -f2- / awk $2 / grep without -q|-c)
+    # does NOT match and falls through to DENY. Deliberately not "ask": approving such a command
+    # runs it, and its stdout is already in the transcript — the leak would be irreversible.
+    SAFE_FINAL = (r"^(sudo\s+)?(grep\s+-\w*[qc]\w*\s"
+                  r"|cut\s+-d=\s+-f1(\s|$)"
+                  r"|awk\s+-F=\s*[^{]*\{\s*print\s+\$1\s*\})")
+    if re.match(SAFE_FINAL, last):
+        print("ALLOW"); sys.exit(0)
     # anything that echoes its input onward (incl. text filters) would surface the value
     PRINTER = (r"^(sudo\s+)?(cat|head|tail|less|more|bat|xxd|od|strings|nl|tac|tee|echo|printf"
                r"|grep|egrep|fgrep|rg|sed|awk|cut|tr|sort|uniq|rev|fold|paste|column|jq|yq|base64)\b")
