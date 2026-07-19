@@ -48,6 +48,22 @@ by origin+role: as-received → `context/`; our derived artifact → the authore
   regenerable caches and heavy/secret material stay out (`.codegraph/`, `.docindex/`,
   `context/attachments/`, secrets, session scratch).
 
+## Confidential input — the exception, not the default
+`context/` is committed (it is the project's input, and it must travel). **Confidentiality is a
+property of an individual input, not of the folder** — a client's org chart or an unredacted export,
+not the downloaded spec next to it. Do not gitignore `context/` wholesale because one file is sensitive.
+
+When an input IS confidential, it is a secret file in every practical sense — same discipline:
+- the **raw** form stays local (gitignored by an explicit, separately-commented path — never folded
+  into the same ignore block as the project's memory);
+- the form the project actually needs is **derived and sanitized**, and by that act it stops being an
+  input: it moves to the authored side (a seed, a fixture, a doc) and is committed there. This is the
+  same move as a template beside a secret file — key names travel, values do not.
+
+Never let one ignore block cover both a confidential input and the project's memory (`plans/`,
+`REGISTRY.md`, `docs/decisions/`). They look alike ("local"), but memory MUST travel — a real
+incident lost a project's REGISTRY on a machine change exactly this way.
+
 ## Metadata, links, retrieval
 - **Frontmatter** on docs/notes, so the agent filters by metadata without reading the full text:
   `type:` (decision|plan|note|draft|published) · `status:` (active|in_progress|done|archived) · `tags: [...]` · `project:`.
