@@ -21,6 +21,8 @@ by origin+role: as-received → `context/`; our derived artifact → the authore
 - `docs/` — **dev/agent source of truth** we author: architecture, contracts, flows, `docs/decisions/` (ADR). Code follows docs.
 - `./.agents/plans/{active,done}` — **agent + dev plans** (+ cross-session memory in `REGISTRY.md`); each
   active plan opens with a **handoff** note (done / what did NOT work / the single next step).
+- `./.agents/runbooks/` — **standing operational procedures** the agent runs verbatim (deploy, restore,
+  secret-rotation); project facts, not user docs and not ephemeral plans. See `.agents/runbooks/README.md`.
 - **`context/`** — **inputs we CONSUME**: briefs, requirements, references, research sources, stakeholder
   material. Read-for-context, not authored here. (A raw brief → `context/`; the plan we derive → `plans/`;
   a meeting note → `context/`, its extracted decision → `docs/decisions/`.) Heavy media → `context/attachments/` (gitignored).

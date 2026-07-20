@@ -31,18 +31,18 @@ Cross-cutting for any model:
 A working project has **one** deploy path, not a fresh derivation each session. Re-deriving from this
 chain every time is how the same project gets deployed three different ways. So:
 
-- **First deploy:** resolve the concrete path from this chain, then **pin it in `docs/deploy.md`** (a
-  committed runbook — dev source of truth, see `project-docs`). It records the *what*, exactly:
+- **First deploy:** resolve the concrete path from this chain, then **pin it in `.agents/runbooks/deploy.md`** (a
+  committed **agent-layer** runbook, not a user doc — see `.agents/runbooks/README.md`). It records the *what*, exactly:
   route (CI workflow + branch, or the fallback `wrangler deploy` command), the target names (worker /
   D1 / queue / bucket / unit), secret **names** (values stay in the secret file, sourced via
   `cf-secrets` — never in the runbook), migration-vs-code order, the **verify** URL + expected
   response, and the **rollback** command. `REGISTRY.md` still logs *why* the infra changed — it is not
   the runbook.
-- **Every deploy after:** read `docs/deploy.md` and **execute it verbatim**. Do not improvise an
+- **Every deploy after:** read `.agents/runbooks/deploy.md` and **execute it verbatim**. Do not improvise an
   alternative path. Read the whole skill chain (`deploy-verify` → `deploy-models` → `cf-secrets`)
   before touching prod.
 - **Infra actually changed** (new binding, new route)? Update the runbook in the same change — the
   runbook and reality never drift.
 
-If `docs/deploy.md` is absent on a project that clearly ships, writing it IS the first step of the
+If `.agents/runbooks/deploy.md` is absent on a project that clearly ships, writing it IS the first step of the
 deploy — not an optional extra.
