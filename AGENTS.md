@@ -491,6 +491,12 @@ The generated file must contain at least four blocks:
 - **Surgical changes.** Touch only what the request needs; every changed line traces to it.
   Match existing style; don't refactor what isn't broken or delete pre-existing dead code (mention it).
   Remove only the orphans your change created.
+- **Comments earn their place — no noise.** A comment explains *why* (a non-obvious constraint,
+  a trade-off, a gotcha) — never *what* the code already says. Delete filler: restating the line,
+  section banners, changelog/attribution lines (`// added by …`, `// AI-generated`, `// fixed bug`),
+  commented-out code, `TODO`s with no owner/issue. A long comment that points to a doc to explain
+  what the code does is a smell — the code is unclear; fix the code, don't annotate around it.
+  (Same discipline as the no-noise commit rule in `git-discipline`, applied to source.)
 - **Goal-driven + verify.** Turn the task into a verifiable goal; brief plan, per-step verification;
   confirm by an independent check, not assertion (see `proof-loop`, `code-review`).
 - **Chat answers: structured and plain.** Reply in the chat with structure (short paragraphs, a
