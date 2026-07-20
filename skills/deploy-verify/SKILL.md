@@ -7,6 +7,9 @@ description: Deploy a self-hosted service, then verify before moving on — rebu
 
 The verify loop for a self-hosted deploy — `proof-loop` applied to deploying. Extends `deploy-models`.
 
+0. **Read the project's deploy runbook first** (`docs/deploy.md`) and follow it verbatim — same
+   project, same path, every time. No runbook yet? Resolve the path from the chain and write it now
+   (see `deploy-models` → "Per-project deploy runbook"). Read the whole chain before touching prod.
 1. Deploy via the project's trigger (git push → server hook, `systemctl --user restart`, or a
    container rebuild). **No `scp`/`rsync` of code** — git is the transport (see `git-discipline`).
 2. **Verify before the next step**: read the deploy output for success markers; hit the service
