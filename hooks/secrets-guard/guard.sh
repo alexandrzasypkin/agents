@@ -12,6 +12,7 @@
 # *.example/.sample/.template are always allowed (templates). python3 absent -> fail-open.
 [ -n "${AGENTS_DEBUG:-}" ] && set -x   # opt-in trace: AGENTS_DEBUG=1
 mode="${1:---claude}"
+# shellcheck disable=SC2016  # the python body is intentionally single-quoted — bash must NOT expand $1/$2 etc.
 verdict="$(python3 -c '
 import sys, json, re
 try:
