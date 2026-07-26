@@ -102,9 +102,11 @@ the map, but are recorded in `./.agents/REGISTRY.md` by the self-configuration r
 ### Language policy
 
 - **Canon and library artifacts** (`rules/`, `skills/`, `agents/`, `templates/`, `hooks/`,
-  and the comments in `map.yaml` / `mcp-configs.yaml`) — **English**. They are
-  agent-oriented, cross-agent (Claude / Codex / opencode), and load into context; English
-  is the consistent, token-cheap, instruction-reliable choice.
+  the comments in `map.yaml` / `mcp-configs.yaml`) **and the project `AGENTS.md`** (pointer /
+  behavioral / self-config) — **English**. They are agent-oriented, cross-agent (Claude /
+  Codex / opencode), and load into context every session; English is the consistent,
+  token-cheap, instruction-reliable choice. Language follows **who loads the file, not whose
+  project it is**: even in a non-English project the agent-loaded structure stays English.
 - **User-facing and output documents** — working notes (plans, findings) and anything the
   agent **generates for the user** (reports, content, summaries) — **free language**: the
   user's language or the target market's locale. The agent must NOT force English onto an
