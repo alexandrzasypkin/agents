@@ -474,7 +474,20 @@ but is absent from the local `./.agents/map.yaml` — take its chain from the fr
 
 ### What to write into the project `./AGENTS.md`
 
-The generated file must contain at least four blocks:
+The generated file must contain at least the four blocks below.
+
+`AGENTS.md` is a **thin anchor**: it POINTS to where things live, it does not COPY them. A project may
+add a brief block for its core working style (e.g. a large project's delegation model), but even that
+**points** to the rule/roster — it does not restate them. Everything else routes to its home and is
+referenced from the pointer, NOT written here:
+- environment change / attach / prune / **deviation + its WHY** → `REGISTRY.md` — not this file. (The
+  "Attached at initialization" block stays a one-time thin snapshot; it does not re-narrate deviations.)
+- architecture / data-model / flows → `docs/` (or the project wiki) · a project rule → `.agents/rules/`
+  · a decision → `docs/decisions/` · a plan → `.agents/plans/`.
+Only project **behavioral lessons** (incident-driven) grow inside this file, in the seed block below.
+If a section here restates something that already has a home, it is a leak — move it, leave a pointer.
+(Real incident: three sessions in a row dumped adaptations and rule/architecture detail into `AGENTS.md`
+instead of routing them; it swelled into a catch-all.)
 
 ```markdown
 # <Project> — AGENTS.md
@@ -558,7 +571,9 @@ Without the record, the next session does not know why the project environment i
 - Skills / agents: <lists>
 - MCP: <list; configs from `mcp-configs.yaml` → `.mcp.json` / `opencode.json` / codex config>
 
-Do not duplicate the contents of `map.yaml` — links are taken from `./.agents/map.yaml` (the local copy) via the pointer.
+Do not duplicate the contents of `map.yaml` **or `REGISTRY.md`** — this block is a one-time thin snapshot
+(version / domains / rule+skill+agent counts). Links come from `./.agents/map.yaml` via the pointer; the
+WHY of any deviation lives in `REGISTRY.md` — point to it, do not restate it here.
 ```
 
 ---
