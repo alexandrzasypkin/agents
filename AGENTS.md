@@ -332,7 +332,11 @@ same name, different places. Steps:
    its own file only when there is content for it (hooks / MCP / permissions); rules and skills stay
    in `.agents/`, read via the pointer, never rendered here:
    - **Claude** (when Claude runs) → `./CLAUDE.md` (symlink → `AGENTS.md`, the only symlink),
-     `./.claude/settings.json` (chain hooks), `./.mcp.json` (project-bound MCP).
+     `./.claude/settings.json` (chain hooks), `./.mcp.json` (project-bound MCP), and **the native-memory
+     signpost** `~/.claude/projects/<project-path-slug>/memory/MEMORY.md` (slug = the project's absolute
+     path with `/`→`-`) — written as the redirect signpost (empty of content, maps each knowledge kind to
+     its repo home; see `project-docs`). This is the one legitimate `~/.claude` write and the direct
+     bootstrap guard against the recurring "project knowledge dropped in native-memory" leak.
    - **codex** (when codex runs) → `./.codex/config.toml` (chain hooks + project-bound MCP; trust).
    - **opencode** (when opencode runs) → `./opencode.json` (canon pointer + MCP) and
      `./.opencode/plugin/*.ts` (hooks).

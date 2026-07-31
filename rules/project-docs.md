@@ -50,6 +50,23 @@ by origin+role: as-received → `context/`; our derived artifact → the authore
   regenerable caches and heavy/secret material stay out (`.codegraph/`, `.docindex/`,
   `context/attachments/`, secrets, session scratch).
 
+## Native-memory is a SIGNPOST, not a store
+An agent's built-in memory (Claude Code's `~/.claude/projects/<slug>/memory/` + `MEMORY.md`) loads every
+session — which is exactly why agents keep dropping project knowledge there. But it is a **home folder:
+not committed, does not travel with the repo, lost on a machine/clone change** (real incident: a
+project's whole knowledge sat there and was gone off-machine). So it holds NO project knowledge —
+instead, turn its `MEMORY.md` into a **redirect signpost**, the one legitimate write to `~/.claude`:
+empty of content, it maps where each kind of knowledge actually lives and forbids recording there.
+```
+# Memory index — empty by design. Project knowledge lives IN THE PROJECT, never ~/.claude:
+#   behavioral rules / lessons → AGENTS.md ("Behavioral rules")   decisions → docs/decisions/
+#   plans → .agents/plans/{active,done}   infra/operational → docs/   environment WHY → .agents/REGISTRY.md
+# Do NOT record project memories in ~/.claude for this project.
+```
+Loaded every session, the signpost redirects the next agent at the point of temptation. **Bootstrap
+seeds it** (canon step 4). User-level, cross-project preferences may still live in native-memory — the
+ban is on PROJECT knowledge, not on the feature.
+
 ## Confidential input — the exception, not the default
 `context/` is committed (it is the project's input, and it must travel). **Confidentiality is a
 property of an individual input, not of the folder** — a client's org chart or an unredacted export,
