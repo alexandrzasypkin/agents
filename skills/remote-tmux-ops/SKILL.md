@@ -56,16 +56,20 @@ ssh <host> "tmux send-keys -t <session>:<window>.<pane> C-u"
 ```
 
 ## send-keys rules
-- **`C-m` is the default for everything — shells AND interactive TUIs.** The two keys coincide only
-  while the terminal is in normal mode. A TUI that enables **application keypad mode** (DECKPAM)
-  makes `Enter` send `\eOM` (SS3 M) instead of `\r`, and tmux's `send-keys Enter` honours that mode —
-  so the app receives an escape sequence it does not count as submit. `C-m` is the literal CR (`\r`),
-  which the mode does not change, so it always gets through. Observed: a TUI where `Enter` did
-  nothing and `C-m` submitted. Use `Enter` only as a fallback, never as the default.
-- **A keystroke is not an action until you SEE it.** `send-keys` exits 0 whenever the pane exists —
-  that says nothing about whether the app accepted the key. `capture-pane` after sending and read the
-  result; unchanged state means the key did not land. Never report a remote step as done on the
-  strength of a clean `send-keys` exit code.
+- **`C-m` is the default submit for everything — shells AND interactive TUIs.** The two keys coincide
+  only while the terminal is in normal mode. A TUI in **application keypad mode** (DECKPAM) makes
+  `Enter` send `\eOM` (SS3 M), not `\r`, and `send-keys Enter` honours that mode → the app gets an
+  escape sequence it does not count as submit. `C-m` is the literal CR (`\r`), unaffected by the mode.
+  Observed: a TUI where `Enter` did nothing and `C-m` submitted.
+- **Submit = C-m, then VERIFY, then fall back to `Enter`.** A clean `send-keys` exit 0 only means the
+  pane exists — it says nothing about whether the key was accepted. So for every submit:
+  1. `send-keys … C-m`.
+  2. `capture-pane` and check a **concrete** submit signal — NOT "something changed": the **input line
+     emptied** (the text left the box) and/or the message **appears in the transcript/output** above,
+     or the app went **busy / answering**.
+  3. If the text is **still sitting in the input line** → send `Enter` once, then `capture-pane` again.
+     (One of `C-m`=`\r` / `Enter`=`\eOM` is the other's fallback, per the keypad mode above.)
+  Never report a remote submit as done on the `send-keys` exit code alone.
 - Before sending into a reused pane: send `C-u`, then `capture-pane` to confirm the prompt state.
 - Single-quote the payload only when it contains no single quotes. If it contains quotes,
   `$`, backticks, regex/sed, JSON, or substitutions — avoid inline quoting: put it in a
