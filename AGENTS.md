@@ -497,12 +497,18 @@ instead of routing them; it swelled into a catch-all.)
 - Skills/agents: first `./.agents/`, then the library.
 - Links and MCP configs: first the local `./.agents/map.yaml` + `./.agents/mcp-configs.yaml`; `~/.agents/...` — only to deploy a new rule. The build snapshot — in `.agents.lock.yaml`.
 - Adaptation registry: `./.agents/REGISTRY.md` — WHY something was added/changed (the WHAT graph — in `map.yaml`, do not duplicate).
-- **[CRITICAL] Plans, docs, and work-artifacts live ONLY in this project** — `./.agents/plans/{active,done}`, `./docs/`, the project tree. **NEVER write them to `~/.claude/`, `~/.codex/`, `~/.config/opencode/`, or any home/global agent folder** (see `project-docs`). Scratch/temp → session scratchpad or a gitignored project dir.
+- **[CRITICAL] Plans, docs, and work-artifacts live ONLY in this project** — `./.agents/plans/{active,done}`, `./docs/`, the project tree. **NEVER write them to `~/.claude/`, `~/.codex/`, `~/.config/opencode/`, or any home/global agent folder** (see `project-docs`). **This includes the agent's built-in memory** (Claude Code's `~/.claude/projects/…/memory/` + `MEMORY.md`) — it is a home folder that does NOT travel with the repo, so project-persistent knowledge goes to `AGENTS.md` / `REGISTRY.md` / `docs/`, never native-memory. Scratch/temp → session scratchpad or a gitignored project dir.
 - On conflict the project wins (more specific overrides more general).
 
 ## Behavioral rules (base seed — expand as you work)
 - **Think before coding.** State assumptions; if uncertain, ask. Present competing
   interpretations — don't pick silently. Name what's unclear and stop. Push back when a simpler path exists.
+- **Read the recorded artifact before acting — don't reset to a clean slate.** Principles and decisions
+  are recorded (`AGENTS.md`, `docs/` incl. ADRs in `docs/decisions/`, `REGISTRY.md`, plans) precisely so
+  they persist and get applied. Before acting, read what governs the thing and act **from** it — do not
+  re-derive, re-ask what is documented, or drift off-principle. Re-asking a settled decision or
+  duplicating what the record already resolves nullifies the whole point of recording it (and of this
+  memory architecture). Recorded ≠ read: the write only pays off if the next session reads it first.
 - **Simplicity first.** Minimum code that solves the problem — no speculative features,
   abstractions, flexibility, or error handling for impossible cases. 200 lines that could be 50 → rewrite.
 - **Surgical changes.** Touch only what the request needs; every changed line traces to it.
