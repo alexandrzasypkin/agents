@@ -28,3 +28,12 @@ If an index already exists (a CodeGraph/Gortex MCP), use structural search (who-
 symbol lookup) instead of grep. A structural index is project-level (self-config), recorded in
 `./.agents/REGISTRY.md`. Note: a **template-literal / bundled blob is opaque** to a structural indexer
 (it sees a string, not an AST) — grep the string there, an index won't help.
+
+## Search BEFORE you write (the anti-duplication use)
+The first job of search is not impact analysis — it is finding the code you'd otherwise duplicate.
+Before adding a function / helper / type / endpoint / util: search for the concern (name, signature,
+a distinctive string) and **reuse or extend** what exists. In a codebase with many cross-cutting
+overlaps (shared helpers, near-identical flows across modules) — even a SMALL one — this is exactly
+where duplicates creep in: the agent writes blind because it didn't look. LSP
+(find-references / workspace-symbol) is the fast tool; grep a distinctive string when the name may
+differ. A duplicate caught before it's written costs one search; caught later, a refactor.
