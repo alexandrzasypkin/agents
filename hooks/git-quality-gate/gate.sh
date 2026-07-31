@@ -54,9 +54,11 @@ if [ -f package.json ]; then
   elif npx --no-install eslint --version >/dev/null 2>&1; then run npx --no-install eslint .
   else miss eslint; fi
   if [ "$mode" = push ]; then
-    if grep -q '"typecheck"' package.json; then run npm run -s typecheck
-    elif [ ! -f tsconfig.json ]; then printf 'git-quality-gate: no tsconfig.json - tsc skipped (content/JS repo)\n' >&2
-    elif npx --no-install tsc --version >/dev/null 2>&1; then run npx --no-install tsc --noEmit
+    # REAL tsc — NOT the project's "typecheck" npm script: a mislabeled script (e.g. `wrangler types`,
+    # a codegen) exits 0 without checking a single type (see quality-js [CRITICAL]). Needs a real
+    # tsconfig.json. --incremental caches to .tsbuildinfo (gitignore it) → first run slow, then seconds.
+    if [ ! -f tsconfig.json ]; then printf 'git-quality-gate: no tsconfig.json - tsc skipped (content/JS repo)\n' >&2
+    elif npx --no-install tsc --version >/dev/null 2>&1; then run npx --no-install tsc --noEmit --incremental
     else miss tsc; fi
     grep -q '"build"' package.json && run npm run -s build   # compile check (bundler / wrangler)
     grep -q '"test"' package.json && run npm test --silent
