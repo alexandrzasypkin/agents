@@ -22,6 +22,14 @@ Baseline tools — local to the project (devDependencies), run via npx / npm scr
 
 [CRITICAL] eslint does not validate types — tsc does. Keep them separate.
 
+[CRITICAL] A `typecheck` script that runs a codegen, not `tsc`, is a false gate — it exits 0 without
+checking one type. Real incident: a Workers project's `typecheck` = `wrangler types`, which only
+GENERATES `worker-configuration.d.ts`; `tsc` never ran, so a genuine `Property 'x' does not exist`
+passed the gate while the LSP flagged it. The step must run `tsc --noEmit` against a real
+`tsconfig.json`. For Workers the order is `wrangler types` (generate ambient types) THEN `tsc --noEmit`
+(check) — the codegen is tsc's input, not a substitute. Sanity-check that the gate actually fails on a
+known type error; a "typecheck" that cannot fail is not one.
+
 [CRITICAL] Exclude the agent layer from type-aware lint/typecheck. The `.agents/` layer ships `.ts`
 hook fragments (e.g. `opencode.ts`) that are NOT project source and sit outside the project's
 `tsconfig` scope — type-aware eslint (`parserOptions.project`) and `tsc` throw a parse-error on them
