@@ -61,6 +61,7 @@ renders it into each agent's native format (the HOW). The agent never reads `map
 ├── agents/           # subagent definitions (docs, reviewer, searcher, …)
 ├── templates/        # file templates (skill-skeleton, plan, pdf-style, gitignore)
 ├── hooks/            # deterministic guardrails (git + agent hooks)
+├── runbooks/         # standing operational procedures (deploy, …); copied per project, followed verbatim
 └── plans/active|done # plan lifecycle stubs
 ```
 
