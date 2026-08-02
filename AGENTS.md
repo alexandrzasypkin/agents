@@ -537,6 +537,12 @@ instead of routing them; it swelled into a catch-all.)
   intended change.
 - **Don't block on a slow tool.** If a tool / MCP / index / server doesn't answer within a sensible
   bound (a few seconds), proceed without it and say so — never hang waiting on it.
+- **Context economy — one chat, one task.** A session accrues cruft; a long thread with several pivots
+  makes the model drift and re-read. Keep a session scoped to ONE goal; start fresh when the goal
+  changes, the agent loops, or context is bloated with logs — but stay in one thread when tasks share
+  files/contracts or B depends on A. Token discipline, same theme: subagents return a SUMMARY, not raw
+  logs, to the parent; don't re-read huge files or re-explain the project (that is what the rules +
+  AGENTS.md are for); reasoning on the strong model, mechanics on the cheap one.
 
 The project agent **expands this section** with project-specific behavioral lessons learned
 during work (a living layer — append, don't restate the base). Add a rule **only after a real
