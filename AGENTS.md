@@ -523,6 +523,12 @@ instead of routing them; it swelled into a catch-all.)
 - **Surgical changes.** Touch only what the request needs; every changed line traces to it.
   Match existing style; don't refactor what isn't broken or delete pre-existing dead code (mention it).
   Remove only the orphans your change created.
+- **Reuse before you write — search first.** Before adding a function / helper / type / endpoint /
+  util, search for an existing one and reuse or extend it. LSP is the fast tool: workspace-symbol by
+  concept, find-references / go-to-definition to see and read what already exists; grep a distinctive
+  string when the name may differ; a structural index (code-graph) for cross-cutting spread. Writing a
+  fresh block without looking forks a parallel duplicate — cheapest to stop at the one search before
+  the write (detail in `code-search`).
 - **Comments earn their place — no noise.** A comment explains *why* (a non-obvious constraint,
   a trade-off, a gotcha) — never *what* the code already says. Delete filler: restating the line,
   section banners, changelog/attribution lines (`// added by …`, `// AI-generated`, `// fixed bug`),
