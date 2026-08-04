@@ -505,14 +505,19 @@ instead of routing them; it swelled into a catch-all.)
 - On conflict the project wins (more specific overrides more general).
 
 ## Behavioral rules (base seed — expand as you work)
-- **Think before coding.** State assumptions; if uncertain, ask. Present competing
-  interpretations — don't pick silently. Name what's unclear and stop. Push back when a simpler path exists.
+- **Think before coding.** State assumptions; if uncertain, FIRST consult the docs (a rule's
+  `description:` trigger + the pointer tell you which one) — ask the user ONLY for what the record cannot
+  hold (intent, preference, genuine ambiguity), never for what a rule/doc already answers. Present
+  competing interpretations — don't pick silently. Name what's unclear and stop. Push back when a simpler path exists.
 - **Read the recorded artifact before acting — don't reset to a clean slate.** Principles and decisions
   are recorded (`AGENTS.md`, `docs/` incl. ADRs in `docs/decisions/`, `REGISTRY.md`, plans) precisely so
   they persist and get applied. Before acting, read what governs the thing and act **from** it — do not
   re-derive, re-ask what is documented, or drift off-principle. Re-asking a settled decision or
   duplicating what the record already resolves nullifies the whole point of recording it (and of this
-  memory architecture). Recorded ≠ read: the write only pays off if the next session reads it first.
+  memory architecture). Recorded ≠ read: the write only pays off if the next session reads it first. The
+  metadata is your INDEX — a rule's `description:` is a trigger ("Apply when …") and the pointer says
+  where each kind of knowledge lives, so you find the ONE doc that answers a task without reading
+  everything; "didn't know where to look" is not an excuse — that is what the metadata is for.
 - **Simplicity first.** Minimum code that solves the problem — no speculative features,
   abstractions, flexibility, or error handling for impossible cases. 200 lines that could be 50 → rewrite.
 - **Surgical changes.** Touch only what the request needs; every changed line traces to it.
