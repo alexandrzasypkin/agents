@@ -85,7 +85,10 @@ incident lost a project's REGISTRY on a machine change exactly this way.
 
 ## Metadata, links, retrieval
 - **Frontmatter** on docs/notes, so the agent filters by metadata without reading the full text:
-  `type:` (decision|plan|note|draft|published) · `status:` (active|in_progress|done|archived) · `tags: [...]` · `project:`.
+  `type:` · `status:` (active|in_progress|done|archived) · `tags: [...]` · `project:`. Type vocabulary:
+  `reference` (architecture / infra / source-of-truth) · `spec` (specification / ТЗ) · `runbook`
+  (step-by-step ops procedure) · `guide` (role how-to) · `decision` (ADR / manifest) · `research` ·
+  `note` · `plan`.
   A `docs-frontmatter` PostToolUse hook *reminds* when a `docs/*.md` is saved without it (a nudge, not a
   gate). Model to copy: `task_center/docs` (frontmatter on every doc + ADR). **Filenames — kebab-case.**
 - **Links — standard Markdown relative links** `[text](path.md)` (portable, render on GitHub, exact path).
