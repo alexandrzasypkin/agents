@@ -18,7 +18,7 @@ rules:
 
   # --- behavioral ---
   env-setup:         {}
-  project-docs:      {agents: [docs]}          # docs/ source-of-truth + plans active/done + ADR; must-have (base)
+  project-docs:      {agents: [docs], hooks: [docs-frontmatter]}   # docs/ source-of-truth + plans active/done + ADR; must-have (base). docs-frontmatter: PostToolUse nudge when a docs/*.md is saved without type/status/tags/project.
   user-docs:         {}          # README + user docs (doc folder name varies); conditional (product surface)
   git-discipline:    {}
   proof-loop:        {}
