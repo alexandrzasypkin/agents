@@ -472,9 +472,28 @@ incident: a roster refresh wiped the per-role write-zones and project checklists
 in two projects, while the library's `agents/` had not changed at all — recovered only because the
 projects had committed them. Hence also: **commit the project's memory**, see `project-docs`.)
 
+**The safe merge is a 3-way merge on the lock commit — not line-guessing.** `.agents.lock.yaml` records
+the library `commit:` the project was built from = the merge **base**. So: `base` = `git -C ~/.agents show
+<lock>:rules/<f>`, `ours` = the project copy, `theirs` = the library HEAD; `git merge-file ours base theirs`
+folds in the library's changes, **keeps the project delta automatically**, flags only real conflicts
+(resolve with the user). No delta → clean update. Then bump the lock `commit`, update `map.yaml` if chains
+changed, log in `REGISTRY.md`. No usable lock commit (pre-lock project) → fall back to the manual reconcile
+above. This is how a project stays current WITHOUT an external sweep: the agent already in the project,
+which knows its own deltas, runs the merge.
+
+**The CHANGED-file trigger.** The one-shot new-rule scan (`find`) catches rules ADDED to the library, never
+ones CHANGED after bootstrap — so projects silently drift (real: an outdated `project-docs` `type:`
+vocabulary lingered across projects). At session start, in the same one-shot spirit, diff the lock against
+HEAD: `git -C ~/.agents log --oneline <lock>..HEAD -- rules skills agents hooks`. Non-empty → surface
+"N library files changed since bootstrap: […]; refresh?" and reconcile each file the project HAS via the
+3-way merge above. An explicit user request does the same. Agents do NOT auto-refresh — this standing
+instruction is what makes them check.
+
 Self-configuration (see the project `AGENTS.md`): if a rule is found in `~/.agents/rules/`
 but is absent from the local `./.agents/map.yaml` — take its chain from the fresh
 `~/.agents/map.yaml`, deploy it into the project, and append it to the local copy of the map.
+A rule already present but **changed** in the library since the lock commit is refreshed by the 3-way
+merge above (not re-deployed).
 
 ### What to write into the project `./AGENTS.md`
 
@@ -569,6 +588,12 @@ The ladder, when the project needs a tool/skill/rule:
    skills/agents/MCP), append to the local `./.agents/map.yaml` and to the pointer.
    The trigger for "something new in the baseline" — an explicit user request or a
    one-shot scan `find ~/.agents/rules/ -type f` (not a constant diff).
+2b. Already have it, but the library **changed** it since bootstrap? Refresh via a **3-way merge on the
+   lock commit** — never a blind `cp` (it destroys project deltas). Trigger: at session start diff the lock
+   against HEAD — `git -C ~/.agents log --oneline <lock>..HEAD -- rules skills agents hooks`; non-empty →
+   offer to refresh. Merge: `base` = `git -C ~/.agents show <lock>:<path>`, `ours` = the project copy,
+   `theirs` = library HEAD → `git merge-file ours base theirs` (keeps the delta, flags real conflicts).
+   Then bump the lock `commit` + log in `REGISTRY.md`. Full detail: canon "Autonomy and the link to `~/.agents`".
 3. Not anywhere → escalation: the `research` domain (websearch → fetch → browser)
    to compare/find, install/attach into the project, append to the local map.
 
