@@ -581,21 +581,12 @@ incident, not a guess (this keeps the layer lean). Behavioral lessons go here; t
 adaptations go to `REGISTRY.md`.
 
 ## Self-configuration (adapt and explain)
-`~/.agents` provides a minimal shared baseline. Adapting to the project is standard work.
-The ladder, when the project needs a tool/skill/rule:
-1. Local in `./.agents/` — already there? use it.
-2. No → in the baseline `~/.agents/`? pull the chain (`cp` the rule + linked
-   skills/agents/MCP), append to the local `./.agents/map.yaml` and to the pointer.
-   The trigger for "something new in the baseline" — an explicit user request or a
-   one-shot scan `find ~/.agents/rules/ -type f` (not a constant diff).
-2b. Already have it, but the library **changed** it since bootstrap? Refresh via a **3-way merge on the
-   lock commit** — never a blind `cp` (it destroys project deltas). Trigger: at session start diff the lock
-   against HEAD — `git -C ~/.agents log --oneline <lock>..HEAD -- rules skills agents hooks`; non-empty →
-   offer to refresh. Merge: `base` = `git -C ~/.agents show <lock>:<path>`, `ours` = the project copy,
-   `theirs` = library HEAD → `git merge-file ours base theirs` (keeps the delta, flags real conflicts).
-   Then bump the lock `commit` + log in `REGISTRY.md`. Full detail: canon "Autonomy and the link to `~/.agents`".
-3. Not anywhere → escalation: the `research` domain (websearch → fetch → browser)
-   to compare/find, install/attach into the project, append to the local map.
+`~/.agents` provides a minimal shared baseline; adapting to the project is standard work. **The
+self-config ladder — (1) use the local `./.agents/` copy · (2) pull a NEW rule + chain from the baseline ·
+(2b) refresh a CHANGED library copy via a 3-way merge on the lock commit · (3) escalate via `research` —
+lives in the canon** (`~/.agents/AGENTS.md`, "Autonomy and the link to `~/.agents`"), loaded every session
+via the global symlink. **Do not restate the steps here — they drift per project;** follow them from the
+canon. This section records only THIS project's self-config *specifics* (deviations, project-local rules).
 
 **Activate an agent by running it.** An agent entering an already-initialized project (`.agents/` +
 `AGENTS.md` present) that has **no native config of its own** renders its own part from the chain —
