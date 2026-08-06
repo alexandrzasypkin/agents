@@ -584,8 +584,10 @@ instead of routing them; it swelled into a catch-all.)
 The project agent **expands this section** with project-specific behavioral lessons learned
 during work (a living layer — append, don't restate the base). Add a rule **only after a real
 incident** — a problem that actually happened — not speculatively: each line should trace to an
-incident, not a guess (this keeps the layer lean). Behavioral lessons go here; tool/skill/rule
-adaptations go to `REGISTRY.md`.
+incident, not a guess (this keeps the layer lean). **Before writing it, ask: model-side or
+harness-side?** A harness-side cause a rule can actually *fix*; a model-side one a rule only
+*nudges* — write it honestly and don't log it as closed (harness-engineering a model problem is the
+classic mislocated fix). Behavioral lessons go here; tool/skill/rule adaptations go to `REGISTRY.md`.
 
 ## Self-configuration (adapt and explain)
 `~/.agents` provides a minimal shared baseline; adapting to the project is standard work. **The
