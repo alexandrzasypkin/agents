@@ -1,5 +1,24 @@
 # Журнал адаптаций
 
+## 2026-08-06 — published to a public git remote + cross-OS installers
+
+**Remote:** `alexandrzasypkin/agents` (GitHub, PUBLIC, read-only for consumers) via SSH `git@github-a3`
+(`id_ed_opr`). Model: consumers clone/pull anonymously over HTTPS (no key); write is owner-only.
+Trust anchor: commit SHA over HTTPS/TLS (**SHA-only** — no GPG signing, by decision). Snapshot tags
+`snapshot-<date>` mark milestones. Added `.gitignore` (library had none); untracked a stray `.pyc`.
+
+**Installers** (`runbooks/`): `install.sh` (POSIX) + `install.ps1` (native Windows). Both: clone-or-pull
+(never clobber; `--ff-only`), symlink the canon **only for detected agents** (not all 3 need be present),
+integrity report. Opt-in `--install-baseline-guard` / `-InstallBaselineGuard` (one-shot: `sh -s --`,
+`$env:AGENTS_BASELINE_GUARD=1`) idempotently installs the global guard per present agent (codex TOML
+append, claude JSON merge, opencode plugin copy). Default stays guide-only (security control = deliberate).
+
+**⚠ OPEN — verify later:** `install.sh` guard-logic was tested live on Linux (JSON merge preserves
+existing hooks/permissions ✓). **`install.ps1` is NOT verified on a real Windows box** (no `pwsh`/Windows
+available as of 2026-08-06) — especially the claude `ConvertFrom/To-Json` merge path. Eyeball its output
+on first Windows run. Windows hooks also need Git Bash (`bash` on PATH) or agent adaptation — `install.ps1`
+warns when installing the guard without `bash` (hooks are POSIX; canon 229–232: the agent adapts on native Windows).
+
 ## 2026-08-06 — gap-closure against the agent-failure taxonomy
 
 **Source:** Scale AI, *Model or Harness? An Interaction-Centric Taxonomy for Localizing Agent
