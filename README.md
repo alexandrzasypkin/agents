@@ -103,6 +103,19 @@ so an agent can't silently rewrite the shared baseline that every project copies
 here, by hand, once per machine (and again whenever you add a new agent). Per-project hooks and
 anchors are created by bootstrap, not here.
 
+### Distribution & integrity
+
+The repo is **public and read-only for consumers** — anyone clones/pulls anonymously over HTTPS with
+no key or login; **write stays with the owner machine only** (SSH). A consumer never pushes; a baseline
+change found there is relayed to the owner to commit. New machine: `sh runbooks/install.sh` (clones,
+symlinks the canon, reminds about baseline-guard, then prints an integrity report).
+
+Integrity is checked **dynamically**, not against a hardcoded SHA (which moves every commit):
+- **SHA + TLS** — the everyday anchor: HTTPS transport is GitHub-authenticated, git objects are hash-verified.
+- **Signed snapshot tags** — optional, owner's action: `git tag -s snapshot-<date>` on a milestone, then
+  consumers with the owner's public GPG key run `git verify-tag snapshot-<date>`. `install.sh` verifies
+  the latest `snapshot-*` tag automatically when it is signed, and falls back to the SHA anchor when it is not.
+
 ## How a project is set up (bootstrap)
 
 A fresh agent in an uninitialized folder reads the canon and runs BOOTSTRAP: survey the

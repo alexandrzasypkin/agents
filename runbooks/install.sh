@@ -43,4 +43,26 @@ else
   echo "   It makes every write to ~/.agents need explicit approval (protects the shared baseline)."
 fi
 
+# 4. Integrity — report what was pulled and verify authenticity (SHA anchor + optional GPG tag).
+#    No hardcoded "expected SHA" (it moves every commit); the checks are dynamic.
+echo "== integrity =="
+echo "   HEAD: $(git -C "$DEST" rev-parse HEAD)"
+if [ -n "$(git -C "$DEST" status --porcelain)" ]; then
+  echo "   WARNING: working tree is DIRTY — a read-only consumer must be clean (local edits = tampering/drift)."
+fi
+if ! git -C "$DEST" merge-base --is-ancestor "@{u}" HEAD 2>/dev/null && \
+   ! git -C "$DEST" diff --quiet HEAD "@{u}" 2>/dev/null; then
+  echo "   note: HEAD differs from origin — run 'git -C ~/.agents pull --ff-only' to reconcile."
+fi
+TAG=$(git -C "$DEST" describe --tags --abbrev=0 --match 'snapshot-*' 2>/dev/null || true)
+if [ -n "$TAG" ]; then
+  echo "   latest snapshot: $TAG -> $(git -C "$DEST" rev-parse --short "$TAG^{commit}")"
+  if git -C "$DEST" verify-tag "$TAG" >/dev/null 2>&1; then
+    echo "   signature: GPG-VALID (verified against the owner's public key)"
+  else
+    echo "   signature: unsigned/unverifiable — trust anchor is the commit SHA over HTTPS/TLS."
+    echo "              for signature-level trust: owner signs tags (git tag -s), consumer imports the owner's GPG key."
+  fi
+fi
+
 echo "== done. ~/.agents is read-only here; edits happen on the owner machine. =="
