@@ -119,11 +119,16 @@ git clone https://github.com/alexandrzasypkin/agents.git ~/.agents && sh ~/.agen
 (on re-runs its clone step becomes a `pull`).
 
 **Per-OS:** on **macOS** everything above works as-is (`sh` / `git` / `curl` / `ln -sfn` are native).
-On **Windows**, run it from **WSL2 or Git Bash** — the POSIX script and the `curl | sh` one-shot work
-unchanged (recommended: keep one WSL2 environment). In **native cmd/PowerShell** there is no POSIX
-shell, so do the steps by hand: `git clone` the repo, create the two canon symlinks with `mklink` /
-`New-Item -ItemType SymbolicLink` (Developer Mode on; the link/target order is the **reverse** of `ln` —
-see Setup above), and install baseline-guard manually.
+On **Windows via WSL2 or Git Bash** the POSIX script and the `curl | sh` one-shot work unchanged. For
+**native Windows** there is a PowerShell counterpart, `runbooks/install.ps1` (same steps, native
+symlinks) — its own one-shot:
+
+```powershell
+irm https://raw.githubusercontent.com/alexandrzasypkin/agents/master/runbooks/install.ps1 | iex
+```
+
+It clones/pulls, creates the two canon symlinks (needs **Developer Mode** on, or an elevated shell —
+the script says so if missing), reminds about baseline-guard, and prints the same integrity report.
 
 **On a machine that already has `~/.agents`, the one-shot never overwrites it** — it branches on
 `~/.agents/.git`:

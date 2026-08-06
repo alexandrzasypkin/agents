@@ -6,8 +6,8 @@
 #   - Consumer machine: clones ANONYMOUSLY over HTTPS (no key, no login) and only pulls. Write is
 #     impossible without owner credentials; a baseline change found here is relayed to the owner to commit.
 #
-# POSIX sh — runs on Linux / WSL2 / macOS / Git-Bash. Native Windows cmd/PowerShell: see README Setup
-# (mklink / New-Item, reversed link/target order, Developer Mode).
+# POSIX sh — runs on Linux / WSL2 / macOS / Git-Bash. Native Windows cmd/PowerShell: use the
+# PowerShell counterpart runbooks/install.ps1 (same steps, native symlinks) instead of this script.
 #
 # Usage:   sh install.sh                       # default: anonymous HTTPS clone, zero setup
 #          AGENTS_REPO=<url> sh install.sh     # override the clone URL if needed
@@ -25,12 +25,21 @@ else
   git clone "$REPO_URL" "$DEST"
 fi
 
-# 2. Global symlinks so the canon loads every session (README Setup). ln -sfn is idempotent.
-mkdir -p "$HOME/.codex" "$HOME/.claude"
-ln -sfn "$DEST/AGENTS.md" "$HOME/.codex/AGENTS.md"    # Codex reads AGENTS.md
-ln -sfn "$DEST/AGENTS.md" "$HOME/.claude/CLAUDE.md"   # Claude reads CLAUDE.md (no native AGENTS.md)
-echo "== symlinks: ~/.codex/AGENTS.md, ~/.claude/CLAUDE.md -> ~/.agents/AGENTS.md =="
-# opencode reads ~/.agents natively via each project's opencode.json — no global symlink.
+# 2. Global symlinks — ONLY for agents actually present on this host (not all 3 need be installed).
+#    Claude reads ~/.claude/CLAUDE.md, Codex reads ~/.codex/AGENTS.md; opencode reads ~/.agents
+#    natively (no symlink). An agent counts as present if its CLI is in PATH or its config dir exists.
+link_agent() {  # name  cli  dir  link
+  if command -v "$2" >/dev/null 2>&1 || [ -d "$3" ]; then
+    mkdir -p "$3"
+    ln -sfn "$DEST/AGENTS.md" "$4"                    # ln -sfn is idempotent
+    echo "== $1: linked $4 -> ~/.agents/AGENTS.md =="
+  else
+    echo "== $1: not detected — skipped =="
+  fi
+}
+link_agent claude claude "$HOME/.claude" "$HOME/.claude/CLAUDE.md"
+link_agent codex  codex  "$HOME/.codex"  "$HOME/.codex/AGENTS.md"
+command -v opencode >/dev/null 2>&1 && echo "== opencode: detected — reads ~/.agents natively, no symlink =="
 
 # 3. baseline-guard — the ONE global guardrail bootstrap never writes (README Guardrails).
 #    Merging into a global JSON/TOML config is risky to automate → guide, do not clobber.
