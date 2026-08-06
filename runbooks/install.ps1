@@ -77,16 +77,11 @@ Write-Host "   HEAD: $(& git -C $Dest rev-parse HEAD)"
 if (& git -C $Dest status --porcelain) {
     Write-Warning 'working tree is DIRTY -- a read-only consumer must be clean (local edits = tampering/drift).'
 }
-$tag = (& git -C $Dest describe --tags --abbrev=0 --match 'snapshot-*' 2>$null)
+$tag = $null
+try { $tag = (& git -C $Dest describe --tags --abbrev=0 --match 'snapshot-*' 2>$null) } catch { }
 if ($tag) {
-    $tagSha = & git -C $Dest rev-parse --short "$tag^{commit}"
-    Write-Host "   latest snapshot: $tag -> $tagSha"
-    & git -C $Dest verify-tag $tag *> $null
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host '   signature: GPG-VALID (verified against the owner public key)'
-    } else {
-        Write-Host '   signature: unsigned/unverifiable -- trust anchor is the commit SHA over HTTPS/TLS.'
-    }
+    Write-Host "   latest snapshot: $tag -> $(& git -C $Dest rev-parse --short "$tag^{commit}")"
 }
+Write-Host '   trust anchor: commit SHA over HTTPS/TLS (SHA-only model; tags are not GPG-signed).'
 
 Write-Host '== done. ~/.agents is read-only here; edits happen on the owner machine. =='

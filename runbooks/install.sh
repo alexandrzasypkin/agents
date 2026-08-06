@@ -52,7 +52,7 @@ else
   echo "   It makes every write to ~/.agents need explicit approval (protects the shared baseline)."
 fi
 
-# 4. Integrity — report what was pulled and verify authenticity (SHA anchor + optional GPG tag).
+# 4. Integrity — report what was pulled. Trust anchor = commit SHA over HTTPS/TLS (SHA-only model).
 #    No hardcoded "expected SHA" (it moves every commit); the checks are dynamic.
 echo "== integrity =="
 echo "   HEAD: $(git -C "$DEST" rev-parse HEAD)"
@@ -64,14 +64,7 @@ if ! git -C "$DEST" merge-base --is-ancestor "@{u}" HEAD 2>/dev/null && \
   echo "   note: HEAD differs from origin — run 'git -C ~/.agents pull --ff-only' to reconcile."
 fi
 TAG=$(git -C "$DEST" describe --tags --abbrev=0 --match 'snapshot-*' 2>/dev/null || true)
-if [ -n "$TAG" ]; then
-  echo "   latest snapshot: $TAG -> $(git -C "$DEST" rev-parse --short "$TAG^{commit}")"
-  if git -C "$DEST" verify-tag "$TAG" >/dev/null 2>&1; then
-    echo "   signature: GPG-VALID (verified against the owner's public key)"
-  else
-    echo "   signature: unsigned/unverifiable — trust anchor is the commit SHA over HTTPS/TLS."
-    echo "              for signature-level trust: owner signs tags (git tag -s), consumer imports the owner's GPG key."
-  fi
-fi
+[ -n "$TAG" ] && echo "   latest snapshot: $TAG -> $(git -C "$DEST" rev-parse --short "$TAG^{commit}")"
+echo "   trust anchor: commit SHA over HTTPS/TLS (SHA-only model; tags are not GPG-signed)."
 
 echo "== done. ~/.agents is read-only here; edits happen on the owner machine. =="
