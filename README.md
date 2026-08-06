@@ -95,13 +95,22 @@ New-Item -ItemType SymbolicLink -Path "$HOME\.codex\AGENTS.md"  -Target "$HOME\.
 New-Item -ItemType SymbolicLink -Path "$HOME\.claude\CLAUDE.md" -Target "$HOME\.agents\AGENTS.md"
 ```
 
-**Required — install the global `hooks/baseline-guard/` into each agent's global config**
-(Claude `~/.claude/settings.json`, Codex `~/.codex/config.toml`, opencode
-`~/.config/opencode/plugin/`). It makes every write to `~/.agents` need your explicit approval,
-so an agent can't silently rewrite the shared baseline that every project copies from. This is the
-**one** guardrail bootstrap does NOT install — bootstrap never writes global config — so install it
-here, by hand, once per machine (and again whenever you add a new agent). Per-project hooks and
-anchors are created by bootstrap, not here.
+**Required — the global `hooks/baseline-guard/` guardrail** makes every write to `~/.agents` need your
+explicit approval, so an agent can't silently rewrite the shared baseline that every project copies
+from. It is the **one** guardrail bootstrap never installs (bootstrap never writes global config) —
+install it once per machine, either way:
+
+- **Automated (opt-in):** `sh runbooks/install.sh --install-baseline-guard` — one-shot
+  `curl -fsSL <raw>/install.sh | sh -s -- --install-baseline-guard`; native Windows
+  `$env:AGENTS_BASELINE_GUARD=1; irm <raw>/install.ps1 | iex`. Idempotent, per present agent: appends
+  the Codex TOML section, merges the Claude JSON hook (skips a malformed file), copies the opencode plugin.
+- **By hand:** merge `hooks/baseline-guard/codex.toml` → `~/.codex/config.toml`,
+  `hooks/baseline-guard/claude.json` → `~/.claude/settings.json`, copy `hooks/baseline-guard/opencode.ts`
+  → `~/.config/opencode/plugin/`.
+
+The fragments run a bash script (`bash "…/guard.sh"`); on **native Windows** the hook fires only through
+Git Bash (`bash` reachable on PATH), or the agent adapts it to its shell — hooks are POSIX, no per-OS
+matrix is shipped (see Guardrails and the canon). Per-project hooks/anchors are created by bootstrap, not here.
 
 ### Distribution & integrity
 

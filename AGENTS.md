@@ -396,8 +396,8 @@ same name, different places. Steps:
    (native TS, no merge) and merges only MCP/permissions into `opencode.json`. **Claude split:
    chain hooks go into the COMMITTED `.claude/settings.json` (so they are git-pinned); only personal
    `permissions` go into the gitignored `.claude/settings.local.json`** — otherwise a clone loses the
-   hooks. **`baseline-guard` is NOT rendered here** — it is the one global, hand-installed guardrail
-   (see README Setup); only chain hooks land in the project. If a target file already exists — merge into it, never clobber
+   hooks. **`baseline-guard` is NOT rendered here** — it is the one global guardrail, installed once per
+   machine (`install.sh --install-baseline-guard` or by hand — see README Setup); only chain hooks land in the project. If a target file already exists — merge into it, never clobber
    an existing block (same rule as the anchors above).
 
 5. **`git init` + install git hooks (mandatory).** `git init` only if `.git` is not found
@@ -429,6 +429,14 @@ same name, different places. Steps:
    - generated: ./.agents/generated/.agents.lock.yaml
    ```
    From here the project is self-sufficient for work.
+
+   **Surface `baseline-guard` to the user in the report.** It is machine-global (not per-project), so a
+   fresh machine lacks it and bootstrap must not install it (never writes global config). When no global
+   agent config yet references `baseline-guard`, the report also hands the user the one-time command and
+   *why*: `sh ~/.agents/runbooks/install.sh --install-baseline-guard` (native Windows
+   `$env:AGENTS_BASELINE_GUARD=1; irm …/install.ps1 | iex`) — it makes every write to `~/.agents` need
+   approval, so no agent silently rewrites the shared baseline every project copies from. Bootstrap only
+   tells; it does not install.
 
 ### Snapshot `.agents.lock.yaml`
 

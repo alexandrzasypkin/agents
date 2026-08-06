@@ -6,13 +6,16 @@
 #
 # One-shot (PowerShell):
 #   irm https://raw.githubusercontent.com/alexandrzasypkin/agents/master/runbooks/install.ps1 | iex
-# Or clone-first:
-#   git clone https://github.com/alexandrzasypkin/agents.git $HOME\.agents; & $HOME\.agents\runbooks\install.ps1
+#   ALSO install baseline-guard:  $env:AGENTS_BASELINE_GUARD=1; irm <same-url> | iex
+# Or clone-first (then the -InstallBaselineGuard switch is available):
+#   git clone https://github.com/alexandrzasypkin/agents.git $HOME\.agents; & $HOME\.agents\runbooks\install.ps1 -InstallBaselineGuard
 #
 # Requires: Git for Windows (git in PATH). SYMLINKS need Developer Mode ON (Settings > For developers)
 # or an elevated shell — the script tells you if that is missing. (Under WSL2 / Git Bash use install.sh.)
 
+param([switch]$InstallBaselineGuard)
 $ErrorActionPreference = 'Stop'
+$DoGuard = $InstallBaselineGuard -or ($env:AGENTS_BASELINE_GUARD -eq '1')
 
 $Repo  = if ($env:AGENTS_REPO) { $env:AGENTS_REPO } else { 'https://github.com/alexandrzasypkin/agents.git' }
 $Dest  = Join-Path $HOME '.agents'
@@ -57,18 +60,71 @@ if (Get-Command 'opencode' -ErrorAction SilentlyContinue) {
     Write-Host '== opencode: detected -- reads ~/.agents natively, no symlink =='
 }
 
-# 3. baseline-guard -- the ONE global guardrail bootstrap never writes (install by hand, once).
+# 3. baseline-guard -- the ONE global guardrail bootstrap never writes. Auto-install ONLY with
+#    -InstallBaselineGuard (or $env:AGENTS_BASELINE_GUARD=1 for the one-shot); else guide. Idempotent.
+$GuardDir = Join-Path $Dest 'hooks\baseline-guard'
 $configs  = @((Join-Path $HOME '.claude\settings.json'), (Join-Path $HOME '.codex\config.toml'))
 $hasGuard = $false
 foreach ($c in $configs) {
     if ((Test-Path $c) -and (Select-String -Quiet -Pattern 'baseline-guard' -Path $c)) { $hasGuard = $true }
 }
-if ($hasGuard) {
+if ($DoGuard) {
+    Write-Host '== installing baseline-guard =='
+    # codex -- append the TOML section (safe: array-of-tables at EOF)
+    if ((Get-Command codex -ErrorAction SilentlyContinue) -or (Test-Path (Join-Path $HOME '.codex'))) {
+        $cfg = Join-Path $HOME '.codex\config.toml'
+        if ((Test-Path $cfg) -and (Select-String -Quiet 'baseline-guard' $cfg)) {
+            Write-Host '   codex: already present -- skipped'
+        } else {
+            New-Item -ItemType Directory -Force -Path (Split-Path $cfg) | Out-Null
+            "`n" + (Get-Content (Join-Path $GuardDir 'codex.toml') -Raw) | Add-Content -Path $cfg
+            Write-Host "   codex: appended -> $cfg"
+        }
+    }
+    # claude -- JSON merge (native); missing file = write verbatim; malformed = leave it, guide
+    if ((Get-Command claude -ErrorAction SilentlyContinue) -or (Test-Path (Join-Path $HOME '.claude'))) {
+        $cfg = Join-Path $HOME '.claude\settings.json'
+        if ((Test-Path $cfg) -and (Select-String -Quiet 'baseline-guard' $cfg)) {
+            Write-Host '   claude: already present -- skipped'
+        } elseif (-not (Test-Path $cfg)) {
+            New-Item -ItemType Directory -Force -Path (Split-Path $cfg) | Out-Null
+            Copy-Item (Join-Path $GuardDir 'claude.json') $cfg -Force
+            Write-Host "   claude: written -> $cfg"
+        } else {
+            try {
+                $obj  = Get-Content $cfg -Raw | ConvertFrom-Json
+                $frag = Get-Content (Join-Path $GuardDir 'claude.json') -Raw | ConvertFrom-Json
+                if (-not $obj.hooks) { $obj | Add-Member -NotePropertyName hooks -NotePropertyValue ([pscustomobject]@{}) }
+                if (-not $obj.hooks.PreToolUse) { $obj.hooks | Add-Member -NotePropertyName PreToolUse -NotePropertyValue @() }
+                $obj.hooks.PreToolUse += $frag.hooks.PreToolUse
+                $obj | ConvertTo-Json -Depth 20 | Set-Content -Path $cfg
+                Write-Host "   claude: merged -> $cfg"
+            } catch {
+                Write-Warning "   claude: settings.json couldn't be parsed/merged -- merge by hand ($_)"
+            }
+        }
+    }
+    # opencode -- copy plugin file (safe: standalone .ts)
+    if ((Get-Command opencode -ErrorAction SilentlyContinue) -or (Test-Path (Join-Path $HOME '.config\opencode'))) {
+        $pdir = Join-Path $HOME '.config\opencode\plugin'
+        New-Item -ItemType Directory -Force -Path $pdir | Out-Null
+        Copy-Item (Join-Path $GuardDir 'opencode.ts') (Join-Path $pdir 'baseline-guard.ts') -Force
+        Write-Host "   opencode: plugin -> $pdir\baseline-guard.ts"
+    }
+    # The fragments run a bash script (`bash "..."`, guard.sh is #!/usr/bin/env bash). On native
+    # Windows the hook fires ONLY through Git Bash — verify bash is reachable, else the guard is inert.
+    if (-not (Get-Command bash -ErrorAction SilentlyContinue)) {
+        Write-Warning 'baseline-guard runs a bash script, but `bash` is not on PATH.'
+        Write-Warning 'On native Windows the hook fires only via Git Bash: add Git''s usr\bin to PATH (or'
+        Write-Warning 'install Git Bash), or have the agent adapt guard.sh to its shell (canon: hooks are'
+        Write-Warning 'POSIX; on native Windows the agent adapts them per its environment).'
+    }
+} elseif ($hasGuard) {
     Write-Host '== baseline-guard: already present in a global agent config =='
 } else {
-    Write-Host '== ACTION: install baseline-guard into each agent GLOBAL config (by hand, once) =='
-    Write-Host "   Fragments: $Dest\hooks\baseline-guard\{claude.json,codex.toml,opencode.ts}"
-    Write-Host '   It makes every write to ~/.agents need explicit approval (protects the shared baseline).'
+    Write-Host '== baseline-guard NOT installed -- the guardrail that makes writes to ~/.agents need your approval =='
+    Write-Host '   auto-install: re-run with -InstallBaselineGuard   (one-shot: $env:AGENTS_BASELINE_GUARD=1; irm <url> | iex)'
+    Write-Host "   by hand: merge $GuardDir\{claude.json,codex.toml}; copy opencode.ts -> ~/.config/opencode/plugin (README > Setup)"
 }
 
 # 4. Integrity -- dynamic (no hardcoded SHA); trust anchor = commit SHA over HTTPS/TLS.
