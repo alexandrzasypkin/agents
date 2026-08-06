@@ -98,6 +98,9 @@ incident lost a project's REGISTRY on a machine change exactly this way.
   `![](diagram.svg)` links to external image files (orphan assets, drift). Render to an image only at
   **export** time (PDF/docx — see `md2pdf`); externalize a diagram only to reuse one across N docs.
 - **Read frontmatter first**, filter by `type`/`tags`/`status`, then read only the relevant bodies.
+  The write only pays off on the read: knowledge stored but **not retrieved** (missed read), or
+  retrieved but **not applied**, fails as if never written — the index exists so "didn't find it" is
+  no excuse (mirrors the read-before-act rule in the canon's behavioral seed).
 - **Agent-ignore** — an ignore list (`.aiignore`, or reuse `.gitignore`) so the agent skips attachments /
   archives / heavy binaries instead of full-scanning them into context; archive completed work **out** of active context.
 

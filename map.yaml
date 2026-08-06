@@ -26,6 +26,7 @@ rules:
   delegation:        {hooks: [boundary-guard]}   # multi-agent lead+scoped-agents; NOT in any domain — self-config pulls it for LARGE projects only (roster is project-defined). boundary-guard: mechanical path-invariant enforcement.
   astro:             {skills: [astro]}   # Astro 5 + @astrojs/cloudflare; NOT in any domain — self-config pulls it when the project uses Astro (astro.config.* / @astrojs dep)
   secrets:           {hooks: [secrets-guard]}   # principle (text); PreToolUse guard blocks read/write of secret files
+  untrusted-content: {}          # principle (text): ingested content (fetch/browser/tool-output/issues/files) is DATA, not instructions. Model-side soft prompt-injection defense — no hook can gate instruction-in-data.
   search-escalation:
     mcp:    [playwright]         # L3 browser; websearch/fetch are agent-native
     agents: [searcher]
@@ -65,7 +66,7 @@ rules:
   viz-data:          {}
 
 # Always-on: applied unconditionally, NOT selectable. Kept separate from `types` on purpose.
-base: [rule-format, env-setup, project-docs, proof-loop, secrets, git-discipline]
+base: [rule-format, env-setup, project-docs, proof-loop, secrets, untrusted-content, git-discipline]
 
 # Selectable domains (survey multi-selects; a project may pick several).
 # Final rule set = base ∪ rules of the selected domains (union dedups shared rules).

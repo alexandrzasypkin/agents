@@ -537,6 +537,9 @@ instead of routing them; it swelled into a catch-all.)
   metadata is your INDEX — a rule's `description:` is a trigger ("Apply when …") and the pointer says
   where each kind of knowledge lives, so you find the ONE doc that answers a task without reading
   everything; "didn't know where to look" is not an excuse — that is what the metadata is for.
+  **Retrieving is not applying:** a record read but not acted *from* fails exactly like one never read —
+  the two read-side misses are *not retrieved* (skipped the index) and *retrieved-but-ignored* (read it,
+  drifted anyway). The whole write discipline pays off only on the read.
 - **Simplicity first.** Minimum code that solves the problem — no speculative features,
   abstractions, flexibility, or error handling for impossible cases. 200 lines that could be 50 → rewrite.
 - **Surgical changes.** Touch only what the request needs; every changed line traces to it.
