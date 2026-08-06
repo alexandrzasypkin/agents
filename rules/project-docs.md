@@ -107,6 +107,11 @@ incident lost a project's REGISTRY on a machine change exactly this way.
 ## Discipline
 - Contract-first: update the doc (schema/contract/behavior) **before** the code change, then code.
 - Keep docs consistent with the code; mark assumptions. A plan: `active/` → `done/` on completion (drop its backlog item).
+- **Staleness is a first-class failure — a drifted doc actively misleads, worse than none.** Acting
+  *from* a doc that contradicts the code you touch → reconcile the doc **as part of the task**, never
+  proceed on the stale version (the read-side trap: retrieved, but no longer valid). `status:` carries
+  validity — mark a superseded doc `archived` so the `read-frontmatter-first` pass filters it out; a
+  stale doc still reading `active`/`in_progress` is a landmine for the next session.
 - A decision records **why** (context, decision, alternatives, dead-ends), not only what.
 
 [CRITICAL] Do not ship a schema / contract / behavior change without updating its doc first.

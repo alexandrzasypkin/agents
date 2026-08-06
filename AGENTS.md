@@ -576,6 +576,10 @@ instead of routing them; it swelled into a catch-all.)
   files/contracts or B depends on A. Token discipline, same theme: subagents return a SUMMARY, not raw
   logs, to the parent; don't re-read huge files or re-explain the project (that is what the rules +
   AGENTS.md are for); reasoning on the strong model, mechanics on the cheap one.
+  **Compaction is lossy** — before a thread grows long or context is compacted away, write durable
+  state OUT to the plan handoff / `REGISTRY.md` / docs, not left sitting in chat; on resume, read that
+  record first — a compaction summary is a lossy digest, not the source of truth, so don't re-derive
+  from it what the plan already holds (nor trust it to have kept every constraint).
 
 The project agent **expands this section** with project-specific behavioral lessons learned
 during work (a living layer — append, don't restate the base). Add a rule **only after a real
