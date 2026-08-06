@@ -1,20 +1,19 @@
 #!/usr/bin/env sh
 # install.sh — bring up ~/.agents on a NEW (consumer) machine from the published repo.
 #
-# Distribution model: READ-ONLY for consumers, edits only on the OWNER machine.
-#   - Owner machine   : already has ~/.agents with a WRITE remote; does NOT run this.
-#   - Consumer machine: clones read-only (a read-only DEPLOY KEY on the repo) and only pulls.
-#     A baseline change discovered here is relayed to the owner machine to commit — never pushed.
+# Distribution model: PUBLIC repo — READ-ONLY for consumers, edits only on the OWNER machine.
+#   - Owner machine   : has ~/.agents with a WRITE remote (SSH git@github-a3); does NOT run this.
+#   - Consumer machine: clones ANONYMOUSLY over HTTPS (no key, no login) and only pulls. Write is
+#     impossible without owner credentials; a baseline change found here is relayed to the owner to commit.
 #
 # POSIX sh — runs on Linux / WSL2 / macOS / Git-Bash. Native Windows cmd/PowerShell: see README Setup
 # (mklink / New-Item, reversed link/target order, Developer Mode).
 #
-# Usage:   AGENTS_REPO=<read-only-clone-url> sh install.sh
-#   e.g.   AGENTS_REPO=git@github-a3-ro:alexandrzasypkin/agents.git sh install.sh
-#   github-a3-ro = an ~/.ssh/config Host alias whose IdentityFile is the repo's READ-ONLY deploy key.
+# Usage:   sh install.sh                       # default: anonymous HTTPS clone, zero setup
+#          AGENTS_REPO=<url> sh install.sh     # override the clone URL if needed
 set -eu
 
-REPO_URL="${AGENTS_REPO:-git@github-a3-ro:alexandrzasypkin/agents.git}"
+REPO_URL="${AGENTS_REPO:-https://github.com/alexandrzasypkin/agents.git}"
 DEST="$HOME/.agents"
 
 # 1. Clone read-only (skip if already present — never clobber an existing checkout).
