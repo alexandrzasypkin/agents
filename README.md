@@ -107,8 +107,16 @@ anchors are created by bootstrap, not here.
 
 The repo is **public and read-only for consumers** — anyone clones/pulls anonymously over HTTPS with
 no key or login; **write stays with the owner machine only** (SSH). A consumer never pushes; a baseline
-change found there is relayed to the owner to commit. New machine: `sh runbooks/install.sh` (clones,
-symlinks the canon, reminds about baseline-guard, then prints an integrity report).
+change found there is relayed to the owner to commit. New machine — the clone IS the bootstrap (the
+script lives inside the repo, so fetch the repo first):
+
+```bash
+git clone https://github.com/alexandrzasypkin/agents.git ~/.agents && sh ~/.agents/runbooks/install.sh
+# or one-shot: curl -fsSL https://raw.githubusercontent.com/alexandrzasypkin/agents/master/runbooks/install.sh | sh
+```
+
+`install.sh` then symlinks the canon, reminds about baseline-guard, and prints an integrity report
+(on re-runs its clone step becomes a `pull`).
 
 Integrity is checked **dynamically**, not against a hardcoded SHA (which moves every commit):
 - **SHA + TLS** — the everyday anchor: HTTPS transport is GitHub-authenticated, git objects are hash-verified.
