@@ -1,0 +1,14 @@
+# Regenerable caches / junk — never tracked (the library preaches this; now it obeys it too)
+__pycache__/
+*.pyc
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.DS_Store
+*.log
+
+# Stray working-dir artifacts
+/116
+
+# Machine-local, never shared: a consumer machine must NOT commit anything.
+# Read-only distribution — edits happen only on the owner machine.
