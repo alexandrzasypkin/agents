@@ -118,6 +118,24 @@ git clone https://github.com/alexandrzasypkin/agents.git ~/.agents && sh ~/.agen
 `install.sh` then symlinks the canon, reminds about baseline-guard, and prints an integrity report
 (on re-runs its clone step becomes a `pull`).
 
+**On a machine that already has `~/.agents`, the one-shot never overwrites it** — it branches on
+`~/.agents/.git`:
+- **A git repo tracking this origin, clean tree** → `git pull --ff-only`: fast-forwards, or safely
+  **refuses** if the local side diverged (local commits) or the tree is dirty. Refusal changes nothing —
+  you reconcile by hand. (`--ff-only` is deliberate: fast-forward or stop, never a blind overwrite or a merge mess.)
+- **A hand-installed folder** — either a non-git directory, or a git repo with a *different / no* remote —
+  is **not** clobbered: a `pull` there uses *that* folder's own remote (the script's default HTTPS URL is
+  used only for a fresh clone, never to re-point an existing repo), and cloning into a non-empty directory
+  simply errors out. So a manually-set-up `~/.agents` is left intact; the default remote won't silently replace it.
+
+A **deliberate** clean re-sync (overwrite on purpose) is a manual human step, never something the script does silently:
+
+```bash
+mv ~/.agents ~/.agents.old && \
+git clone https://github.com/alexandrzasypkin/agents.git ~/.agents && \
+sh ~/.agents/runbooks/install.sh
+```
+
 Integrity is checked **dynamically**, not against a hardcoded SHA (which moves every commit):
 - **SHA + TLS** — the everyday anchor: HTTPS transport is GitHub-authenticated, git objects are hash-verified.
 - **Signed snapshot tags** — optional, owner's action: `git tag -s snapshot-<date>` on a milestone, then
