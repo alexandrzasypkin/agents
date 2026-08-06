@@ -118,6 +118,13 @@ git clone https://github.com/alexandrzasypkin/agents.git ~/.agents && sh ~/.agen
 `install.sh` then symlinks the canon, reminds about baseline-guard, and prints an integrity report
 (on re-runs its clone step becomes a `pull`).
 
+**Per-OS:** on **macOS** everything above works as-is (`sh` / `git` / `curl` / `ln -sfn` are native).
+On **Windows**, run it from **WSL2 or Git Bash** — the POSIX script and the `curl | sh` one-shot work
+unchanged (recommended: keep one WSL2 environment). In **native cmd/PowerShell** there is no POSIX
+shell, so do the steps by hand: `git clone` the repo, create the two canon symlinks with `mklink` /
+`New-Item -ItemType SymbolicLink` (Developer Mode on; the link/target order is the **reverse** of `ln` —
+see Setup above), and install baseline-guard manually.
+
 **On a machine that already has `~/.agents`, the one-shot never overwrites it** — it branches on
 `~/.agents/.git`:
 - **A git repo tracking this origin, clean tree** → `git pull --ff-only`: fast-forwards, or safely
