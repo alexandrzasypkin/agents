@@ -225,6 +225,9 @@ A hook that reads a **project-filled config** (e.g. `boundary-guard`'s `patterns
 *deployed* until that config is **seeded** — an empty config is a silent no-op that fakes the guarantee.
 Seed the stack-implied invariants when the hook is wired (bootstrap step 4 / self-config), and the
 project agent re-verifies it on a **rules refresh**; a wired-but-empty guard is a conformance defect.
+Seeding is autonomous project adaptation; if the config gates the **user's own** actions (as
+`patterns.conf` does), surface the entries **once** at seeding, then don't re-ask — the refresh check is
+silent unless the config is empty/broken.
 
 The `hooks/` library folder holds the definitions (universal git scripts + per-agent
 agent-hook recipes). Bootstrap installs git hooks (step 5) and writes agent hooks into each
