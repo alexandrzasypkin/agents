@@ -11,6 +11,16 @@ description: Git hygiene. Apply in any project under version control.
   uncommitted work appears, origin moves. Never carry a prior session's assumption about "which branch" or
   "what's committed" — re-check first. (Committing to the wrong branch because you assumed stale state is a
   real, avoidable mistake.)
+- **Identity is part of that state — "not found" is a question, not a verdict.** A host CLI (`gh`, and
+  friends) can hold **several** authenticated accounts, and the *active* one may simply lack access to a
+  private repo. The API then answers `404 / could not resolve repository` — indistinguishable from "does
+  not exist", so it is routinely misread as "no access exists" and the check gets skipped entirely. Before
+  concluding anything is unreachable, ask **who am I** (`gh auth status`) and switch if needed
+  (`gh auth switch --hostname <host> --user <who>`). Switching is **machine-global** — it changes every
+  other project on the box, so say so, record it, and put it back if it was not yours to change.
+- **A repo can push to more than one remote.** `git remote -v` may list several push URLs, so "I pushed"
+  does not mean "it arrived where CI/the reviewer looks". Verify with `git ls-remote <remote> <ref>` when
+  it matters (a workflow must fire, someone must see the branch).
 - **Keep git actual, especially on a remote.** `git fetch` to see where origin is; surface ahead/behind and
   any uncommitted work; commit promptly (below). Stale local state on a shared remote is what causes
   wrong-branch commits and merge confusion — don't let it drift. (Pushing stays the user's call, but **flag
