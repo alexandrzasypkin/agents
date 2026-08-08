@@ -17,7 +17,10 @@ not a broken key, it is the wrong channel. Account ids, DB names, endpoints are 
 
 ## 2. Global API Key (X-Auth headers)
 - Scope: ALL of the owner-user's accounts. Auth: `X-Auth-Email` + `X-Auth-Key` headers (NOT Bearer).
-- Use: ad-hoc one-off diagnostics on a client account — a **targeted `account_id` is mandatory** (no sweeping).
+- Use: ONLY when nothing narrower reaches the target — no per-account token exists for it. If a scoped
+  credential for the target does exist, this is not a trade-off, it is the **wrong answer**: the real gap
+  is a missing endpoint, and widening the credential hides it instead of closing it. (Targeted single
+  `account_id`, never a sweep — see Don't/Risk.)
 - Don't: regular ops (build a backend endpoint with an account token, channel 3); a Bearer header (→ 401);
   `/user/tokens/verify` (a Global Key returns `1000` there — verify via `GET /user`); `dash.cloudflare.com/*`
   via curl (UI → 403). A safety classifier may block Global-Key use as "credential exploration" — a
