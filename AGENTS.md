@@ -505,6 +505,15 @@ HEAD: `git -C ~/.agents log --oneline <lock>..HEAD -- rules skills agents hooks`
 3-way merge above. An explicit user request does the same. Agents do NOT auto-refresh — this standing
 instruction is what makes them check.
 
+**The wiring check.** Conformance is not only content up-to-date — it is every agent-loaded artifact
+**wired** and every reference **valid**. A file diff never surfaces this: an artifact present but
+referenced by nothing is **dead** (never invoked/read), and a reference to a removed artifact **dangles**.
+On refresh, verify both directions — every agent is in the roster / Delegation block, every rule is
+reachable from an agent / the pointer / another rule, every skill is invocable, every hook's project-config
+is seeded (the wired-but-empty guard is one case of this) — and no pointer targets a deleted file.
+Present-but-unwired is dead; dangling is broken; both are conformance defects, fixed by wiring the orphan
+in or removing the dead reference.
+
 Self-configuration (see the project `AGENTS.md`): if a rule is found in `~/.agents/rules/`
 but is absent from the local `./.agents/map.yaml` — take its chain from the fresh
 `~/.agents/map.yaml`, deploy it into the project, and append it to the local copy of the map.
