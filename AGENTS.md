@@ -508,9 +508,11 @@ instruction is what makes them check.
 **The wiring check.** Conformance is not only content up-to-date — it is every agent-loaded artifact
 **wired** and every reference **valid**. A file diff never surfaces this: an artifact present but
 referenced by nothing is **dead** (never invoked/read), and a reference to a removed artifact **dangles**.
-On refresh, verify both directions — every agent is in the roster / Delegation block, every rule is
-reachable from an agent / the pointer / another rule, every skill is invocable, every hook's project-config
-is seeded (the wired-but-empty guard is one case of this) — and no pointer targets a deleted file.
+On refresh, verify both directions — every agent is reachable (named in the roster / Delegation block, **or**
+auto-selectable by its `description` trigger — an ad-hoc utility like a doc-converter needs no roster slot),
+every rule is reachable from an agent / the pointer / another rule / its description trigger, every skill is
+invocable, every hook's project-config is seeded (the wired-but-empty guard is one case of this) — and no
+pointer targets a deleted file.
 Present-but-unwired is dead; dangling is broken; both are conformance defects, fixed by wiring the orphan
 in or removing the dead reference.
 
