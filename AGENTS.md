@@ -221,6 +221,11 @@ delivery mechanisms:
   files; ties to the `secrets` rule) and a **light-lint** (PostToolUse — fast, non-blocking
   lint of the just-edited file; ties to `quality-*`).
 
+A hook that reads a **project-filled config** (e.g. `boundary-guard`'s `patterns.conf`) is not
+*deployed* until that config is **seeded** — an empty config is a silent no-op that fakes the guarantee.
+Seed the stack-implied invariants when the hook is wired (bootstrap step 4 / self-config), and the
+project agent re-verifies it on a **rules refresh**; a wired-but-empty guard is a conformance defect.
+
 The `hooks/` library folder holds the definitions (universal git scripts + per-agent
 agent-hook recipes). Bootstrap installs git hooks (step 5) and writes agent hooks into each
 agent's config/plugin (step 4). Like `mcp-configs.yaml`, agent-hook recipes are a **portable

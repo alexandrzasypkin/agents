@@ -13,8 +13,12 @@ A hook cannot see **which subagent** is acting, so it enforces **"protect path X
 
 ## Configure
 Copy `patterns.conf.example` → `patterns.conf` and fill it from this project's `boundaries`/`forbidden`:
-each line is `<ERE path pattern><TAB><reason>`. Without `patterns.conf` the hook is a **no-op**, so it
-ships safe/inactive. Wire the `claude.json` fragment (PreToolUse `Write|Edit`) into `.claude/settings.json`
+each line is `<ERE path pattern><TAB><reason>`. Without `patterns.conf` the hook is a **no-op** — it
+ships inactive, which is safe but **not done**: an empty `patterns.conf` is a silent no-op that fakes the
+guarantee. **Deploying this hook includes seeding `patterns.conf`** — at deploy fill the stack-implied
+hard invariants (`wrangler`-generated `worker-configuration.d.ts`, a `migrations/` ledger, `dist/`), add
+project-specific ones as artifacts appear; on a **rules refresh** the project agent re-checks it is
+non-empty while the hook is wired, and logs the fill in `REGISTRY.md`. Wire the `claude.json` fragment (PreToolUse `Write|Edit`) into `.claude/settings.json`
 (the bootstrap deep-merge does this). For a hard block instead of a prompt on a specific pattern, change
 that path's decision to `"deny"` in `guard.sh` — default is `"ask"`.
 
