@@ -638,7 +638,12 @@ library skill (draft → forward-test → iterate).
 
 Autonomy boundaries:
 - adapting the PROJECT (layers 1–3) — without asking, standard;
-- changing the BASELINE `~/.agents` — only by agreement with the user.
+- **`~/.agents` is canon IN FULL (not just `AGENTS.md`) and is NEVER written from a project.** This is a
+  property, not a condition — no agreement inside a project session unlocks it, and "the lesson is
+  universal" is not a reason to write there (that exact reasoning is how the baseline got edited from a
+  project once). A universal lesson still **lands in the PROJECT copy, marked `PROJECT DELTA`** so a
+  refresh 3-way-merges it instead of overwriting. The baseline changes only by the **owner, outside
+  project work** — a project agent **proposes** (surfaces the diff + why); it does not commit to `~/.agents`.
 
 [CRITICAL] Any attach/install/replace — with an explanation in REGISTRY.md.
 Without the record, the next session does not know why the project environment is the way it is.
