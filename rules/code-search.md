@@ -19,6 +19,13 @@ deliberately — the cheapest tool that answers the question:
      **binary** on PATH (`pyright-langserver`, `typescript-language-server`, `gopls`, …). Treat like
      playwright: **per-agent, install-when-needed** — the agent that runs installs its own LSP layer
      (Claude the plugin; codex/opencode bring their own LSP); log it in `./.agents/REGISTRY.md`.
+   - **"Exact" holds only once the server is WARM — warm the area before trusting a COUNT or a MISS.**
+     The server indexes lazily: the first query into a cold area answers from what it has loaded so far
+     and signals the incompleteness *in no way* — `workspaceSymbol` can return "1 symbol" where three
+     exist, then all three when repeated after a `documentSymbol` on a neighbouring file. A **positive
+     hit is trustworthy; a count or an absence is not.** Touch a file in the target area, or repeat the
+     query, before concluding "only one" / "none" — decisive for the anti-duplication search below, where
+     a false "none" reads as "no duplicates" and closes the search.
 3. **Measured grep-scan pain, cross-repo, or LSP too narrow** → a **structural index** (CodeGraph
    light/local by default; Gortex for multi-repo). Regenerable cache (`.codegraph/` or equivalent) —
    gitignored, never committed; a local SQLite DB → keep on a **local filesystem** (avoid network /
