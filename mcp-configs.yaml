@@ -25,13 +25,20 @@ playwright:
   #   opencode — ~/.config/opencode global config, same http url.
   # Endpoint is streamable-HTTP /mcp (NOT legacy /sse). 9222 = Chrome CDP, a separate layer.
   # LADDER (both Claude & codex):
-  #   (a) connect to http://localhost:8931/mcp;
+  #   (a) connect to http://localhost:8931/mcp — health-check the MCP `initialize`, not just an open port;
   #   (b) if down — ENSURE-SERVER: install the binary if missing (`npm i -g @playwright/mcp`), then
   #       start `playwright-mcp --port 8931 --headless --shared-browser-context` (Windows: Git Bash / cmd /c npx);
   #   (c) if it still can't come up (install fails / offline / no perm) — FALL BACK to a per-session
   #       stdio spawn: Claude `{ "command": "npx", "args": ["-y","@playwright/mcp@latest"] }` (or the
   #       `playwright-mcp` binary); native Windows `cmd /c npx …`. Self-contained, costlier, always works.
   #   Best run the server as a machine service/autostart so it stays warm. Never silently give up.
+  # WINDOWS lifecycle [!]: a server started FROM an agent tool-job DIES with that job — the temp job
+  #   closes, Chrome + MCP are killed, and a temp profile loses its cookies/session mid-login. So the
+  #   shared server must be owned by autostart / a service / a user terminal (Explorer-owned `cmd /k`),
+  #   NEVER a child of an agent tool call. Headed auth: use a PERSISTENT profile
+  #   `%LOCALAPPDATA%\Playwright-MCP\headed-profile` — log in via a detached Chrome (Explorer shortcut),
+  #   fully close it, THEN start headed MCP via Explorer-owned `cmd /k … --user-data-dir <that profile>`.
+  #   codex: if it started while the ports were down, reconnect/restart it once the servers are back.
 
 # ── PROJECT-BOUND (rendered per-project on demand; record in REGISTRY) ─────────
 # - cloudflare: claude.ai-managed integration for Claude (account-level, no local command);
