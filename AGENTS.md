@@ -566,7 +566,11 @@ instead of routing them; it swelled into a catch-all.)
   everything; "didn't know where to look" is not an excuse — that is what the metadata is for.
   **Retrieving is not applying:** a record read but not acted *from* fails exactly like one never read —
   the two read-side misses are *not retrieved* (skipped the index) and *retrieved-but-ignored* (read it,
-  drifted anyway). The whole write discipline pays off only on the read.
+  drifted anyway). The whole write discipline pays off only on the read. **A triggered RULE is read
+  WHOLE, not grepped for your sub-question** — a rule is short, and the line that answers the task you are
+  *on* often sits next to (not matching) the one you searched for; grepping a rule is retrieved-but-not-
+  applied by construction. (Big docs you still filter by frontmatter and read the relevant bodies — this
+  is the rule-specific exception: short + trigger-scoped, so read it top to bottom.)
 - **Simplicity first.** Minimum code that solves the problem — no speculative features,
   abstractions, flexibility, or error handling for impossible cases. 200 lines that could be 50 → rewrite.
 - **Surgical changes.** Touch only what the request needs; every changed line traces to it.
