@@ -16,7 +16,14 @@ fail=0
 have()    { command -v "$1" >/dev/null 2>&1; }
 miss()    { printf 'git-quality-gate: %s not found - skipped (install per env-setup)\n' "$1" >&2; }
 run()     { echo "+ $*" >&2; "$@" || fail=1; }
-tracked() { git ls-files -- "$@" | grep -q .; }
+# Files IN SCOPE for this run: staged on commit (light gate), the whole tree on push (full gate).
+# This is the canon's "pre-commit = light gate on STAGED files" — a markdown-only commit must not
+# drag a whole-repo lint (and a lint error elsewhere must not block an unrelated doc commit).
+in_scope() {
+  if [ "$mode" = commit ]; then git diff --cached --name-only --diff-filter=ACM -- "$@"
+  else git ls-files -- "$@"; fi
+}
+scoped()  { in_scope "$@" | grep -q .; }
 
 # --- secret scan (commit) — BUILT-IN grep, UNCONDITIONAL. NEVER skip-if-missing:
 #     secrets are base/[CRITICAL]. External scanners only ADD to this, never replace it. ---
@@ -38,7 +45,7 @@ if [ "$mode" = commit ]; then
 fi
 
 # --- Python ---
-if tracked '*.py' || [ -f pyproject.toml ]; then
+if scoped '*.py' 'pyproject.toml'; then
   if have ruff; then run ruff check .; else miss ruff; fi
   if [ "$mode" = push ]; then
     if have pyright; then run pyright; else miss pyright; fi
@@ -49,7 +56,7 @@ if tracked '*.py' || [ -f pyproject.toml ]; then
 fi
 
 # --- JS/TS ---
-if [ -f package.json ]; then
+if [ -f package.json ] && scoped '*.ts' '*.tsx' '*.js' '*.jsx' '*.mjs' '*.cjs' '*.astro' '*.vue' 'package.json'; then
   if grep -q '"lint"' package.json; then run npm run -s lint
   elif npx --no-install eslint --version >/dev/null 2>&1; then run npx --no-install eslint .
   else miss eslint; fi
@@ -66,22 +73,23 @@ if [ -f package.json ]; then
 fi
 
 # --- Bash ---
-if tracked '*.sh'; then
+if scoped '*.sh'; then
   while IFS= read -r f; do
+    [ -f "$f" ] || continue
     run bash -n "$f"
     if have shellcheck; then run shellcheck "$f"; fi
-  done < <(git ls-files -- '*.sh')
+  done < <(in_scope '*.sh')
 fi
 
 # --- Perl ---
-if tracked '*.pl' '*.pm'; then
-  while IFS= read -r f; do run perl -c "$f"; done < <(git ls-files -- '*.pl' '*.pm')
+if scoped '*.pl' '*.pm'; then
+  while IFS= read -r f; do [ -f "$f" ] || continue; run perl -c "$f"; done < <(in_scope '*.pl' '*.pm')
 fi
 
 # --- C++ (light syntax check) ---
-if tracked '*.cpp' '*.cc' '*.cxx'; then
+if scoped '*.cpp' '*.cc' '*.cxx'; then
   if have g++; then
-    while IFS= read -r f; do run g++ -fsyntax-only -std=c++17 "$f"; done < <(git ls-files -- '*.cpp' '*.cc' '*.cxx')
+    while IFS= read -r f; do [ -f "$f" ] || continue; run g++ -fsyntax-only -std=c++17 "$f"; done < <(in_scope '*.cpp' '*.cc' '*.cxx')
   else miss g++; fi
 fi
 
