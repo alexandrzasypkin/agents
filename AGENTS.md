@@ -516,6 +516,15 @@ pointer targets a deleted file.
 Present-but-unwired is dead; dangling is broken; both are conformance defects, fixed by wiring the orphan
 in or removing the dead reference.
 
+**The `AGENTS.md` self-reconcile.** Everything above 3-way-merges from the library because it is a *copy*.
+The project's own `AGENTS.md` (pointer / self-config / behavioral seed) is the exception — it was written
+once at bootstrap from the canon template and is **not** a library copy, so no diff or merge touches it and
+it silently drifts from a tightened canon. So the refresh **also** reconciles the `AGENTS.md` self-config
+and behavioral blocks against the **current canon template**: pull the tightened wording, keep this
+project's own deviations (that is what a 3-way merge would do — apply it by hand here). This is what closes
+the last gap: with it, **every** piece — library copies and the project's own anchor — is refreshed by the
+project's own agent on its own refresh, and **nothing needs a central roll-out**.
+
 Self-configuration (see the project `AGENTS.md`): if a rule is found in `~/.agents/rules/`
 but is absent from the local `./.agents/map.yaml` — take its chain from the fresh
 `~/.agents/map.yaml`, deploy it into the project, and append it to the local copy of the map.
