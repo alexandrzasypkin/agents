@@ -585,6 +585,13 @@ instead of routing them; it swelled into a catch-all.)
 - **Surgical changes.** Touch only what the request needs; every changed line traces to it.
   Match existing style; don't refactor what isn't broken or delete pre-existing dead code (mention it).
   Remove only the orphans your change created.
+- **A whole-section rewrite silently drops what was recorded in it — diff every rewrite against the
+  version it replaced, per rewrite, before moving on.** Replacing a block (a rule, a doc section, a
+  config) carries forward only what you consciously re-typed; a delta, note, or fact you didn't is gone
+  with no error. The rewrite is not done until you've diffed it (`git show HEAD:<file>` / the prior
+  version) and confirmed every recorded item survived — immediately, not at the end and not only when
+  asked. (The active-verification side of the merge-not-overwrite rule, applied to your OWN edits, not
+  just a library refresh.)
 - **Reuse before you write — search first.** Before adding a function / helper / type / endpoint /
   util, search for an existing one and reuse or extend it. LSP is the fast tool: workspace-symbol by
   concept, find-references / go-to-definition to see and read what already exists; grep a distinctive
