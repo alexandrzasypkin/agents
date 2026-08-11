@@ -105,7 +105,8 @@ incident lost a project's REGISTRY on a machine change exactly this way.
   archives / heavy binaries instead of full-scanning them into context; archive completed work **out** of active context.
 
 ## Discipline
-- Contract-first: update the doc (schema/contract/behavior) **before** the code change, then code.
+- Contract-first: update the doc (schema/contract/behavior) **before** the code change, then code — and
+  **sweep every occurrence of the contract in the same change** (no stragglers left pointing at the old shape).
 - Keep docs consistent with the code; mark assumptions. A plan: `active/` → `done/` on completion (drop its backlog item).
 - **Staleness is a first-class failure — a drifted doc actively misleads, worse than none.** Acting
   *from* a doc that contradicts the code you touch → reconcile the doc **as part of the task**, never
