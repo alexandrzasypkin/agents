@@ -6,12 +6,20 @@ description: Escalate grep -> LSP -> structural index (cheapest that answers). A
 # code-search
 
 Agents grep by habit and full-scan the tree (hundreds of K tokens, dozens of tool calls). Escalate
-deliberately — the cheapest tool that answers the question:
+deliberately — **the tier is picked by the question, not repo size**: "who calls / how many places /
+what breaks" goes to LSP straight away (even in a small repo); grep is for finding a distinctive string,
+not for resolving callers or symbols.
 
-1. **Small repo / no index → `rg`/grep.** Do not add anything without measured pain.
+1. **Find a literal string / distinctive token → `rg`/grep** — the right tool when you already know the
+   text, at **any** repo size. (An index is a separate, later step; don't add one without measured pain.)
 2. **Symbol/type-aware need** (who-calls, references, rename impact) in a typed language → the **LSP
    tool** (a language server via the project's `tsconfig`/config): **zero-setup**, exact, and the
    right step **before** a structural index. Prefer it over standing up CodeGraph.
+   - **grep answers by NAME, LSP by SYMBOL — a name with two definitions gives a right count but a wrong
+     conclusion.** grep for `recordTransaction` counts every textual hit; if two modules each define one
+     (api + webhook), the 13 hits read as *one* interface with 13 entry points when they are two
+     independent functions with disjoint callers. For who-calls / how-many / what-breaks, LSP resolves the
+     actual symbol — grep structurally cannot.
    - **On Claude, this tier is native.** A code-intelligence plugin (`pyright-lsp`, `typescript-lsp`,
      `gopls-lsp`, … from the official marketplace) wires the language server to Claude's built-in LSP
      tool: **automatic diagnostics after every edit** (type errors / bad imports surfaced and fixed in
