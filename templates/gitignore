@@ -27,7 +27,8 @@ build/
 .astro/
 .wrangler/
 *.log
-*.tsbuildinfo          # tsc --incremental cache (git-quality-gate typecheck) — regenerable
+# tsc --incremental cache (git-quality-gate typecheck) — regenerable
+*.tsbuildinfo
 
 # local indexes — regenerable caches (code-search / content-vault); never commit
 .codegraph/
