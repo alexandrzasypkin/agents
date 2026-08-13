@@ -16,6 +16,8 @@ fail=0
 have()    { command -v "$1" >/dev/null 2>&1; }
 miss()    { printf 'git-quality-gate: %s not found - skipped (install per env-setup)\n' "$1" >&2; }
 run()     { echo "+ $*" >&2; "$@" || fail=1; }
+# like run(), but pytest exit 5 = "no tests were collected" — not a failure (e.g. after excluding a marker).
+run_tests(){ echo "+ $*" >&2; "$@"; local rc=$?; [ "$rc" -eq 0 ] || [ "$rc" -eq 5 ] || fail=1; }
 # Files IN SCOPE for this run: staged on commit (light gate), the whole tree on push (full gate).
 # This is the canon's "pre-commit = light gate on STAGED files" — a markdown-only commit must not
 # drag a whole-repo lint (and a lint error elsewhere must not block an unrelated doc commit).
@@ -46,11 +48,16 @@ fi
 
 # --- Python ---
 if scoped '*.py' 'pyproject.toml'; then
-  if have ruff; then run ruff check .; else miss ruff; fi
+  if have ruff; then
+    if [ "$mode" = commit ]; then
+      mapfile -t _pyf < <(in_scope '*.py')                     # light gate: lint STAGED .py only
+      if [ "${#_pyf[@]}" -gt 0 ]; then run ruff check -- "${_pyf[@]}"; else run ruff check .; fi
+    else run ruff check .; fi                                  # push: whole tree (full gate)
+  else miss ruff; fi
   if [ "$mode" = push ]; then
     if have pyright; then run pyright; else miss pyright; fi
-    if have pytest; then run pytest -q
-    elif have python3 && python3 -c 'import pytest' 2>/dev/null; then run python3 -m pytest -q
+    if have pytest; then run_tests pytest -q
+    elif have python3 && python3 -c 'import pytest' 2>/dev/null; then run_tests python3 -m pytest -q
     else miss pytest; fi
   fi
 fi
