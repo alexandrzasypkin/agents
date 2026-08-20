@@ -1,0 +1,12 @@
+# Merge into ./.codex/config.toml. Matcher = the codex file-write tools.
+# NOTE: codex edits via `apply_patch` carry a diff blob, not file_path/content — the cap script
+# can't reconstruct the resulting file from it, so apply_patch is NOT covered (fail-open). The cap
+# holds for direct Write/Edit tools; codex's apply_patch path is a known gap (a later pre-commit
+# backstop or the headless reviewer would catch it).
+[[hooks.PreToolUse]]
+matcher = "Write|Edit"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = 'bash ".agents/hooks/agents-md-guard/lessons-cap.sh" --codex'
+statusMessage = "agents-md-guard"

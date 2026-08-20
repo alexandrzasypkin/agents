@@ -220,8 +220,10 @@ delivery mechanisms:
 
   Baseline agent hooks: a **secrets-guard** (PreToolUse — block read/write/edit of secret
   files; ties to the `secrets` rule), a **light-lint** (PostToolUse — fast, non-blocking
-  lint of the just-edited file; ties to `quality-*`), and a **no-git-add-all** (PreToolUse Bash —
-  block stage-everything `git add -A/.`/`git commit -a`; ties to `git-discipline`).
+  lint of the just-edited file; ties to `quality-*`), a **no-git-add-all** (PreToolUse Bash —
+  block stage-everything `git add -A/.`/`git commit -a`; ties to `git-discipline`), and an
+  **agents-md-guard** (PreToolUse Write|Edit — cap the `AGENTS.md` lessons block so the anchor
+  stays a pointer, not a rule store; ties to `project-docs`).
 
 A hook that reads a **project-filled config** (e.g. `boundary-guard`'s `patterns.conf`) is not
 *deployed* until that config is **seeded** — an empty config is a silent no-op that fakes the guarantee.
@@ -394,7 +396,7 @@ same name, different places. Steps:
    ```
 
    **Config assembly (uniform across agents).** Hooks are attached **by the `map.yaml` chain**
-   (`secrets → secrets-guard`, `quality-* → light-lint`, `git-discipline → no-git-add-all`) — a project gets a hook only when its
+   (`secrets → secrets-guard`, `quality-* → light-lint`, `git-discipline → no-git-add-all`, `project-docs → agents-md-guard`) — a project gets a hook only when its
    rule is active. Each hook in `./.agents/hooks/<name>/` ships per-agent fragments —
    `claude.json`, `codex.toml`, `opencode.ts` — whose command points at the project's **own**
    copied script: `bash "$CLAUDE_PROJECT_DIR/.agents/hooks/<name>/…sh"` (Claude), a project-relative
@@ -632,12 +634,22 @@ instead of routing them; it swelled into a catch-all.)
   from it what the plan already holds (nor trust it to have kept every constraint).
 
 The project agent **expands this section** with project-specific behavioral lessons learned
-during work (a living layer — append, don't restate the base). Add a rule **only after a real
-incident** — a problem that actually happened — not speculatively: each line should trace to an
-incident, not a guess (this keeps the layer lean). **Before writing it, ask: model-side or
-harness-side?** A harness-side cause a rule can actually *fix*; a model-side one a rule only
-*nudges* — write it honestly and don't log it as closed (harness-engineering a model problem is the
-classic mislocated fix). Behavioral lessons go here; tool/skill/rule adaptations go to `REGISTRY.md`.
+during work (a living layer — append **inside the markers below**, don't restate the base). Add a
+rule **only after a real incident** — a problem that actually happened — not speculatively: each line
+should trace to an incident, not a guess (this keeps the layer lean). **Before writing it, ask:
+model-side or harness-side?** A harness-side cause a rule can actually *fix*; a model-side one a rule
+only *nudges* — write it honestly and don't log it as closed (harness-engineering a model problem is
+the classic mislocated fix). Behavioral lessons go here; tool/skill/rule adaptations go to `REGISTRY.md`.
+
+The lessons list lives **between the markers** and is capped by the `agents-md-guard` hook (default
+`max=12` top-level bullets) — the anchor is a POINTER, not a rule store, so growth forces triage: at
+the cap, **merge or drop** a line whose real home is a rule/`REGISTRY`/`docs` (the author is blind to
+its own duplication — that is exactly what the cap catches). Raise `max=` on the start marker only as
+a deliberate act, with a `REGISTRY.md` note. The fixed base-seed bullets above stay OUTSIDE the
+markers (they are not the growing part).
+
+<!-- lessons:start max=12 -->
+<!-- lessons:end -->
 
 ## Self-configuration (adapt and explain)
 `~/.agents` provides a minimal shared baseline; adapting to the project is standard work. **The

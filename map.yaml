@@ -18,7 +18,7 @@ rules:
 
   # --- behavioral ---
   env-setup:         {}
-  project-docs:      {agents: [docs], hooks: [docs-frontmatter]}   # docs/ source-of-truth + plans active/done + ADR; must-have (base). docs-frontmatter: PostToolUse nudge when a docs/*.md is saved without type/status/tags/project.
+  project-docs:      {agents: [docs], hooks: [docs-frontmatter, agents-md-guard]}   # docs/ source-of-truth + plans active/done + ADR; must-have (base). docs-frontmatter: PostToolUse nudge when a docs/*.md is saved without type/status/tags/project. agents-md-guard: PreToolUse Write|Edit — caps the AGENTS.md lessons block (in markers) so the anchor stays a pointer, not a rule store.
   user-docs:         {}          # README + user docs (doc folder name varies); conditional (product surface)
   git-discipline:    {hooks: [no-git-add-all]}   # no-git-add-all: PreToolUse Bash — blocks stage-everything (git add -A/./commit -a); explicit paths only. (commit-msg attribution gate ships with git-quality-gate, installed unconditionally at bootstrap step 5.)
   proof-loop:        {}
