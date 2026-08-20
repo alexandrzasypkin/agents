@@ -565,73 +565,54 @@ instead of routing them; it swelled into a catch-all.)
 - On conflict the project wins (more specific overrides more general).
 
 ## Behavioral rules (base seed — expand as you work)
-- **Think before coding.** State assumptions; if uncertain, FIRST consult the docs (a rule's
-  `description:` trigger + the pointer tell you which one) — ask the user ONLY for what the record cannot
-  hold (intent, preference, genuine ambiguity), never for what a rule/doc already answers. Present
-  competing interpretations — don't pick silently. Name what's unclear and stop. Push back when a simpler path exists.
-- **Read the recorded artifact before acting — don't reset to a clean slate.** Principles and decisions
-  are recorded (`AGENTS.md`, `docs/` incl. ADRs in `docs/decisions/`, `REGISTRY.md`, plans) precisely so
-  they persist and get applied. Before acting, read what governs the thing and act **from** it — do not
-  re-derive, re-ask what is documented, or drift off-principle. Re-asking a settled decision or
-  duplicating what the record already resolves nullifies the whole point of recording it (and of this
-  memory architecture). Recorded ≠ read: the write only pays off if the next session reads it first. The
-  metadata is your INDEX — a rule's `description:` is a trigger ("Apply when …") and the pointer says
-  where each kind of knowledge lives, so you find the ONE doc that answers a task without reading
-  everything; "didn't know where to look" is not an excuse — that is what the metadata is for.
-  **Retrieving is not applying:** a record read but not acted *from* fails exactly like one never read —
-  the two read-side misses are *not retrieved* (skipped the index) and *retrieved-but-ignored* (read it,
-  drifted anyway). The whole write discipline pays off only on the read. **A triggered RULE is read
-  WHOLE, not grepped for your sub-question** — a rule is short, and the line that answers the task you are
-  *on* often sits next to (not matching) the one you searched for; grepping a rule is retrieved-but-not-
-  applied by construction. (Big docs you still filter by frontmatter and read the relevant bodies — this
-  is the rule-specific exception: short + trigger-scoped, so read it top to bottom.)
-- **Simplicity first.** Minimum code that solves the problem — no speculative features,
-  abstractions, flexibility, or error handling for impossible cases. 200 lines that could be 50 → rewrite.
-- **Surgical changes.** Touch only what the request needs; every changed line traces to it.
-  Match existing style; don't refactor what isn't broken or delete pre-existing dead code (mention it).
-  Remove only the orphans your change created.
-- **A whole-section rewrite silently drops what was recorded in it — diff every rewrite against the
-  version it replaced, per rewrite, before moving on.** Replacing a block (a rule, a doc section, a
-  config) carries forward only what you consciously re-typed; a delta, note, or fact you didn't is gone
-  with no error. The rewrite is not done until you've diffed it (`git show HEAD:<file>` / the prior
-  version) and confirmed every recorded item survived — immediately, not at the end and not only when
-  asked. (The active-verification side of the merge-not-overwrite rule, applied to your OWN edits, not
-  just a library refresh.)
-- **Reuse before you write — search first.** Before adding a function / helper / type / endpoint /
-  util, search for an existing one and reuse or extend it. LSP is the fast tool: workspace-symbol by
-  concept, find-references / go-to-definition to see and read what already exists; grep a distinctive
-  string when the name may differ; a structural index (code-graph) for cross-cutting spread. Writing a
-  fresh block without looking forks a parallel duplicate — cheapest to stop at the one search before
-  the write (detail in `code-search`).
-- **Comments earn their place — no noise.** A comment explains *why* (a non-obvious constraint,
-  a trade-off, a gotcha) — never *what* the code already says. Delete filler: restating the line,
-  section banners, changelog/attribution lines (`// added by …`, `// AI-generated`, `// fixed bug`),
-  commented-out code, `TODO`s with no owner/issue. A long comment that points to a doc to explain
-  what the code does is a smell — the code is unclear; fix the code, don't annotate around it.
-  (Same discipline as the no-noise commit rule in `git-discipline`, applied to source.)
-- **Goal-driven + verify.** Turn the task into a verifiable goal; brief plan, per-step verification;
-  confirm by an independent check, not assertion (see `proof-loop`, `code-review`).
-- **Chat answers: structured and plain.** Reply in the chat with structure (short paragraphs, a
-  list or a small table when it helps) and **plain language** — lead with the answer, then the why.
-  No buzzwords or jargon; a genuine technical term (API, hook, symlink) is fine when it is the
-  precise word, not decoration. This governs conversational replies; drafted output documents follow
-  `writing-style`.
-- **Workspace hygiene — clean up when done.** Don't start or restart servers or spawn background
-  processes unless asked; when a task is finished, tidy up — kill the background processes / dev
-  servers you started, remove temp/scratch files. Leave the workspace as you found it, plus the
-  intended change.
-- **Don't block on a slow tool.** If a tool / MCP / index / server doesn't answer within a sensible
-  bound (a few seconds), proceed without it and say so — never hang waiting on it.
-- **Context economy — one chat, one task.** A session accrues cruft; a long thread with several pivots
-  makes the model drift and re-read. Keep a session scoped to ONE goal; start fresh when the goal
-  changes, the agent loops, or context is bloated with logs — but stay in one thread when tasks share
-  files/contracts or B depends on A. Token discipline, same theme: subagents return a SUMMARY, not raw
-  logs, to the parent; don't re-read huge files or re-explain the project (that is what the rules +
-  AGENTS.md are for); reasoning on the strong model, mechanics on the cheap one.
-  **Compaction is lossy** — before a thread grows long or context is compacted away, write durable
-  state OUT to the plan handoff / `REGISTRY.md` / docs, not left sitting in chat; on resume, read that
-  record first — a compaction summary is a lossy digest, not the source of truth, so don't re-derive
-  from it what the plan already holds (nor trust it to have kept every constraint).
+Ordered most-load-bearing first — agents taper, so the top must survive alone.
+
+- **Think before coding.** State assumptions; if uncertain, consult the docs FIRST (a rule's
+  `description:` trigger + the pointer say which) and ask the user only for what the record can't hold —
+  intent, preference, genuine ambiguity. Present competing interpretations — name what's unclear and
+  stop, don't pick silently; push back when a simpler path exists.
+- **Read the record before acting — and read a triggered rule WHOLE.** Act *from* what governs the
+  thing (`AGENTS.md`, `docs/` + ADRs, `REGISTRY.md`, plans); don't re-derive or re-ask what is
+  documented. Retrieving ≠ applying — a record read but not acted *from* fails like one never read. The
+  metadata is your index: find the ONE doc that answers the task. A rule is short and trigger-scoped —
+  read it top to bottom, never grep it for your sub-question (the answering line often sits next to, not
+  matching, what you searched). Big docs you still filter by frontmatter.
+- **Don't duplicate what already has a home.** A recorded decision or rule belongs to its file, not
+  re-typed into `AGENTS.md` — that is the anchor-bloat the `agents-md-guard` cap fights. Before writing
+  a rule-like line into this anchor, ask "does a rule already own this?" — if yes, follow it, don't fork
+  a silent second copy.
+- **Reuse before you write — search first.** Before adding a function / helper / type / endpoint,
+  search for an existing one and reuse or extend it (LSP: workspace-symbol, find-references; grep a
+  distinctive string when the name may differ). Writing blind forks a duplicate — one search now beats a
+  refactor later (`code-search`).
+- **Simplicity first.** Minimum code that solves the problem — no speculative features, abstractions, or
+  error handling for impossible cases. 200 lines that could be 50 → rewrite.
+- **Surgical changes.** Touch only what the request needs; every changed line traces to it. Match
+  existing style; don't refactor what isn't broken or delete pre-existing dead code (mention it). Remove
+  only the orphans your change created.
+- **Diff every rewrite against what it replaced.** Replacing a block (rule, doc section, config) carries
+  forward only what you consciously re-typed — a delta you didn't is gone with no error. Not done until
+  you've diffed it (`git show HEAD:<file>`) and confirmed every recorded item survived — now, not later.
+- **Goal-driven + verify.** Turn the task into a verifiable goal; confirm by an independent check, not
+  assertion (`proof-loop`, `code-review`).
+- **Comments earn their place — no noise.** A comment says *why* (a constraint, trade-off, gotcha),
+  never *what* the code already shows. Cut filler: restated lines, banners, changelog/attribution
+  comments (`// AI-generated`, `// fixed bug`), commented-out code, ownerless `TODO`s. A long comment
+  pointing to a doc to explain *what* the code does is a smell — fix the code, don't annotate around it.
+  (Source-side of the no-noise rule in `git-discipline`.)
+- **Chat answers: structured and plain.** Lead with the answer, then the why; short paragraphs, a list
+  or small table when it helps. Plain language — a technical term only when it's the precise word.
+  (Drafted output documents follow `writing-style`.)
+- **Workspace hygiene.** Don't start/restart servers or spawn background processes unless asked; when
+  done, kill what you started and remove scratch files. Leave the workspace as found, plus the change.
+- **Don't block on a slow tool.** If a tool / index / server doesn't answer in a few seconds, proceed
+  without it and say so.
+- **Context economy — one chat, one task; compaction is lossy.** Keep a session to ONE goal; start
+  fresh when it changes (stay in one thread when tasks share files/contracts or B depends on A). Before
+  a thread grows long, write durable state OUT (plan handoff / `REGISTRY.md` / docs); on resume read that
+  record, not the compaction summary — a lossy digest, not the source (don't trust it kept every
+  constraint). Subagents return a SUMMARY, not raw logs; reasoning on the strong model, mechanics on
+  the cheap one.
 
 The project agent **expands this section** with project-specific behavioral lessons learned
 during work (a living layer — append **inside the markers below**, don't restate the base). Add a
