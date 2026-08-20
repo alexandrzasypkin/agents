@@ -1,0 +1,9 @@
+# Merge into ./.codex/config.toml. Matcher = the codex tool that runs shell commands;
+# adjust to your codex version's tool name if it differs.
+[[hooks.PreToolUse]]
+matcher = "Bash"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = 'bash ".agents/hooks/no-git-add-all/guard.sh" --codex'
+statusMessage = "no-git-add-all"

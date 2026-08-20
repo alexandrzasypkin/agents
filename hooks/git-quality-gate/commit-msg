@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Installed by bootstrap into .git/hooks/commit-msg. Delegates to the tracked gate
+# in ./.agents/ so the logic is version-controlled and editable in the project.
+# $1 = path to the commit-message file.
+root="$(git rev-parse --show-toplevel)"
+exec "$root/.agents/hooks/git-quality-gate/msg-gate.sh" "$1"

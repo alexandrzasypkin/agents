@@ -206,20 +206,22 @@ Deterministic guardrails — *a rule asks, a hook guarantees*. A rule is a soft 
 the agent may forget on a long session; a hook fires on an event, mechanically. Two
 delivery mechanisms:
 
-- **Git hooks** (`pre-commit` / `pre-push`) — universal shell scripts in `.git/hooks/`,
+- **Git hooks** (`pre-commit` / `pre-push` / `commit-msg`) — universal shell scripts in `.git/hooks/`,
   identical for every agent and for no-agent use. They carry the **main** quality gate
-  (lint / typecheck / tests, dispatched by project language) plus a staged-secret scan.
-  Installed **unconditionally** at bootstrap (mandatory — BOOTSTRAP step 5); the main check
-  cannot be forgotten because it runs on the git event.
+  (lint / typecheck / tests, dispatched by project language) plus a staged-secret scan, and a
+  `commit-msg` gate that rejects AI/tool attribution trailers (no-noise commits). Installed
+  **unconditionally** at bootstrap (mandatory — BOOTSTRAP step 5); the main check cannot be
+  forgotten because it runs on the git event.
 - **Agent hooks** — fire on the agent's tool calls; **per-agent format** (no cross-agent
   standard, unlike skills):
   - Claude: `settings.json` `hooks` (PreToolUse / PostToolUse; exit 2 or JSON `permissionDecision` to block);
   - Codex: `config.toml` hooks (event → matcher → handler; JSON on stdin; return JSON `permissionDecision:"deny"` to block — `async` is ignored, all hooks block);
   - opencode: a JS/TS plugin under `.opencode/plugin/` exporting `tool.execute.before` (throw to block) / `tool.execute.after`.
 
-  Two baseline agent hooks: a **secrets-guard** (PreToolUse — block read/write/edit of secret
-  files; ties to the `secrets` rule) and a **light-lint** (PostToolUse — fast, non-blocking
-  lint of the just-edited file; ties to `quality-*`).
+  Baseline agent hooks: a **secrets-guard** (PreToolUse — block read/write/edit of secret
+  files; ties to the `secrets` rule), a **light-lint** (PostToolUse — fast, non-blocking
+  lint of the just-edited file; ties to `quality-*`), and a **no-git-add-all** (PreToolUse Bash —
+  block stage-everything `git add -A/.`/`git commit -a`; ties to `git-discipline`).
 
 A hook that reads a **project-filled config** (e.g. `boundary-guard`'s `patterns.conf`) is not
 *deployed* until that config is **seeded** — an empty config is a silent no-op that fakes the guarantee.
@@ -392,7 +394,7 @@ same name, different places. Steps:
    ```
 
    **Config assembly (uniform across agents).** Hooks are attached **by the `map.yaml` chain**
-   (`secrets → secrets-guard`, `quality-* → light-lint`) — a project gets a hook only when its
+   (`secrets → secrets-guard`, `quality-* → light-lint`, `git-discipline → no-git-add-all`) — a project gets a hook only when its
    rule is active. Each hook in `./.agents/hooks/<name>/` ships per-agent fragments —
    `claude.json`, `codex.toml`, `opencode.ts` — whose command points at the project's **own**
    copied script: `bash "$CLAUDE_PROJECT_DIR/.agents/hooks/<name>/…sh"` (Claude), a project-relative
@@ -423,7 +425,8 @@ same name, different places. Steps:
    parse-errors on the new layer (see `quality-js`). Same merge discipline as the `.gitignore` step.
    Then **install the git hooks
    unconditionally** (not a survey option): `pre-commit` (light gate on staged files + secret
-   scan) and `pre-push` (full quality gate), dispatching to the active `quality-*` rules by
+   scan), `pre-push` (full quality gate), and `commit-msg` (reject AI/tool attribution trailers —
+   `Co-Authored-By:` / `Generated with|by`), dispatching to the active `quality-*` rules by
    project language. The main lint/test gate runs on the git event, so it cannot be forgotten.
 
 6. **Report** — print the list of what was created. Example:

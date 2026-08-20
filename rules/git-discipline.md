@@ -28,8 +28,9 @@ description: Git hygiene. Apply in any project under version control.
 - **Commit after each completed unit of plan/task work — MANDATORY, do NOT ask.** Git is cheap; the
   commit IS the checkpoint (the plan-step boundary / handoff point), so "should I commit?" is noise —
   just commit. Small, traceable commits. (**Pushing** is different — it still needs an explicit go; see below.)
-- Stage explicit paths (`git add <files>`), not `git add -A` by default — guards against
-  committing secrets or generated artifacts.
+- Stage explicit paths (`git add <files>`), not `git add -A` / `git add .` / `git commit -a` — guards
+  against committing secrets or generated artifacts. *Enforced by the `no-git-add-all` PreToolUse hook:
+  the stage-everything forms are blocked for the agent; name the paths.*
 - Commit message: Conventional Commits — `<type>(<scope>): <imperative summary>`, where
   `type` ∈ feat / fix / docs / refactor / test / chore / perf. Body explains **why** (not
   what — the diff shows what) when non-trivial; footer for refs / trailers. **No emoji.**
@@ -44,6 +45,11 @@ description: Git hygiene. Apply in any project under version control.
   write it in the doc and reference nothing — the doc is findable by the pointer. *Test before
   committing:* strike every sentence that would not change a reader's decision when they hit this commit
   in `git log` or `git blame`. If the body survives at 2-3 lines, it was right.
+- **No AI/tool attribution trailer** — no `Co-Authored-By: <bot>`, no `Generated with/by <tool>`.
+  Traceability lives in the code/plan, not the message. *Enforced by the `commit-msg` gate (installed
+  alongside pre-commit/pre-push): a message carrying `Co-Authored-By:` or `Generated with/by` is
+  rejected. This deliberately overrides a host CLI that auto-appends such a trailer; a project that
+  genuinely needs it overrides the hook.*
 - Do not push to `main` directly without an explicit request — work via a branch/PR or an
   explicit merge after review.
 - Do not skip pre-commit / pre-push hooks without an explicit request.

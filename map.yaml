@@ -20,7 +20,7 @@ rules:
   env-setup:         {}
   project-docs:      {agents: [docs], hooks: [docs-frontmatter]}   # docs/ source-of-truth + plans active/done + ADR; must-have (base). docs-frontmatter: PostToolUse nudge when a docs/*.md is saved without type/status/tags/project.
   user-docs:         {}          # README + user docs (doc folder name varies); conditional (product surface)
-  git-discipline:    {}
+  git-discipline:    {hooks: [no-git-add-all]}   # no-git-add-all: PreToolUse Bash — blocks stage-everything (git add -A/./commit -a); explicit paths only. (commit-msg attribution gate ships with git-quality-gate, installed unconditionally at bootstrap step 5.)
   proof-loop:        {}
   code-review:       {agents: [reviewer]}      # review protocol: gates -> trace -> Critical/Warning/Info
   delegation:        {hooks: [boundary-guard]}   # multi-agent lead+scoped-agents; NOT in any domain — self-config pulls it for LARGE projects only (roster is project-defined). boundary-guard: mechanical path-invariant enforcement.
