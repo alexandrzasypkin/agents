@@ -30,32 +30,20 @@ is delivered not by manual choice, but by the **link map** in the library.
 
 ---
 
-This is the **global** canon, not a project file. It lives at `~/.agents/AGENTS.md`,
-is attached via symlinks, and is loaded into every session, including in an empty
-folder. The project-level `./AGENTS.md` is a **different file**: bootstrap creates it,
-and it holds the pointer and the state of the specific project. Same name, different
-roles — the global canon describes bootstrap, the project one records what is attached
-to the project. It is attached like this:
+The canon (`~/.agents/AGENTS.md`) is the every-session **directive + pointer**; it is attached
+globally by symlink and points here. **This file is the procedure it points to.** The project-level
+`./AGENTS.md` is a different file bootstrap creates (pointer + project state). Attach the canon:
 
 ```
 ln -s ~/.agents/AGENTS.md ~/.codex/AGENTS.md
 ln -s ~/.agents/AGENTS.md ~/.claude/CLAUDE.md
 ```
 
-Only the **canon** is linked globally — by these two symlinks. The other library
-folders (`rules/`, `skills/`, `agents/`, `templates/`, `plans/`) are not linked
-globally: they are copied into the project at initialization.
-
-`ln -s` works in a bash environment (Linux, WSL2, Git Bash). On native Windows
-(PowerShell/CMD) a symlink is created via `mklink` and requires Developer Mode or
-administrator rights — so the initial setup of `~/.agents` is more convenient from
-bash (WSL2/Git Bash) or via a separate cross-platform initializer script.
-
-The canon does two things: it states the **directive** about where typical behavior
-lives and how it is pulled into a project, and it describes **BOOTSTRAP** — how to run
-the survey at initialization. The rules themselves are not stored in the canon as text,
-and the canon contains no executable logic — only the directive and the bootstrap
-description; execution lives in the library.
+Only the **canon** is linked globally — by these two symlinks; the other library folders
+(`rules/`, `skills/`, `agents/`, `templates/`, `plans/`) are copied into each project at init.
+`ln -s` works in bash (Linux, WSL2, Git Bash); native Windows (PowerShell/CMD) needs `mklink` with
+Developer Mode / admin rights — so set up `~/.agents` from bash (WSL2/Git Bash) or a cross-platform
+initializer script.
 
 ### Platform: a single path
 

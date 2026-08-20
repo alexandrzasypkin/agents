@@ -25,18 +25,11 @@ the map:
 - `map.yaml` — the **link map** `rule ⇒ skills / agents / MCP / templates / hooks` (a logical graph, names only);
 - `mcp-configs.yaml` — MCP configurations by name (`command`, `args`, `type`); from these bootstrap generates the runtime formats.
 
-**Bootstrap pulls a rule's chain by the map** — the rule itself deploys nothing, it only
-declares its dependencies. Deployment happens in two cases:
-
-1. at the **survey** during initialization — for the chosen rule, bootstrap deploys its chain;
-2. during **work** — by an explicit user request ("update the rules", "attach rule X")
-   or when the agent notices something new in `~/.agents/rules/` (a one-shot
-   `find ~/.agents/rules/ -type f`, not a constant diff): it reads the map in
-   `~/.agents` and pulls the chain (`cp`) into the project.
-
-What is carried over is recorded in the local `AGENTS.md` via the pointer. The user
-creates their own skills the normal way (via `/` in the agent); they are not part of
-the map, but are recorded in `./.agents/REGISTRY.md` by the self-configuration rule.
+**Bootstrap pulls a rule's chain by the map** — the rule declares its dependencies, bootstrap
+deploys them (skills / agents / MCP / templates / hooks) by value into the project. *When* this
+happens — init, a new domain, a refresh — is in the triggers below. What is carried over is
+recorded in the local `AGENTS.md` via the pointer; user-made skills (via `/`) are logged in
+`./.agents/REGISTRY.md`, not the map.
 
 ### Language policy
 
