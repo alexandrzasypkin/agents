@@ -1,7 +1,7 @@
 # git-quality-gate
 
 The mandatory git-hook quality gate. The **main** lint/type/test check runs on the git
-event, so it cannot be forgotten (see the canon Hooks section + BOOTSTRAP step 5).
+event, so it cannot be forgotten (see `~/.agents/bootstrap.md` — the Hooks section + BOOTSTRAP step 5).
 
 ## Files
 - `gate.sh <commit|push>` — the dispatcher (language detection + checks). Lives in the

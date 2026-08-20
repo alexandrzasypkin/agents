@@ -64,7 +64,7 @@ empty of content, it maps where each kind of knowledge actually lives and forbid
 # Do NOT record project memories in ~/.claude for this project.
 ```
 Loaded every session, the signpost redirects the next agent at the point of temptation. **Bootstrap
-seeds it** (canon step 4). User-level, cross-project preferences may still live in native-memory — the
+seeds it** (bootstrap step 4). User-level, cross-project preferences may still live in native-memory — the
 ban is on PROJECT knowledge, not on the feature.
 
 ## Confidential input — the exception, not the default

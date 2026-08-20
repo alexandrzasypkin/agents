@@ -1,0 +1,638 @@
+# Bootstrap, deploy & refresh — procedure (read on trigger, NOT every session)
+
+This is the on-demand procedure the canon (`~/.agents/AGENTS.md`) points to. Read and follow the
+relevant part when a trigger fires:
+- **init** — the folder is uninitialized;
+- **deploy** — a new domain / rule / MCP must be pulled into an existing project;
+- **refresh** — the library moved since the project's `.agents.lock.yaml`.
+It is not loaded every session; the canon carries only the triggers + the pointer to here.
+
+---
+
+### Uniformity mechanism
+
+When a new project is initialized:
+
+1. **The skeleton is copied whole** — the `~/.agents/` folder structure is carried into
+   the project as is (an empty frame).
+2. **A survey determines the domains** — the user multi-selects domains. The domain list
+   lives in `map.yaml` (`types`), not here — it is data, not mechanism.
+3. **The map deploys the chains** — each selected domain contributes its rule set via the
+   `types` block in `map.yaml`, unioned over the always-on `base`; for each rule in the
+   resulting set its chain is read, and the linked skills, agents, and MCP are copied into
+   the project by value.
+4. **The project becomes autonomous** — all dependencies are pinned locally, the
+   version is controlled via git.
+
+Result: the rule set = `base` ∪ the rules of the selected domains. Two projects that
+select the same domains get the same linters, formatters, hooks, and pipelines. Uniformity
+is delivered not by manual choice, but by the **link map** in the library.
+
+---
+
+This is the **global** canon, not a project file. It lives at `~/.agents/AGENTS.md`,
+is attached via symlinks, and is loaded into every session, including in an empty
+folder. The project-level `./AGENTS.md` is a **different file**: bootstrap creates it,
+and it holds the pointer and the state of the specific project. Same name, different
+roles — the global canon describes bootstrap, the project one records what is attached
+to the project. It is attached like this:
+
+```
+ln -s ~/.agents/AGENTS.md ~/.codex/AGENTS.md
+ln -s ~/.agents/AGENTS.md ~/.claude/CLAUDE.md
+```
+
+Only the **canon** is linked globally — by these two symlinks. The other library
+folders (`rules/`, `skills/`, `agents/`, `templates/`, `plans/`) are not linked
+globally: they are copied into the project at initialization.
+
+`ln -s` works in a bash environment (Linux, WSL2, Git Bash). On native Windows
+(PowerShell/CMD) a symlink is created via `mklink` and requires Developer Mode or
+administrator rights — so the initial setup of `~/.agents` is more convenient from
+bash (WSL2/Git Bash) or via a separate cross-platform initializer script.
+
+The canon does two things: it states the **directive** about where typical behavior
+lives and how it is pulled into a project, and it describes **BOOTSTRAP** — how to run
+the survey at initialization. The rules themselves are not stored in the canon as text,
+and the canon contains no executable logic — only the directive and the bootstrap
+description; execution lives in the library.
+
+### Platform: a single path
+
+The path `~/.agents` is written the same way on Linux, WSL2, and Windows — no OS
+branching is needed in the instructions. Physically `~` resolves to different places:
+WSL2 → `/home/<user>/.agents`, Windows-native → `C:\Users\<user>\.agents`.
+Running agents in a single environment (WSL2) is recommended — then there is one folder.
+If both are used, keep `~/.agents` in sync across both home directories.
+
+(UTF-8 encoding and LF line endings are a project-level concern: `.gitattributes` and
+`.editorconfig` are created at bootstrap step 5, if `git init` was performed.)
+
+---
+
+
+### `map.yaml` schema
+
+The key is a rule name; under it are listed the dependencies of its chain. `base` is a
+top-level list of always-on rules (applied unconditionally). `types` holds the selectable
+domains the survey multi-selects. The two are separate keys on purpose: `base` is never a
+choice, the domains always are.
+
+```yaml
+# ~/.agents/map.yaml — ABBREVIATED SCHEMA EXAMPLE, illustration only.
+# [!] NOT the real data. The actual rules / base / domains live in ~/.agents/map.yaml —
+#     bootstrap MUST read that file. Do NOT take the base/types entries below as the real set.
+# All values are arrays of strings (file/folder names in the corresponding folder).
+# If a rule is listed in `base`/`types` but absent from `rules` — skip it with a warning.
+rules:
+  md2pdf:
+    skills:    [md2pdf-convert]   # from ~/.agents/skills/
+    agents:    [doc-converter]    # from ~/.agents/agents/
+    mcp:       [pandoc-mcp]        # MCP server names
+    templates: [pdf-style]         # from ~/.agents/templates/
+  quality-py:
+    skills:    []                 # CLI tools (ruff/pyright/pytest), no skill needed
+    agents:    []
+    mcp:       []
+
+base: [rule-format, proof-loop, secrets, git-discipline]   # always-on, NOT selectable
+
+types:                            # selectable domains — EXAMPLE subset only; the real map.yaml lists ALL domains
+  coding:   [quality-py]
+  research: [md2pdf]
+  office:   [md2pdf]
+# Final rule set = base ∪ rules of the selected domains.
+```
+
+### `mcp-configs.yaml` schema
+
+The map stores only MCP names; their configurations are here, by name. Bootstrap takes the name
+from the map and the config from here; **project-bound** MCP it deploys into the agents' runtime
+formats, **global-infra** MCP it leaves at the machine level (see the two classes below).
+
+This file is a **portable recipe, not frozen machine state**. Env-specifics (absolute paths,
+ports, whether a server is running) are NOT hardcoded — bootstrap resolves them by inventorying
+the environment.
+
+**Two classes — the same global/local split as hooks & permissions** (*is the MCP tied to THIS
+project's account / resource / repo?*):
+- **GLOBAL infra** — shared, tied to no project (e.g. `playwright`, a shared browser server).
+  Installed **once per machine** at Setup (like `baseline-guard`) into each agent's GLOBAL config.
+  Bootstrap does **NOT** render it into project configs — a project that needs it simply USES the
+  global server. Marked `scope: global` in the recipe.
+- **PROJECT-BOUND** — tied to an account/site/repo (cloudflare, gsc, codegraph). Rendered
+  per-project into the project's native MCP config and recorded in REGISTRY.
+
+So bootstrap writes per-project **only project-bound MCP**; shared infra stays machine-level (never
+duplicated into `./.mcp.json` / `./.codex/config.toml`).
+
+**Local server vs network MCP (within global infra).** A global-infra MCP is either a **local
+capability** (browser, files, code index) or a **remote cloud service** — decide by two questions:
+1. *Local capability, used often / interactively / needs shared warm state?* → run it as **ONE
+   persistent local server**, every agent connecting by localhost URL (e.g. playwright `:8931`
+   `--shared-browser-context`). Localhost ≈ 0 latency, a warm logged-in browser, no per-session cold
+   start → **fewer tokens** than spawning stdio each session. Cost: the server must stay up (machine
+   service/autostart). **The ladder (both Claude & codex):** (a) connect to `:8931`; (b) if down —
+   **ENSURE-SERVER**: install the binary when missing (`npm i -g @playwright/mcp`) and start it;
+   (c) if it still can't come up (install fails, offline, no permission) — **fall back to a
+   per-session stdio spawn** (`npx @playwright/mcp@latest`, or the `playwright-mcp` binary; native
+   Windows `cmd /c npx`), self-contained and costlier but always works. Never silently give up.
+2. *Cloud-account data with no local form (cloudflare, gsc, gmail, github)?* → a **network/remote
+   MCP** (project-bound, OAuth/key, REGISTRY) — network latency + round-trip tokens are the price of
+   data that only lives remotely.
+A rare local capability can stay a stdio spawn (zero-setup); reserve a persistent server for the
+frequent/interactive ones (this is why the shared `:8931` server beats a per-session spawn).
+
+**Per-OS launcher resolution (npx/node stdio MCP).** When a stdio MCP's command is `npx`/`node`,
+Node's `child_process.spawn` cannot resolve `npx.cmd` on native Windows → `spawn npx ENOENT`. So
+whoever writes it (the machine-level global install, or a project-bound npx MCP): **POSIX** (Linux /
+macOS / WSL2 / Git-Bash) renders the command **as-is**; **native Windows** wraps it `cmd /c npx -y
+<pkg>` (or the absolute `…\npx.cmd`). Windows-only flags (e.g. playwright's `--browser chrome`, which
+registry-resolves Chrome) are added there only, never on POSIX.
+
+```yaml
+# ~/.agents/mcp-configs.yaml — two classes:
+playwright:           # GLOBAL infra — installed once per machine, NOT rendered per-project
+  scope: global       #   Claude/opencode stdio `playwright-mcp` (POSIX) / cmd /c npx (Windows);
+                      #   codex remote http://localhost:8931/mcp (streamable-HTTP /mcp, not /sse)
+# PROJECT-BOUND (rendered per-project, logged in REGISTRY): cloudflare / gsc / codegraph
+```
+
+### Hooks
+
+Deterministic guardrails — *a rule asks, a hook guarantees*. A rule is a soft instruction
+the agent may forget on a long session; a hook fires on an event, mechanically. Two
+delivery mechanisms:
+
+- **Git hooks** (`pre-commit` / `pre-push` / `commit-msg`) — universal shell scripts in `.git/hooks/`,
+  identical for every agent and for no-agent use. They carry the **main** quality gate
+  (lint / typecheck / tests, dispatched by project language) plus a staged-secret scan, and a
+  `commit-msg` gate that rejects AI/tool attribution trailers (no-noise commits). Installed
+  **unconditionally** at bootstrap (mandatory — BOOTSTRAP step 5); the main check cannot be
+  forgotten because it runs on the git event.
+- **Agent hooks** — fire on the agent's tool calls; **per-agent format** (no cross-agent
+  standard, unlike skills):
+  - Claude: `settings.json` `hooks` (PreToolUse / PostToolUse; exit 2 or JSON `permissionDecision` to block);
+  - Codex: `config.toml` hooks (event → matcher → handler; JSON on stdin; return JSON `permissionDecision:"deny"` to block — `async` is ignored, all hooks block);
+  - opencode: a JS/TS plugin under `.opencode/plugin/` exporting `tool.execute.before` (throw to block) / `tool.execute.after`.
+
+  Baseline agent hooks: a **secrets-guard** (PreToolUse — block read/write/edit of secret
+  files; ties to the `secrets` rule), a **light-lint** (PostToolUse — fast, non-blocking
+  lint of the just-edited file; ties to `quality-*`), a **no-git-add-all** (PreToolUse Bash —
+  block stage-everything `git add -A/.`/`git commit -a`; ties to `git-discipline`), and an
+  **agents-md-guard** (PreToolUse Write|Edit — cap the `AGENTS.md` lessons block so the anchor
+  stays a pointer, not a rule store; ties to `project-docs`).
+
+A hook that reads a **project-filled config** (e.g. `boundary-guard`'s `patterns.conf`) is not
+*deployed* until that config is **seeded** — an empty config is a silent no-op that fakes the guarantee.
+Seed the stack-implied invariants when the hook is wired (bootstrap step 4 / self-config), and the
+project agent re-verifies it on a **rules refresh**; a wired-but-empty guard is a conformance defect.
+Seeding is autonomous project adaptation; if the config gates the **user's own** actions (as
+`patterns.conf` does), surface the entries **once** at seeding, then don't re-ask — the refresh check is
+silent unless the config is empty/broken.
+
+The `hooks/` library folder holds the definitions (universal git scripts + per-agent
+agent-hook recipes). Bootstrap installs git hooks (step 5) and writes agent hooks into each
+agent's config/plugin (step 4). Like `mcp-configs.yaml`, agent-hook recipes are a **portable
+intent** — env-specifics resolve at bootstrap.
+
+All hook scripts (the git gate and the secrets-guard/light-lint helpers) are POSIX shell —
+they run on Linux, WSL2, macOS, and Windows via Git Bash (Git for Windows bundles `sh`, so
+git hooks execute). On native Windows without a POSIX shell the agent adapts per its
+environment inventory (e.g. Claude's `shell: powershell`); no per-OS matrix is shipped.
+
+---
+
+## BOOTSTRAP (only in an uninitialized folder)
+
+### Trigger condition
+
+A folder is considered **uninitialized** if neither it nor anything above it in the tree
+(up to the root) has **`./AGENTS.md` or `.git`**. Check upward through the tree exactly —
+otherwise a new subfolder inside an already-initialized project would be falsely taken
+for a new project.
+
+- Condition met → initialization mode, steps below.
+- Condition not met → the project already exists, this section is ignored, normal work.
+
+### Initialization steps
+
+[CRITICAL] **Finish initialization before ANY project work.** The survey (step 2) is **not** the finish
+line — steps 3–6 (deploy the chain, write the runtime anchors, git + hooks, report) must complete **in
+the same turn, before** you research, write code, or answer the substantive request. If the user's first
+message is already a task, **bootstrap first, then do the task**. Asking about domains and then jumping
+straight into the work leaves the project unconfigured, and the work has to be redone later against the
+structure that should have been there (a real incident). The **step-6 report is the completion signal** —
+until it is printed, initialization is not done and no project work starts.
+
+Layout after bootstrap — runtime anchors in the root (agents require them there),
+all other infrastructure under `./.agents/`:
+
+```
+project/
+├── AGENTS.md                                         # SHARED (first agent to run): project's own source of truth (real file)
+├── CLAUDE.md  .claude/settings.json  .mcp.json       # Claude's OWN (when Claude runs): symlink→AGENTS.md; hooks; project-bound MCP
+├── .codex/config.toml                                # codex's OWN (when codex runs): hooks + project-bound MCP
+├── opencode.json  .opencode/plugin/                  # opencode's OWN (when opencode runs): canon pointer + MCP; TS hook plugins
+│                                                     # each agent writes ONLY its own; never another agent's
+├── .agents/                         # infrastructure, does not clutter the root
+│   ├── map.yaml  mcp-configs.yaml   # snapshot of the graph and configs (copy of the library)
+│   ├── REGISTRY.md                  # project adaptation log (why); empty if no changes
+│   ├── rules/ skills/ agents/ templates/ hooks/ runbooks/ plans/{active,done}/   # copy of the library (EDITABLE)
+│   └── generated/                   # bootstrap output (do not edit)
+│       └── .agents.lock.yaml        # snapshot: what was built and from which version
+├── docs/                            # MANDATORY (project-docs, base): source of truth + decisions/ (ADR) + backlog index; or reuse existing docs/|wiki/|guide/
+└── …                                # the project's OWN existing files (src/, package.json, …) — bootstrap does NOT create these
+```
+
+`~/.agents` (source, immutable) and `./.agents` (copy in the project, editable) —
+same name, different places. Steps:
+
+1. **Lay down the `./.agents/` skeleton.** The files `map.yaml` and `mcp-configs.yaml`
+   are copied (snapshot of the graph and configs), an empty `./.agents/REGISTRY.md` is
+   created (adaptation log, filled in over the course of work), plus an **empty**
+   skeleton of folders (`rules/`, `skills/`, `agents/`, `templates/`, `hooks/`, `runbooks/`, and
+   `plans/` with its `active/` and `done/` subfolders) and an
+   empty `./.agents/generated/`. `runbooks/` carries its `README.md` (standing operational
+   procedures — deploy/restore; see `.agents/runbooks/README.md`), filled per-operation as the
+   project ships, not by the map. The folders are empty — they are filled at step 3 by
+   the map. The project copy is **editable** (unlike the immutable `~/.agents`). The root stays clean.
+   **Also lay down the docs skeleton (MANDATORY — `project-docs` is base):** `docs/` (source of truth)
+   + `docs/decisions/` (ADR archive) + a backlog index (`docs/TODO.md`, or a root `ROADMAP.md`). If the
+   project **already has** a docs folder (`docs/`, `wiki/`, `guide/`, …), **use it — do not impose a
+   name** (`user-docs`), and just add the missing pieces (e.g. `decisions/`, the backlog) inside it.
+   `context/` (consumed inputs) and `content/` (non-dev deliverables) are **not created empty** — they
+   appear **when the project needs them** (`context/` on the first input material; `content/` for the
+   `content` domain / `content-vault`). Docs are agent-maintained **infrastructure, not project source**. Apart from the runtime anchors,
+   the `./.agents/` skeleton, and this docs skeleton, bootstrap never creates or edits the project's
+   own source (no `src/`, `package.json`, etc.); those belong to the project and are left untouched.
+
+2. **Survey.** The main question — the project's **domains**: a **multi-select** from the
+   domains in `./.agents/map.yaml` (`types`). Do not hardcode the domain list here — it is
+   data and lives in the map. This is the `planning` meta-step: a dialog that combines the
+   chosen domains (a project may be multi-domain, e.g. coding+web+devops). The always-on
+   `base` is added unconditionally — it is not one of the selectable domains.
+   Clarify: which MCP to attach — show the list of names from `./.agents/mcp-configs.yaml`
+   (the local copy); if the user is unsure — offer a preset by domain. Whether environment
+   variables (`PYTHONPATH`, etc.) and extra skills are needed. Do not impose — the user
+   is free to choose their own. **Do NOT ask "which agents will work in the project"** — an agent
+   configures only itself (step 4); another agent's environment is activated by running that agent.
+
+3. **Fill `./.agents/` and write the snapshot.** Resolve the rule set = `base` ∪ the rules
+   of the selected domains (from `./.agents/map.yaml`). For each rule in that set,
+   `./.agents/map.yaml` (the local copy) is read, and into `./.agents/{rules,skills,agents,templates,hooks}`
+   the rule itself and its linked chain are copied. Names in the map are files or folders
+   in the corresponding library folder: a file is copied with its extension, a folder
+   recursively whole. MCP names are resolved into an in-memory structure during bootstrap
+   from `./.agents/mcp-configs.yaml`; **only project-bound** ones are deployed at step 4 into the
+   per-agent formats (`scope: global` infra like playwright is machine-level — used, not rendered
+   per-project). A snapshot (what was built and from which version) is written to
+   `./.agents/generated/.agents.lock.yaml`. Copy by value (not a symlink).
+
+4. **Create the runtime anchors — SHARED once; per-agent config ONLY for the running agent.**
+   **Shared (whichever agent bootstraps first creates it; all agents reuse it):** `./AGENTS.md` —
+   the project's OWN source of truth (pointer + behavioral rules + self-config), a **real file**
+   (codex and opencode read it natively). Plus the `.agents/` skeleton (steps 1/3) and git + hooks
+   (step 5).
+   **Per-agent — an agent writes ONLY its OWN native config, never another agent's.** An agent is
+   part of the environment and owns its own format; it renders its own MCP/hooks from the chain into
+   its own file. Another agent's environment is **activated by running that agent**, which then
+   self-configures its own part (see self-config). So Claude does NOT write `.codex/config.toml`,
+   codex does NOT touch `.claude/`, and the survey does **not** ask "which agents". Each agent creates
+   its own file only when there is content for it (hooks / MCP / permissions); rules and skills stay
+   in `.agents/`, read via the pointer, never rendered here:
+   - **Claude** (when Claude runs) → `./CLAUDE.md` (symlink → `AGENTS.md`, the only symlink),
+     `./.claude/settings.json` (chain hooks), `./.mcp.json` (project-bound MCP), and **the native-memory
+     signpost** `~/.claude/projects/<project-path-slug>/memory/MEMORY.md` (slug = the project's absolute
+     path with `/`→`-`) — written as the redirect signpost (empty of content, maps each knowledge kind to
+     its repo home; see `project-docs`). This is the one legitimate `~/.claude` write and the direct
+     bootstrap guard against the recurring "project knowledge dropped in native-memory" leak.
+   - **codex** (when codex runs) → `./.codex/config.toml` (chain hooks + project-bound MCP; trust).
+   - **opencode** (when opencode runs) → `./opencode.json` (canon pointer + MCP) and
+     `./.opencode/plugin/*.ts` (hooks).
+   The per-agent formats:
+
+   | File | Purpose |
+   |------|---------|
+   | `./AGENTS.md` | Autonomous project source of truth. Read natively by codex and opencode. Holds the pointer and the self-configuration rule (below). |
+   | `./CLAUDE.md` | A **symlink → `./AGENTS.md`** (next to it). Needed because Claude Code does not read `AGENTS.md` natively — only `CLAUDE.md`; the link feeds it the project's own `AGENTS.md`. The global canon arrives separately via the global `~/.claude/CLAUDE.md` symlink. |
+   | `./opencode.json` | Root required (opencode searches upward to the git root). `instructions` (the **OS-resolved** absolute path to the canon — `/home/<user>/.agents/AGENTS.md` on Linux/WSL2, `C:\Users\<user>\.agents\AGENTS.md` on Windows; resolve it for this machine, do not copy the example literally) + an `mcp` block. Returns the canon to context and does not expose `~`. **Written by opencode itself when it runs** (never by another agent). |
+   | `./.mcp.json` | **Project-bound** MCP for Claude Code (read separately from `CLAUDE.md`). **Only if the project has project-bound MCP** — shared infra like playwright is global, not written here. |
+   | `./.codex/config.toml` | **Project-bound** MCP for codex: `[mcp_servers.<name>]`, plus chain hooks. Loaded only if the project is "trusted" (codex asks on first run). codex merges it with the global `~/.codex/config.toml` — project values take priority; the global `playwright-shared` is used from there, not duplicated here. **Written by codex itself when it runs** (never by another agent), when it has chain hooks or project-bound MCP. |
+   | `./.claude/settings.json` | **Committed** Claude settings — the project's chain **hooks** land here so they are git-pinned (a clone gets them). **Only if the project has chain hooks (usually yes — `secrets` is base).** |
+   | `./.claude/settings.local.json` | **Gitignored, personal** Claude settings — only project **permissions** (allow/deny). NOT hooks: `**/.claude/settings.local.json` is git-ignored by convention, so hooks placed here would not be pinned (a clone would lose them). opencode permissions live in `opencode.json`, codex in `config.toml`. **Only if there are project-specific permissions.** |
+
+   If an anchor already exists — **do not overwrite**, print a warning
+   ("file X already exists, skipped").
+
+   Formats (agent-specific, so as not to hallucinate the structure):
+
+   ```jsonc
+   // ./opencode.json — the mcp key (type local/remote; command is an array)
+   // instructions: OS-resolved absolute canon path (Windows: C:\Users\<user>\.agents\AGENTS.md)
+   {
+     "instructions": ["/home/<user>/.agents/AGENTS.md"],
+     "mcp": { "pandoc-mcp": { "type": "local", "command": ["pandoc-mcp"], "enabled": true } }
+   }
+
+   // ./.mcp.json — MCP for Claude
+   { "mcpServers": { "pandoc-mcp": { "command": "pandoc-mcp", "args": [] } } }
+
+   // ./.claude/settings.json — COMMITTED: chain hooks (so they are git-pinned)
+   { "hooks": { "PreToolUse": [ { "matcher": "Read|Edit|Write|Bash",
+       "hooks": [ { "type": "command",
+         "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/secrets-guard/guard.sh\" --claude" } ] } ] } }
+
+   // ./.claude/settings.local.json — GITIGNORED, personal: permissions only (no hooks)
+   { "permissions": { "allow": ["Bash", "Read", "Write"] } }
+   ```
+   ```toml
+   # ./.codex/config.toml — MCP for codex (project-scoped, trusted)
+   [mcp_servers.pandoc-mcp]
+   command = "pandoc-mcp"
+   args = []
+   ```
+
+   **Config assembly (uniform across agents).** Hooks are attached **by the `map.yaml` chain**
+   (`secrets → secrets-guard`, `quality-* → light-lint`, `git-discipline → no-git-add-all`, `project-docs → agents-md-guard`) — a project gets a hook only when its
+   rule is active. Each hook in `./.agents/hooks/<name>/` ships per-agent fragments —
+   `claude.json`, `codex.toml`, `opencode.ts` — whose command points at the project's **own**
+   copied script: `bash "$CLAUDE_PROJECT_DIR/.agents/hooks/<name>/…sh"` (Claude), a project-relative
+   `bash ".agents/hooks/<name>/…sh"` (codex). `bash <posix-path>` is portable on Windows under Git
+   Bash, so no per-OS variant is needed. When several fragments target one agent file — permissions,
+   MCP, hooks — bootstrap **deep-merges**, it does not overwrite: object keys union, arrays append
+   (Claude `settings.json` `hooks.PreToolUse[]`; codex `config.toml` repeated
+   `[[hooks.PreToolUse]]`). opencode keeps each hook as its own `.opencode/plugin/<name>.ts`
+   (native TS, no merge) and merges only MCP/permissions into `opencode.json`. **Claude split:
+   chain hooks go into the COMMITTED `.claude/settings.json` (so they are git-pinned); only personal
+   `permissions` go into the gitignored `.claude/settings.local.json`** — otherwise a clone loses the
+   hooks. **`baseline-guard` is NOT rendered here** — it is the one global guardrail, installed once per
+   machine (`install.sh --install-baseline-guard` or by hand — see README Setup); only chain hooks land in the project. If a target file already exists — merge into it, never clobber
+   an existing block (same rule as the anchors above).
+
+5. **`git init` + install git hooks (mandatory).** `git init` only if `.git` is not found
+   above in the tree (do not create a nested repository). **`.gitignore` — ENSURE the baseline secret +
+   artifact ignores ALWAYS** (`secrets` is base/[CRITICAL]: a secret must never be committable): on a
+   fresh `git init`, copy the `templates/gitignore` baseline; on an **existing repo (migration), MERGE
+   the missing baseline lines** into the current `.gitignore` (append what is absent — never clobber),
+   extended per project per `env-setup`. `.gitattributes` and `.editorconfig` (LF, UTF-8) are created
+   only on a fresh `git init` (otherwise they'd override a parent repo's convention) — before the
+   first commit. The `.agents/generated/.agents.lock.yaml` is committed (provenance), not ignored.
+   **Lint/typecheck exclude (when the project has JS/TS quality tooling):** the `.agents/` layer ships
+   `.ts` hook fragments (`opencode.ts`) that sit outside the project's `tsconfig` scope — MERGE
+   **`.agents/**`** (and `.claude/**`) into the project's eslint `ignores` (and `tsconfig` `exclude` if
+   its `include` globs `**/*.ts`), appending, never clobbering. Skip it and a type-aware lint/`tsc` gate
+   parse-errors on the new layer (see `quality-js`). Same merge discipline as the `.gitignore` step.
+   Then **install the git hooks
+   unconditionally** (not a survey option): `pre-commit` (light gate on staged files + secret
+   scan), `pre-push` (full quality gate), and `commit-msg` (reject AI/tool attribution trailers —
+   `Co-Authored-By:` / `Generated with|by`), dispatching to the active `quality-*` rules by
+   project language. The main lint/test gate runs on the git event, so it cannot be forgotten.
+
+6. **Report** — print the list of what was created. Example:
+   ```
+   Created:
+   - root:      ./AGENTS.md ./CLAUDE.md ./opencode.json ./.mcp.json
+                ./.codex/config.toml ./.claude/settings.local.json
+   - .agents/:  map.yaml mcp-configs.yaml
+                rules/md2pdf.md skills/md2pdf-convert.md
+                agents/doc-converter.md templates/pdf-style/
+   - generated: ./.agents/generated/.agents.lock.yaml
+   ```
+   From here the project is self-sufficient for work.
+
+   **Surface `baseline-guard` to the user in the report.** It is machine-global (not per-project), so a
+   fresh machine lacks it and bootstrap must not install it (never writes global config). When no global
+   agent config yet references `baseline-guard`, the report also hands the user the one-time command and
+   *why*: `sh ~/.agents/runbooks/install.sh --install-baseline-guard` (native Windows
+   `$env:AGENTS_BASELINE_GUARD=1; irm …/install.ps1 | iex`) — it makes every write to `~/.agents` need
+   approval, so no agent silently rewrites the shared baseline every project copies from. Bootstrap only
+   tells; it does not install.
+
+### Snapshot `.agents.lock.yaml`
+
+Written at step 3. Records what was built and from which library version — gives
+reproducibility and provenance without reaching into `~/.agents`:
+
+```yaml
+# ./.agents/generated/.agents.lock.yaml
+source: /home/<user>/.agents   # absolute path (not ~); OS-resolved (Windows: C:\Users\<user>\.agents)
+commit: abc123                # git rev-parse HEAD (if ~/.agents is a git repo; otherwise empty or a date)
+generated_at: 2026-06-26T12:00:00Z
+domains:  [research]          # multi-select; base is always included on top
+rules:    [md2pdf]
+skills:   [md2pdf-convert]
+agents:   [doc-converter]
+mcp:      [pandoc-mcp]
+templates:[pdf-style]
+```
+
+### Autonomy and the link to `~/.agents`
+
+After bootstrap the project is **fully autonomous**: the rules, skills, agents, runtime
+configs, and the graph snapshot (`./.agents/map.yaml`, `./.agents/mcp-configs.yaml`) are
+copied into the project. `~/.agents` is not needed for work or for reading the project's
+own links — everything is local, less confusion.
+
+The library `~/.agents` is needed only when deploying a **new** rule that is not yet in
+the project: its files and its chain are by nature taken from the library. The logic is
+the same as in the pointer: the local copy `./.agents/` first, and only for something new —
+a fresh copy from `~/.agents`. After deployment, the new item is also appended to the
+local copy of the map. What was built at the moment of initialization is recorded in
+`.agents.lock.yaml`.
+
+[CRITICAL] **Refreshing a library file into a project MERGES — never blind-overwrites.** A project copy
+may differ from the library because the **project appended to it** (an agent role carrying a
+"Project delta" write-zone, a rule with project specifics, a hook README with provenance) — not because
+the library moved ahead. Before copying: check whether the library file actually changed
+(`git log -- <path>` in `~/.agents`). If the difference is the project's own addition, **keep it** — take
+the library body and re-apply the project delta. A blind `cp` silently destroys project memory. (Real
+incident: a roster refresh wiped the per-role write-zones and project checklists of `reviewer`/`docs`/`e2e`
+in two projects, while the library's `agents/` had not changed at all — recovered only because the
+projects had committed them. Hence also: **commit the project's memory**, see `project-docs`.)
+
+**The safe merge is a 3-way merge on the lock commit — not line-guessing.** `.agents.lock.yaml` records
+the library `commit:` the project was built from = the merge **base**. So: `base` = `git -C ~/.agents show
+<lock>:rules/<f>`, `ours` = the project copy, `theirs` = the library HEAD; `git merge-file ours base theirs`
+folds in the library's changes, **keeps the project delta automatically**, flags only real conflicts
+(resolve with the user). No delta → clean update. Then bump the lock `commit`, update `map.yaml` if chains
+changed, log in `REGISTRY.md`. No usable lock commit (pre-lock project) → fall back to the manual reconcile
+above. This is how a project stays current WITHOUT an external sweep: the agent already in the project,
+which knows its own deltas, runs the merge.
+
+**The CHANGED-file trigger.** The one-shot new-rule scan (`find`) catches rules ADDED to the library, never
+ones CHANGED after bootstrap — so projects silently drift (real: an outdated `project-docs` `type:`
+vocabulary lingered across projects). At session start, in the same one-shot spirit, diff the lock against
+HEAD: `git -C ~/.agents log --oneline <lock>..HEAD -- rules skills agents hooks`. Non-empty → surface
+"N library files changed since bootstrap: […]; refresh?" and reconcile each file the project HAS via the
+3-way merge above. An explicit user request does the same. Agents do NOT auto-refresh — this standing
+instruction is what makes them check.
+
+**The wiring check.** Conformance is not only content up-to-date — it is every agent-loaded artifact
+**wired** and every reference **valid**. A file diff never surfaces this: an artifact present but
+referenced by nothing is **dead** (never invoked/read), and a reference to a removed artifact **dangles**.
+On refresh, verify both directions — every agent is reachable (named in the roster / Delegation block, **or**
+auto-selectable by its `description` trigger — an ad-hoc utility like a doc-converter needs no roster slot),
+every rule is reachable from an agent / the pointer / another rule / its description trigger, every skill is
+invocable, every hook's project-config is seeded (the wired-but-empty guard is one case of this) — and no
+pointer targets a deleted file.
+Present-but-unwired is dead; dangling is broken; both are conformance defects, fixed by wiring the orphan
+in or removing the dead reference.
+
+**The `AGENTS.md` self-reconcile.** Everything above 3-way-merges from the library because it is a *copy*.
+The project's own `AGENTS.md` (pointer / self-config / behavioral seed) is the exception — it was written
+once at bootstrap from the canon template and is **not** a library copy, so no diff or merge touches it and
+it silently drifts from a tightened canon. So the refresh **also** reconciles the `AGENTS.md` self-config
+and behavioral blocks against the **current canon template**: pull the tightened wording, keep this
+project's own deviations (that is what a 3-way merge would do — apply it by hand here). This is what closes
+the last gap: with it, **every** piece — library copies and the project's own anchor — is refreshed by the
+project's own agent on its own refresh, and **nothing needs a central roll-out**.
+
+Self-configuration (see the project `AGENTS.md`): if a rule is found in `~/.agents/rules/`
+but is absent from the local `./.agents/map.yaml` — take its chain from the fresh
+`~/.agents/map.yaml`, deploy it into the project, and append it to the local copy of the map.
+A rule already present but **changed** in the library since the lock commit is refreshed by the 3-way
+merge above (not re-deployed).
+
+### What to write into the project `./AGENTS.md`
+
+The generated file must contain at least the four blocks below.
+
+`AGENTS.md` is a **thin anchor**: it POINTS to where things live, it does not COPY them. A project may
+add a brief block for its core working style (e.g. a large project's delegation model), but even that
+**points** to the rule/roster — it does not restate them. Everything else routes to its home and is
+referenced from the pointer, NOT written here:
+- environment change / attach / prune / **deviation + its WHY** → `REGISTRY.md` — not this file. (The
+  "Attached at initialization" block stays a one-time thin snapshot; it does not re-narrate deviations.)
+- architecture / data-model / flows → `docs/` (or the project wiki) · a project rule → `.agents/rules/`
+  · a decision → `docs/decisions/` · a plan → `.agents/plans/`.
+Only project **behavioral lessons** (incident-driven) grow inside this file, in the seed block below.
+If a section here restates something that already has a home, it is a leak — move it, leave a pointer.
+(Real incident: three sessions in a row dumped adaptations and rule/architecture detail into `AGENTS.md`
+instead of routing them; it swelled into a catch-all.)
+
+```markdown
+# <Project> — AGENTS.md
+
+## Pointer (where to look, in priority order)
+- Rules: first `./.agents/rules/`, then the library `~/.agents/rules/`.
+- Skills/agents: first `./.agents/`, then the library.
+- Links and MCP configs: first the local `./.agents/map.yaml` + `./.agents/mcp-configs.yaml`; `~/.agents/...` — only to deploy a new rule. The build snapshot — in `.agents.lock.yaml`.
+- Adaptation registry: `./.agents/REGISTRY.md` — WHY something was added/changed (the WHAT graph — in `map.yaml`, do not duplicate).
+- **[CRITICAL] Plans, docs, and work-artifacts live ONLY in this project** — `./.agents/plans/{active,done}`, `./docs/`, the project tree. **NEVER write them to `~/.claude/`, `~/.codex/`, `~/.config/opencode/`, or any home/global agent folder** (see `project-docs`). **This includes the agent's built-in memory** (Claude Code's `~/.claude/projects/…/memory/` + `MEMORY.md`) — it is a home folder that does NOT travel with the repo, so project-persistent knowledge goes to `AGENTS.md` / `REGISTRY.md` / `docs/`, never native-memory. Scratch/temp → session scratchpad or a gitignored project dir.
+- On conflict the project wins (more specific overrides more general).
+
+## Behavioral rules (base seed — expand as you work)
+Ordered most-load-bearing first — agents taper, so the top must survive alone.
+
+- **Think before coding.** State assumptions; if uncertain, consult the docs FIRST (a rule's
+  `description:` trigger + the pointer say which) and ask the user only for what the record can't hold —
+  intent, preference, genuine ambiguity. Present competing interpretations — name what's unclear and
+  stop, don't pick silently; push back when a simpler path exists.
+- **Read the record before acting — and read a triggered rule WHOLE.** Act *from* what governs the
+  thing (`AGENTS.md`, `docs/` + ADRs, `REGISTRY.md`, plans); don't re-derive or re-ask what is
+  documented. Retrieving ≠ applying — a record read but not acted *from* fails like one never read. The
+  metadata is your index: find the ONE doc that answers the task. A rule is short and trigger-scoped —
+  read it top to bottom, never grep it for your sub-question (the answering line often sits next to, not
+  matching, what you searched). Big docs you still filter by frontmatter.
+- **Don't duplicate what already has a home.** A recorded decision or rule belongs to its file, not
+  re-typed into `AGENTS.md` — that is the anchor-bloat the `agents-md-guard` cap fights. Before writing
+  a rule-like line into this anchor, ask "does a rule already own this?" — if yes, follow it, don't fork
+  a silent second copy.
+- **Reuse before you write — search first.** Before adding a function / helper / type / endpoint,
+  search for an existing one and reuse or extend it (LSP: workspace-symbol, find-references; grep a
+  distinctive string when the name may differ). Writing blind forks a duplicate — one search now beats a
+  refactor later (`code-search`).
+- **Simplicity first.** Minimum code that solves the problem — no speculative features, abstractions, or
+  error handling for impossible cases. 200 lines that could be 50 → rewrite.
+- **Surgical changes.** Touch only what the request needs; every changed line traces to it. Match
+  existing style; don't refactor what isn't broken or delete pre-existing dead code (mention it). Remove
+  only the orphans your change created.
+- **Diff every rewrite against what it replaced.** Replacing a block (rule, doc section, config) carries
+  forward only what you consciously re-typed — a delta you didn't is gone with no error. Not done until
+  you've diffed it (`git show HEAD:<file>`) and confirmed every recorded item survived — now, not later.
+- **Goal-driven + verify.** Turn the task into a verifiable goal; confirm by an independent check, not
+  assertion (`proof-loop`, `code-review`).
+- **Comments earn their place — no noise.** A comment says *why* (a constraint, trade-off, gotcha),
+  never *what* the code already shows. Cut filler: restated lines, banners, changelog/attribution
+  comments (`// AI-generated`, `// fixed bug`), commented-out code, ownerless `TODO`s. A long comment
+  pointing to a doc to explain *what* the code does is a smell — fix the code, don't annotate around it.
+  (Source-side of the no-noise rule in `git-discipline`.)
+- **Chat answers: structured and plain.** Lead with the answer, then the why; short paragraphs, a list
+  or small table when it helps. Plain language — a technical term only when it's the precise word.
+  (Drafted output documents follow `writing-style`.)
+- **Workspace hygiene.** Don't start/restart servers or spawn background processes unless asked; when
+  done, kill what you started and remove scratch files. Leave the workspace as found, plus the change.
+- **Don't block on a slow tool.** If a tool / index / server doesn't answer in a few seconds, proceed
+  without it and say so.
+- **Context economy — one chat, one task; compaction is lossy.** Keep a session to ONE goal; start
+  fresh when it changes (stay in one thread when tasks share files/contracts or B depends on A). Before
+  a thread grows long, write durable state OUT (plan handoff / `REGISTRY.md` / docs); on resume read that
+  record, not the compaction summary — a lossy digest, not the source (don't trust it kept every
+  constraint). Subagents return a SUMMARY, not raw logs; reasoning on the strong model, mechanics on
+  the cheap one.
+
+The project agent **expands this section** with project-specific behavioral lessons learned
+during work (a living layer — append **inside the markers below**, don't restate the base). Add a
+rule **only after a real incident** — a problem that actually happened — not speculatively: each line
+should trace to an incident, not a guess (this keeps the layer lean). **Before writing it, ask:
+model-side or harness-side?** A harness-side cause a rule can actually *fix*; a model-side one a rule
+only *nudges* — write it honestly and don't log it as closed (harness-engineering a model problem is
+the classic mislocated fix). Behavioral lessons go here; tool/skill/rule adaptations go to `REGISTRY.md`.
+
+The lessons list lives **between the markers** and is capped by the `agents-md-guard` hook (default
+`max=12` top-level bullets) — the anchor is a POINTER, not a rule store, so growth forces triage: at
+the cap, **merge or drop** a line whose real home is a rule/`REGISTRY`/`docs` (the author is blind to
+its own duplication — that is exactly what the cap catches). Raise `max=` on the start marker only as
+a deliberate act, with a `REGISTRY.md` note. The fixed base-seed bullets above stay OUTSIDE the
+markers (they are not the growing part).
+
+<!-- lessons:start max=12 -->
+<!-- lessons:end -->
+
+## Self-configuration (adapt and explain)
+`~/.agents` provides a minimal shared baseline; adapting to the project is standard work. **The
+self-config ladder — (1) use the local `./.agents/` copy · (2) pull a NEW rule + chain from the baseline ·
+(2b) refresh a CHANGED library copy via a 3-way merge on the lock commit · (3) escalate via `research` —
+lives in `~/.agents/bootstrap.md`** ("Autonomy and the link to `~/.agents`"), read on the deploy/refresh
+trigger (the canon points to it). **Do not restate the steps here — they drift per project;** follow them
+from that procedure. This section records only THIS project's self-config *specifics* (deviations, project-local rules).
+
+**Activate an agent by running it.** An agent entering an already-initialized project (`.agents/` +
+`AGENTS.md` present) that has **no native config of its own** renders its own part from the chain —
+its hooks/MCP into its own file (Claude → `.claude/settings.json` + the `CLAUDE.md` symlink; codex →
+`.codex/config.toml`; opencode → `opencode.json` + `.opencode/plugin/`), logged in REGISTRY. No agent
+sets up another agent's environment; each activates itself the first time it runs there.
+
+Accounting: `./.agents/map.yaml` = WHAT is attached (the graph). `./.agents/REGISTRY.md` = WHY
+(change log: what, version/source, date, rationale). Write ONLY changes —
+no changes, the file is empty. Do not duplicate the graph in REGISTRY. Own skills
+(created via `/`) are also recorded in REGISTRY; author them via the `skill-creator`
+library skill (draft → forward-test → iterate).
+
+Autonomy boundaries:
+- adapting the PROJECT (layers 1–3) — without asking, standard;
+- **`~/.agents` is canon IN FULL (not just `AGENTS.md`) and is NEVER written from a project.** This is a
+  property, not a condition — no agreement inside a project session unlocks it, and "the lesson is
+  universal" is not a reason to write there (that exact reasoning is how the baseline got edited from a
+  project once). A universal lesson still **lands in the PROJECT copy, marked `PROJECT DELTA`** so a
+  refresh 3-way-merges it instead of overwriting. The baseline changes only by the **owner, outside
+  project work** — a project agent **proposes** (surfaces the diff + why); it does not commit to `~/.agents`.
+
+[CRITICAL] Any attach/install/replace — with an explanation in REGISTRY.md.
+Without the record, the next session does not know why the project environment is the way it is.
+
+## Attached at initialization
+- Library version: from `.agents.lock.yaml` (commit or date)
+- Domains: <multi-select> (always-on `base` included on top)
+- Rules: <list from the library>
+- Skills / agents: <lists>
+- MCP: <list; configs from `mcp-configs.yaml` → `.mcp.json` / `opencode.json` / codex config>
+
+Do not duplicate the contents of `map.yaml` **or `REGISTRY.md`** — this block is a one-time thin snapshot
+(version / domains / rule+skill+agent counts). Links come from `./.agents/map.yaml` via the pointer; the
+WHY of any deviation lives in `REGISTRY.md` — point to it, do not restate it here.
+```
+
+---
+

@@ -40,7 +40,7 @@ renders it into each agent's native format (the HOW). The agent never reads `map
   files only for the rules/domains that are active. No secrets/code → those hooks aren't attached.
   Native install writes **only to the project**, never to global settings.
 - **Per-agent formats & OS handling** — which file, the exact JSON/TOML/TS shape, the Windows form —
-  live in the canon (`AGENTS.md`, bootstrap step 4), not in this overview.
+  live in `bootstrap.md` (step 4), not in this overview.
 - **Placement rule** — one test, *is it tied to this project's account / resource / repo?* Yes →
   the project layer (project-bound MCP like cloudflare/gsc, project permissions, project hooks).
   The lone universal exception is **`baseline-guard`**: installed globally **by hand**, it guards
@@ -53,7 +53,8 @@ renders it into each agent's native format (the HOW). The agent never reads `map
 
 ```
 ~/.agents/
-├── AGENTS.md         # canon: the directive + BOOTSTRAP spec (loaded every session via symlink)
+├── AGENTS.md         # canon: the directive + pointer (loaded every session via symlink)
+├── bootstrap.md      # init / deploy / refresh procedure (read on trigger, not every session)
 ├── map.yaml          # the graph: base (always-on) + types (selectable domains) + rule → chain
 ├── mcp-configs.yaml  # MCP recipes by name (portable; env-specifics resolved at bootstrap)
 ├── rules/            # reusable rules (the entry points)
@@ -165,7 +166,7 @@ Integrity is checked **dynamically**, not against a hardcoded SHA (which moves e
 
 ## How a project is set up (bootstrap)
 
-A fresh agent in an uninitialized folder reads the canon and runs BOOTSTRAP: survey the
+A fresh agent in an uninitialized folder reads the canon, which points it to `bootstrap.md`, and runs it: survey the
 domains → deploy `base ∪ domains` chains into `./.agents/` → write runtime anchors and
 deep-merge per-agent hook/MCP configs → `git init` + install git hooks + `.gitignore`. From
 then on the project is autonomous; it self-configures (pull / install / adapt) and logs *why*
