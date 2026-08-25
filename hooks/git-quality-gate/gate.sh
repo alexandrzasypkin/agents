@@ -18,11 +18,38 @@ miss()    { printf 'git-quality-gate: %s not found - skipped (install per env-se
 run()     { echo "+ $*" >&2; "$@" || fail=1; }
 # like run(), but pytest exit 5 = "no tests were collected" — not a failure (e.g. after excluding a marker).
 run_tests(){ echo "+ $*" >&2; "$@"; local rc=$?; [ "$rc" -eq 0 ] || [ "$rc" -eq 5 ] || fail=1; }
-# Files IN SCOPE for this run: staged on commit (light gate), the whole tree on push (full gate).
-# This is the canon's "pre-commit = light gate on STAGED files" — a markdown-only commit must not
-# drag a whole-repo lint (and a lint error elsewhere must not block an unrelated doc commit).
+# Files IN SCOPE: check the CHANGE, not the repo. commit = staged (light gate). push = the range that
+# actually leaves the machine (the pushed commits), not the whole tree — a doc-only push must not
+# re-run lint/tsc/build/tests over unchanged code. tsc/build/tests are whole-tree BY NATURE, so any
+# code file in the range still triggers the FULL gate; scoping only skips a code-free push, which
+# cannot break code. Range unknown (new branch / no upstream / run by hand) -> whole tree, never a
+# silent skip.
+push_range=""
+if [ "$mode" = push ]; then
+  # git feeds pre-push on stdin: <local ref> <local sha> <remote ref> <remote sha>
+  if [ ! -t 0 ]; then
+    saw_ref=0; saw_update=0
+    while read -r _lref lsha _rref rsha; do
+      [ -z "${lsha:-}" ] && continue
+      saw_ref=1
+      case "$lsha" in *[!0]*) ;; *) continue ;; esac                 # this ref is a deletion — nothing to push
+      saw_update=1
+      case "${rsha:-}" in *[!0]*) push_range="$rsha..$lsha" ;; esac  # rsha=zeros -> new remote branch, range unknown
+      break                                                          # gate the first updated ref's range
+    done
+    if [ "$saw_ref" = 1 ] && [ "$saw_update" = 0 ]; then             # deletion-only push — nothing to check
+      echo "git-quality-gate (push): branch deletion - nothing to check" >&2; exit 0
+    fi
+  fi
+  # no range from stdin (run by hand, or new branch) -> the upstream range, else the whole tree
+  if [ -z "$push_range" ] && git rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1; then
+    push_range="@{u}..HEAD"
+  fi
+fi
+
 in_scope() {
-  if [ "$mode" = commit ]; then git diff --cached --name-only --diff-filter=ACM -- "$@"
+  if   [ "$mode" = commit ]; then git diff --cached --name-only --diff-filter=ACM -- "$@"
+  elif [ -n "$push_range" ]; then git diff --name-only --diff-filter=ACM "$push_range" -- "$@"
   else git ls-files -- "$@"; fi
 }
 scoped()  { in_scope "$@" | grep -q .; }
@@ -63,7 +90,7 @@ if scoped '*.py' 'pyproject.toml'; then
 fi
 
 # --- JS/TS ---
-if [ -f package.json ] && scoped '*.ts' '*.tsx' '*.js' '*.jsx' '*.mjs' '*.cjs' '*.astro' '*.vue' 'package.json'; then
+if [ -f package.json ] && scoped '*.ts' '*.tsx' '*.js' '*.jsx' '*.mjs' '*.cjs' '*.astro' '*.vue' 'package.json' 'tsconfig*.json'; then
   if grep -q '"lint"' package.json; then run npm run -s lint
   elif npx --no-install eslint --version >/dev/null 2>&1; then run npx --no-install eslint .
   else miss eslint; fi
