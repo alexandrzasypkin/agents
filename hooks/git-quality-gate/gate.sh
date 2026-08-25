@@ -31,8 +31,18 @@ run_tests(){ echo "+ $*" >&2; "$@"; local rc=$?; [ "$rc" -eq 0 ] || [ "$rc" -eq 
 # explicit refspec is scoped by the CURRENT branch's upstream — conservative (an extra full gate, never
 # a skip). Incident: 301 (2026-08-25), reproduced two-sided on a real ssh repo.
 push_range=""
-if [ "$mode" = push ] && git rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1; then
-  push_range="@{u}..HEAD"
+if [ "$mode" = push ]; then
+  # Base = the branch's upstream — but only if it resolves to a REAL commit OBJECT. `cat-file -e` (not
+  # just rev-parse --verify, which accepts any well-formed sha) so a dangling/pruned upstream
+  # (origin/<branch> whose object is gone) falls through to the whole tree, never to a silent skip
+  # (a `git diff <missing>..HEAD` would error, output nothing, and the gate would skip its checks).
+  # Do NOT read the pre-push stdin to get an exact per-ref range — consuming it breaks the real
+  # `git push` on ssh (SIGPIPE / silent no-op while the gate prints "ok"). Incidents: booking (dangling
+  # upstream), 301 (stdin breaks ssh-push), both 2026-08-25.
+  ubase="$(git rev-parse -q --verify '@{u}' 2>/dev/null)"
+  if [ -n "$ubase" ] && git cat-file -e "$ubase^{commit}" 2>/dev/null; then
+    push_range="$ubase..HEAD"
+  fi
 fi
 
 in_scope() {
