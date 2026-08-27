@@ -32,17 +32,29 @@ run_tests(){ echo "+ $*" >&2; "$@"; local rc=$?; [ "$rc" -eq 0 ] || [ "$rc" -eq 
 # a skip). Incident: 301 (2026-08-25), reproduced two-sided on a real ssh repo.
 push_range=""
 if [ "$mode" = push ]; then
-  # Base = the branch's upstream — but only if it resolves to a REAL commit OBJECT. `cat-file -e` (not
-  # just rev-parse --verify, which accepts any well-formed sha) so a dangling/pruned upstream
-  # (origin/<branch> whose object is gone) falls through to the whole tree, never to a silent skip
-  # (a `git diff <missing>..HEAD` would error, output nothing, and the gate would skip its checks).
-  # Do NOT read the pre-push stdin to get an exact per-ref range — consuming it breaks the real
-  # `git push` on ssh (SIGPIPE / silent no-op while the gate prints "ok"). Incidents: booking (dangling
-  # upstream), 301 (stdin breaks ssh-push), both 2026-08-25.
-  ubase="$(git rev-parse -q --verify '@{u}' 2>/dev/null)"
-  if [ -n "$ubase" ] && git cat-file -e "$ubase^{commit}" 2>/dev/null; then
-    push_range="$ubase..HEAD"
+  # Scope = what this push changes vs what the TARGET REMOTE already has. git passes the pre-push hook
+  # the pushed remote's NAME as argv[1] — here $2, after the `push` mode arg (the pre-push wrapper
+  # forwards "$@"). Use it: a multi-remote repo pushes to a remote that is NOT the current branch's
+  # @{u}, and scoping by @{u} then drags a stale unrelated remote's history and FALSE-BLOCKS. argv is
+  # SAFE to read — the stdin ban (incident 301: consuming the pre-push ref list breaks ssh-push with
+  # SIGPIPE) is ONLY about STDIN, never argv.
+  #   base = refs/remotes/<remote>/<current-branch> if it resolves to a real commit OBJECT; else @{u};
+  #   else the whole tree. `cat-file -e` (not rev-parse --verify, which accepts any well-formed sha)
+  #   guards a dangling/pruned base, so a missing object falls to the whole tree, never a silent skip.
+  # Residual: an explicit refspec-rename (`git push <remote> local:other`) is scoped by the CURRENT
+  # branch's tracking ref, not `other` — argv does not carry the receiving ref (only stdin does, which
+  # we must not read). That can mis-scope; it degrades to "caught by the next normal push", not a
+  # permanent miss. Incidents: 301 (stdin/ssh, 2026-08-25), booking (dangling base 2026-08-25;
+  # multi-remote base 2026-08-27).
+  remote="${2:-}"; branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null)"; base=""
+  if [ -n "$remote" ] && [ -n "$branch" ] \
+     && git cat-file -e "refs/remotes/$remote/$branch^{commit}" 2>/dev/null; then
+    base="refs/remotes/$remote/$branch"
+  else
+    ubase="$(git rev-parse -q --verify '@{u}' 2>/dev/null)"
+    [ -n "$ubase" ] && git cat-file -e "$ubase^{commit}" 2>/dev/null && base="$ubase"
   fi
+  [ -n "$base" ] && push_range="$base..HEAD"
 fi
 
 in_scope() {

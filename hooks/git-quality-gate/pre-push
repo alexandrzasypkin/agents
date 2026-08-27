@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 # Installed by bootstrap into .git/hooks/pre-push. Delegates to the tracked gate
 # in ./.agents/ so the logic is version-controlled and editable in the project.
+# git passes the hook the pushed remote's name ($1) and URL ($2) as ARGV — forward them
+# ("$@") so the gate scopes to the remote actually being pushed to (not just @{u}).
+# NB: the ref list git also feeds on STDIN must NOT be read — that breaks ssh-push (see gate.sh).
 root="$(git rev-parse --show-toplevel)"
-exec "$root/.agents/hooks/git-quality-gate/gate.sh" push
+exec "$root/.agents/hooks/git-quality-gate/gate.sh" push "$@"
