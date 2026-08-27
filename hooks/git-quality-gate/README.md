@@ -28,3 +28,16 @@ blocks the git operation.
 ## Install (bootstrap, mandatory)
 Copy `pre-commit`, `pre-push` and `commit-msg` into `.git/hooks/` and `chmod +x` them; keep
 `gate.sh` and `msg-gate.sh` in `./.agents/hooks/git-quality-gate/`. Unconditional — not a survey option.
+
+## Verifying a change to the gate — testing `gate.sh` directly is NOT enough
+The gate judges by its own exit code, so a bug that makes it silently **skip** its checks — or that
+breaks git itself — looks identical to a clean pass: it prints `ok` and does nothing. Two real incidents
+(2026-08-25) shared this signature: reading the pre-push stdin broke `git push` on ssh (SIGPIPE, nothing
+sent); a dangling `@{u}` made `git diff` output empty, so `scoped()` saw no files and skipped everything.
+**Both were invisible from inside the gate** — *failure looks like success*.
+
+So invoking `gate.sh commit|push` directly only exercises the gate's own logic; it cannot catch this
+class. Verify a change the one honest way (proof-loop: an independent check, not the tool's own verdict):
+run a **real `git commit` / `git push`** through the installed hook, then confirm from **outside** — did
+the commit/push actually land (`git log origin/<branch>`), and did the checks you expected actually run
+(their `+ <cmd>` lines in stderr)?
