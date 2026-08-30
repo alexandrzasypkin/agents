@@ -60,6 +60,25 @@ codex-agent:
   # ONE-SHOT alternative (no MCP): `codex exec "<prompt>"` — headless CLI → stdout, zero config; use when
   #   you don't need a persistent thread. Reserve tmux for when a HUMAN must watch a live codex TUI.
 
+claude-agent:
+  scope: global               # the claude binary is machine-level; exposes Claude's tools to an MCP client
+  transport: stdio-spawn      # `claude mcp serve` — stdio MCP server, spawned per call
+  # The REVERSE of codex-agent: codex/opencode (the LEAD) add Claude as an MCP server to drive it. Note
+  # the ASYMMETRY with codex-agent —
+  #   codex mcp-server → a DELEGATION interface (task in → result + threadId; codex self-manages inside);
+  #   claude mcp serve → exposes Claude's RAW TOOLSET (read/write/edit/bash), not a "run a task" tool.
+  # codex client config (~/.codex/config.toml):
+  #   [mcp_servers.claude-code]
+  #   command = "claude"        # or the full path from `which claude` if not on PATH
+  #   args = ["mcp", "serve"]
+  #   (native Windows: command = "cmd", args = ["/c","claude","mcp","serve"])
+  # [!] NO PERMISSION GATING: as an MCP server Claude does NOT prompt for tool approval — the CONNECTING
+  #   client is responsible for confirming each call. So codex driving claude-code can make it write files
+  #   / run bash WITHOUT Claude's usual prompts. Only wire this where the client gates tool calls, or in a
+  #   sandbox / worktree you accept it operating in unattended. Same-tree + cost cautions as codex-agent.
+  # Direction: use this for codex-as-lead → Claude. For the common Claude-as-lead → codex case use
+  #   codex-agent instead — a cleaner task interface with its own internal gating.
+
 # ── PROJECT-BOUND (rendered per-project on demand; record in REGISTRY) ─────────
 # - cloudflare: claude.ai-managed integration for Claude (account-level, no local command);
 #               codex/opencode need their own Cloudflare MCP (remote) set up per project.
