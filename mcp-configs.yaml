@@ -40,6 +40,26 @@ playwright:
   #   fully close it, THEN start headed MCP via Explorer-owned `cmd /k … --user-data-dir <that profile>`.
   #   codex: if it started while the ports were down, reconnect/restart it once the servers are back.
 
+codex-agent:
+  scope: global               # the codex binary is machine-level; a delegation tool tied to no project
+  transport: stdio-spawn      # `codex mcp-server` — spawned per call (a fresh codex thread), NOT a persistent server
+  # Claude/opencode (the LEAD) add codex as an MCP server and DELEGATE a coding subtask to it — structured
+  # JSON-RPC, not tmux screen-scraping (which races on timing, prompt-detection and ANSI noise). This is
+  # the reverse of the usual "each agent configures itself": here the lead adds codex as a TOOL. codex
+  # `mcp-server` exposes two tools:
+  #   codex        — run a task, returns the result + a `threadId`;
+  #   codex-reply  — pass that threadId to continue the SAME codex thread (context persists in-session).
+  # Claude client config (GLOBAL, so delegation works in any project — stdio means it only runs on a call):
+  #   ~/.claude/settings.json mcpServers: { "codex-agent": { "command": "codex", "args": ["mcp-server"] } }
+  #   native Windows: { "command": "cmd", "args": ["/c","codex","mcp-server"] }. Added once at Setup
+  #   (like playwright / baseline-guard), not rendered per-project.
+  # WHEN: a second opinion / an independent implementation, or context-heavy work kept off the lead's
+  #   context. NOT for trivial lookups — each call is a FULL codex agent (its own auth/model, tokens, latency).
+  # SAME-TREE [!]: codex operates on the current working tree. Read/analysis is clean; for concurrent
+  #   EDITS isolate it in a git worktree (same rule as parallel workflow agents), or the two race on files.
+  # ONE-SHOT alternative (no MCP): `codex exec "<prompt>"` — headless CLI → stdout, zero config; use when
+  #   you don't need a persistent thread. Reserve tmux for when a HUMAN must watch a live codex TUI.
+
 # ── PROJECT-BOUND (rendered per-project on demand; record in REGISTRY) ─────────
 # - cloudflare: claude.ai-managed integration for Claude (account-level, no local command);
 #               codex/opencode need their own Cloudflare MCP (remote) set up per project.
