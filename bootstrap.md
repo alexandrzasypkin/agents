@@ -287,10 +287,16 @@ same name, different places. Steps:
    its own file. Another agent's environment is **activated by running that agent**, which then
    self-configures its own part (see self-config). So Claude does NOT write `.codex/config.toml`,
    codex does NOT touch `.claude/`, and the survey does **not** ask "which agents". Each agent creates
-   its own file only when there is content for it (hooks / MCP / permissions); rules and skills stay
-   in `.agents/`, read via the pointer, never rendered here:
-   - **Claude** (when Claude runs) → `./CLAUDE.md` (symlink → `AGENTS.md`, the only symlink),
-     `./.claude/settings.json` (chain hooks), `./.mcp.json` (project-bound MCP), and **the native-memory
+   its own file only when there is content for it (hooks / MCP / permissions / **chain skills**).
+   **Rules** stay in `.agents/`, read via the pointer, never rendered. **Chain skills also live in
+   `.agents/skills/`, but each agent SYMLINKS them into its OWN native skill path** so they are
+   first-class (a user's `/<name>` command + auto-invoke by `description`) — a skill reachable only via
+   the pointer is a doc the model must remember to read, not an invocable skill:
+   - **Claude** (when Claude runs) → `./CLAUDE.md` (symlink → `AGENTS.md`),
+     `./.claude/settings.json` (chain hooks), **`./.claude/skills/<name>` — one symlink per chain skill
+     → `../../.agents/skills/<name>`** (Claude discovers skills ONLY under `.claude/skills/` and follows
+     the symlink to the canonical `SKILL.md`; the dir name becomes the `/<name>` command),
+     `./.mcp.json` (project-bound MCP), and **the native-memory
      signpost** `~/.claude/projects/<project-path-slug>/memory/MEMORY.md` (slug = the project's absolute
      path with `/`→`-`) — written as the redirect signpost (empty of content, maps each knowledge kind to
      its repo home; see `project-docs`). This is the one legitimate `~/.claude` write and the direct
@@ -309,6 +315,7 @@ same name, different places. Steps:
    | `./.codex/config.toml` | **Project-bound** MCP for codex: `[mcp_servers.<name>]`, plus chain hooks. Loaded only if the project is "trusted" (codex asks on first run). codex merges it with the global `~/.codex/config.toml` — project values take priority; the global `playwright-shared` is used from there, not duplicated here. **Written by codex itself when it runs** (never by another agent), when it has chain hooks or project-bound MCP. |
    | `./.claude/settings.json` | **Committed** Claude settings — the project's chain **hooks** land here so they are git-pinned (a clone gets them). **Only if the project has chain hooks (usually yes — `secrets` is base).** |
    | `./.claude/settings.local.json` | **Gitignored, personal** Claude settings — only project **permissions** (allow/deny). NOT hooks: `**/.claude/settings.local.json` is git-ignored by convention, so hooks placed here would not be pinned (a clone would lose them). opencode permissions live in `opencode.json`, codex in `config.toml`. **Only if there are project-specific permissions.** |
+   | `./.claude/skills/<name>` | **Committed** symlink → `../../.agents/skills/<name>`, one per chain skill. Claude Code discovers skills ONLY under `.claude/skills/` (personal `~/.claude/skills/`, plugins) — the `.agents/skills/` copy alone is NOT invocable. The dir name = the command, so this makes the canonical `SKILL.md` a native `/<name>` (and auto-invocable by its `description`). Single-sourced (edits land in `.agents/`); committed so a clone gets the commands. codex/opencode surface chain skills through their own native mechanism when they run. |
 
    If an anchor already exists — **do not overwrite**, print a warning
    ("file X already exists, skipped").
@@ -588,9 +595,12 @@ from that procedure. This section records only THIS project's self-config *speci
 
 **Activate an agent by running it.** An agent entering an already-initialized project (`.agents/` +
 `AGENTS.md` present) that has **no native config of its own** renders its own part from the chain —
-its hooks/MCP into its own file (Claude → `.claude/settings.json` + the `CLAUDE.md` symlink; codex →
+its hooks/MCP/**chain-skill symlinks** into its own place (Claude → `.claude/settings.json` + the
+`CLAUDE.md` symlink + `.claude/skills/<name>` → `../../.agents/skills/<name>` per chain skill; codex →
 `.codex/config.toml`; opencode → `opencode.json` + `.opencode/plugin/`), logged in REGISTRY. No agent
-sets up another agent's environment; each activates itself the first time it runs there.
+sets up another agent's environment; each activates itself the first time it runs there. (This is also
+what a **refresh** repairs: a chain skill with no `.claude/skills/` symlink is present-but-unwired — the
+wiring check catches it.)
 
 Accounting: `./.agents/map.yaml` = WHAT is attached (the graph). `./.agents/REGISTRY.md` = WHY
 (change log: what, version/source, date, rationale). Write ONLY changes —
