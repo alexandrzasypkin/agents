@@ -54,7 +54,28 @@ if [ "$mode" = push ]; then
     ubase="$(git rev-parse -q --verify '@{u}' 2>/dev/null)"
     [ -n "$ubase" ] && git cat-file -e "$ubase^{commit}" 2>/dev/null && base="$ubase"
   fi
-  [ -n "$base" ] && push_range="$base..HEAD"
+  # A remote with SEVERAL push URLs (`remote.<name>.pushurl` twice — a mirror) runs this hook ONCE PER
+  # URL, and git moves the tracking ref as soon as the FIRST URL succeeds — so a LATER invocation
+  # computes base == HEAD, an EMPTY range, every scoped() false, and the gate prints "ok" having checked
+  # NOTHING (the "failure looks like success" class again). So RECORD the first invocation's scope (keyed
+  # by HEAD, one line in $GIT_DIR, never committed) and REUSE it for the sibling URLs; with no usable
+  # record an empty range falls through to the whole tree, never a skip. Keyed by HEAD, a stale record
+  # can only WIDEN the range (extra checks), never narrow it. Incident: 301 (2026-08-31, github +
+  # self-hosted mirror). Verified via a real two-URL push.
+  head_sha="$(git rev-parse HEAD 2>/dev/null)"
+  memo="$(git rev-parse --git-dir)/git-quality-gate.push-scope"
+  base_sha=""; [ -n "$base" ] && base_sha="$(git rev-parse -q --verify "$base" 2>/dev/null)"
+  if [ -n "$base_sha" ] && [ "$base_sha" != "$head_sha" ]; then
+    push_range="$base_sha..HEAD"
+    printf '%s %s\n' "$head_sha" "$base_sha" >"$memo" 2>/dev/null || true
+  elif [ -n "$base_sha" ]; then                       # base collapsed to HEAD: a later URL of the same push
+    m_head=""; m_base=""
+    [ -r "$memo" ] && read -r m_head m_base <"$memo"
+    if [ "$m_head" = "$head_sha" ] && [ -n "$m_base" ] && git cat-file -e "$m_base^{commit}" 2>/dev/null; then
+      push_range="$m_base..HEAD"
+      echo "git-quality-gate: same push, another URL of '$remote' - re-checking $m_base..HEAD" >&2
+    fi                                                # no usable record -> range stays empty -> whole tree
+  fi
 fi
 
 in_scope() {
