@@ -37,6 +37,10 @@ by origin+role: as-received → `context/`; our derived artifact → the authore
 - **The backlog index is NOT the plan.** `docs/TODO.md` / `ROADMAP.md` holds **one line per open item**,
   linking to `plans/active/<slug>.md`. Decomposing and tracking a task *inside TODO* instead of in a plan
   loses the plan, the handoff, and the `done/` archive. **Index in TODO, work in the plan.**
+- **One tracker, at the project's doc-home.** That single index lives where the project's docs live —
+  `docs/TODO.md`, or `wiki/TODO.md` when docs are in a `wiki/`, or a root `ROADMAP.md` — **one file per
+  project, never split across several** (nor one per subsystem, nor half in a TODO and half in issues).
+  "What is open" must have exactly one place the next session can trust; a scattered backlog is no backlog.
 - **Decision (ADR) — REQUIRED** whenever a choice is architectural, hard to reverse, or rejects a real
   alternative (stack / storage / protocol / boundary / naming that others must follow). Write it to
   `docs/decisions/`: context, decision, alternatives, dead-ends, consequences. If you catch yourself
@@ -114,5 +118,12 @@ incident lost a project's REGISTRY on a machine change exactly this way.
   validity — mark a superseded doc `archived` so the `read-frontmatter-first` pass filters it out; a
   stale doc still reading `active`/`in_progress` is a landmine for the next session.
 - A decision records **why** (context, decision, alternatives, dead-ends), not only what.
+- **A document does not assert someone else's live state.** A doc states what the project OWNS; it must
+  not carry a standing claim about state it does not control — an issue's open/closed status, what prod
+  currently holds, another repo's or component's behaviour, a live count. That state lives at its source
+  and drifts the instant the doc is written. **Point to the source** (link the issue, name the endpoint);
+  when a reading matters, record it as a **dated measurement** ("172 domains, 2026-08-28"), not as a fact
+  that stays true. (Incident: issue statuses treated as known without being checked — the source is the
+  only truth; verify it, don't assert it or declare it unverifiable.)
 
 [CRITICAL] Do not ship a schema / contract / behavior change without updating its doc first.
