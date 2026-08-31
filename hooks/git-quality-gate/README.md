@@ -31,10 +31,13 @@ Copy `pre-commit`, `pre-push` and `commit-msg` into `.git/hooks/` and `chmod +x`
 
 ## Verifying a change to the gate — testing `gate.sh` directly is NOT enough
 The gate judges by its own exit code, so a bug that makes it silently **skip** its checks — or that
-breaks git itself — looks identical to a clean pass: it prints `ok` and does nothing. Two real incidents
-(2026-08-25) shared this signature: reading the pre-push stdin broke `git push` on ssh (SIGPIPE, nothing
-sent); a dangling `@{u}` made `git diff` output empty, so `scoped()` saw no files and skipped everything.
-**Both were invisible from inside the gate** — *failure looks like success*.
+breaks git itself — looks identical to a clean pass: it prints `ok` and does nothing. **Three** real
+incidents shared this signature: reading the pre-push stdin broke `git push` on ssh (SIGPIPE, nothing
+sent); a dangling `@{u}` made `git diff` output empty, so `scoped()` saw no files and skipped everything;
+a **mirror remote (several push URLs)** ran the hook once per URL and git moved the tracking ref after the
+first, so a later URL got an empty range and checked nothing. **Every one was invisible from inside the
+gate** — *failure looks like success* — and this class keeps recurring, so distrust an "ok" you did not
+watch a real push produce.
 
 So invoking `gate.sh commit|push` directly only exercises the gate's own logic; it cannot catch this
 class. Verify a change the one honest way (proof-loop: an independent check, not the tool's own verdict):
