@@ -49,10 +49,14 @@ codex-agent:
   # `mcp-server` exposes two tools:
   #   codex        — run a task, returns the result + a `threadId`;
   #   codex-reply  — pass that threadId to continue the SAME codex thread (context persists in-session).
-  # Claude client config (GLOBAL, so delegation works in any project — stdio means it only runs on a call):
-  #   ~/.claude/settings.json mcpServers: { "codex-agent": { "command": "codex", "args": ["mcp-server"] } }
-  #   native Windows: { "command": "cmd", "args": ["/c","codex","mcp-server"] }. Added once at Setup
-  #   (like playwright / baseline-guard), not rendered per-project.
+  # Claude client config (GLOBAL/user scope, so delegation works in any project — stdio means it only
+  # runs on a call). Add it with the CLI, which writes the right file:
+  #   claude mcp add codex-agent -s user -- codex mcp-server   (native Windows: -- cmd /c codex mcp-server)
+  # [!] `claude mcp add -s user` writes ~/.claude.json, NOT ~/.claude/settings.json — same user scope,
+  #   different file. Hand-editing ~/.claude/settings.json `mcpServers: {"codex-agent":{"command":"codex",
+  #   "args":["mcp-server"]}}` also works, but the CLI is the supported path; do NOT do both for one name
+  #   (two files, one wins — confusing). Added once at Setup (like playwright / baseline-guard), not
+  #   rendered per-project.
   # WHEN: a second opinion / an independent implementation, or context-heavy work kept off the lead's
   #   context. NOT for trivial lookups — each call is a FULL codex agent (its own auth/model, tokens, latency).
   # SAME-TREE [!]: codex operates on the current working tree. Read/analysis is clean; for concurrent
