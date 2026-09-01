@@ -122,18 +122,29 @@ fi
 
 # --- JS/TS ---
 if [ -f package.json ] && scoped '*.ts' '*.tsx' '*.js' '*.jsx' '*.mjs' '*.cjs' '*.astro' '*.vue' 'package.json' 'tsconfig*.json'; then
-  if grep -q '"lint"' package.json; then run npm run -s lint
+  # Package manager: use the PROJECT'S own, detected by lock file. A foreign manager rewrites the peer
+  # lock (forbidden — see quality-js), and even `npm run` in a pnpm/yarn repo can mis-resolve
+  # node_modules/.bin. `<pm> run <script>` is uniform across npm/pnpm/yarn/bun and never installs
+  # (lock-neutral, so it does NOT break the lock). Detected-but-absent manager -> reported, not fatal.
+  if   [ -f pnpm-lock.yaml ]; then pm=pnpm
+  elif [ -f yarn.lock ];      then pm=yarn
+  elif [ -f bun.lockb ] || [ -f bun.lock ]; then pm=bun
+  else pm=npm; fi
+  have "$pm" || miss "$pm"
+  if grep -q '"lint"' package.json && have "$pm"; then run "$pm" run lint
   elif npx --no-install eslint --version >/dev/null 2>&1; then run npx --no-install eslint .
   else miss eslint; fi
   if [ "$mode" = push ]; then
     # REAL tsc — NOT the project's "typecheck" npm script: a mislabeled script (e.g. `wrangler types`,
     # a codegen) exits 0 without checking a single type (see quality-js [CRITICAL]). Needs a real
     # tsconfig.json. --incremental caches to .tsbuildinfo (gitignore it) → first run slow, then seconds.
+    # (A framework whose only real type-checker is a script — e.g. Astro's `astro check` sees inside
+    # `.astro` where tsc cannot — is a legitimate per-project delta over this line, owner-approved.)
     if [ ! -f tsconfig.json ]; then printf 'git-quality-gate: no tsconfig.json - tsc skipped (content/JS repo)\n' >&2
     elif npx --no-install tsc --version >/dev/null 2>&1; then run npx --no-install tsc --noEmit --incremental
     else miss tsc; fi
-    grep -q '"build"' package.json && run npm run -s build   # compile check (bundler / wrangler)
-    grep -q '"test"' package.json && run npm test --silent
+    grep -q '"build"' package.json && have "$pm" && run "$pm" run build   # compile check (bundler / wrangler)
+    grep -q '"test"'  package.json && have "$pm" && run "$pm" run test
   fi
 fi
 
