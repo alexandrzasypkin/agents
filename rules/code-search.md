@@ -26,6 +26,10 @@ and not by what's cheapest to reach for.** Three lanes, by what you are actually
      Needs the language-server **binary** on PATH (`pyright-langserver`, `typescript-language-server`,
      `gopls`, …). Per-agent, install-when-needed (codex/opencode bring their own LSP); log it in
      `./.agents/REGISTRY.md`.
+   - **A missing server is a cue to INSTALL it, not to fall back to grep.** grep answers by NAME — the
+     wrong answer for symbol/who-calls/impact work — whether or not the server is present, so downgrading
+     to it defeats the tier, it does not substitute for it. The LSP layer is near-zero-setup (a binary +
+     plugin): install it and proceed, don't skip the question you actually have.
    - **Validate before you finish:** on the files you changed, check LSP diagnostics (types / imports)
      and fix what the server flags — an independent check closes the task, not your assertion.
    - **"Exact" holds only once the server is WARM — warm the area before trusting a COUNT or a MISS.**
@@ -41,12 +45,14 @@ and not by what's cheapest to reach for.** Three lanes, by what you are actually
    reading dozens of files to learn who calls whom. When a graph MCP exists, use structural search
    (who-calls, what-breaks, symbol lookup) over grep. A **template-literal / bundled blob is opaque** to
    the indexer (it sees a string, not an AST) — grep the string there.
-   - **Provision it where duplication actually hurts.** The graph beats grep only if it is present; grep
-     wins by being always-there. In a code-heavy project with observed cross-cutting duplication, set up
-     the graph tier (a codegraph MCP + the LSP binaries) so the right tool is one call away — per-project
-     self-config, recorded in `./.agents/REGISTRY.md`. Regenerable cache (`.codegraph/` or equivalent):
-     gitignored, never committed; keep the SQLite DB on a **local** filesystem (network / cross-OS mounts
-     → lock errors).
+   - **Provision it where duplication actually hurts — but this tier is NOT install-on-absence.** Unlike
+     the LSP layer (cheap, install the moment you need it), the graph is a heavier index (a build + a DB);
+     stand it up on **measured pain** — observed cross-cutting duplication or real grep-scan cost — not
+     because a one-off who-calls found no graph (that question is LSP's, not a fresh index's). When the
+     pain is real: set up the graph tier (a codegraph MCP + the LSP binaries) so the right tool is one
+     call away — per-project self-config, recorded in `./.agents/REGISTRY.md`. Regenerable cache
+     (`.codegraph/` or equivalent): gitignored, never committed; keep the SQLite DB on a **local**
+     filesystem (network / cross-OS mounts → lock errors).
 
 ## Search BEFORE you write (the anti-duplication use)
 The first job of search is not impact analysis — it is finding the code you'd otherwise duplicate.
