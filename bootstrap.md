@@ -564,8 +564,11 @@ Ordered most-load-bearing first — agents taper, so the top must survive alone.
   fresh when it changes (stay in one thread when tasks share files/contracts or B depends on A). Before
   a thread grows long, write durable state OUT (plan handoff / `REGISTRY.md` / docs); on resume read that
   record, not the compaction summary — a lossy digest, not the source (don't trust it kept every
-  constraint). Subagents return a SUMMARY, not raw logs; reasoning on the strong model, mechanics on
-  the cheap one.
+  constraint). Subagents return a SUMMARY, not raw logs — one case of the general move: **do the bulk
+  work OUTSIDE the context (a script, a subprocess, a subagent), load tools/data on demand, and bring
+  back only the distilled result — reason over conclusions, not raw volume** (don't dump a huge grep or
+  a whole file into context to reason over it; filter in code first). Reasoning on the strong model,
+  mechanics on the cheap one.
 
 The project agent **expands this section** with project-specific behavioral lessons learned
 during work (a living layer — append **inside the markers below**, don't restate the base). Add a
