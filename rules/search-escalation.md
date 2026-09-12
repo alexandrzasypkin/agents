@@ -9,10 +9,14 @@ Search is a ladder, not a flat attempt. Escalate — do not stop at level 1:
 
 1. **websearch** — open results, first pass.
 2. **fetch the page** — when websearch returned only a snippet, pull the full URL.
-3. **full browser** (Playwright) — JS render, pagination, soft-paywall, sites closed to fetch.
+3. **full browser** (Playwright) — JS render, pagination, soft-paywall, sites closed to fetch. A
+   **403 / anti-bot block / challenge page / empty body** from fetch IS "closed to fetch": the browser
+   carries a real session, headers and JS and usually gets through. It is a rung to CLIMB, not a wall.
 
-[CRITICAL] "Not found" is allowed only after the ladder is exhausted, not at level 1.
-Report which level produced the result (fallback-with-disclosure).
+[CRITICAL] A fetch that **403s / errors / returns a block** is a FETCH failure, not a "couldn't read"
+verdict — climb to the browser (level 3) before reporting anything. "Not found" / "couldn't read" is
+allowed only after the ladder is exhausted, not at level 1 or 2. Report which level produced the result
+(fallback-with-disclosure).
 
 ## Video / audio / voice sources (YouTube, Vimeo, podcasts, live/recorded streams — retrieval)
 Use **yt-dlp** (CLI, no API key, 1000+ sites) plus local **whisper** for speech. Reading/hearing a
