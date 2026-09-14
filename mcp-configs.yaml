@@ -63,6 +63,12 @@ codex-agent:
   #   EDITS isolate it in a git worktree (same rule as parallel workflow agents), or the two race on files.
   # ONE-SHOT alternative (no MCP): `codex exec "<prompt>"` — headless CLI → stdout, zero config; use when
   #   you don't need a persistent thread. Reserve tmux for when a HUMAN must watch a live codex TUI.
+  # MODEL [!]: on a **ChatGPT-account** codex, call the tool **WITHOUT a `model` param** — it uses the
+  #   account default (works). Pinning a model can be REJECTED ("model not supported when using Codex with
+  #   a ChatGPT account" / 404), and the allowed set DRIFTS with account/plan/time — so if a pinned model
+  #   errors, **drop the `model` param first, do not guess another name**. (Available set is external live
+  #   state — don't freeze it here; dated example, drifts: 2026-09-14 `gpt-5.1-codex` / `gpt-5.2*` /
+  #   `gpt-5.5` were rejected on a ChatGPT account. Source: orchestrator live Codex-review run.)
 
 claude-agent:
   scope: global               # the claude binary is machine-level; exposes Claude's tools to an MCP client
