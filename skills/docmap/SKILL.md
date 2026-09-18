@@ -12,15 +12,18 @@ removes that gap: it prints the whole project's doc metadata in **one call**, ch
 correct (grep matches a body regardless of `status`, so it walks you into **archived / superseded** docs;
 `docmap --status active` does not).
 
-Run it BEFORE reaching for grep to *find which doc*:
+Run it BEFORE reaching for grep to *find which doc*. It is a script in this skill's dir (there is no
+`docmap` on PATH) — invoke by path from the repo root (`python3` only, no deps):
 
 ```
-docmap                      # every doc:  path · type · status · tags · H1
-docmap docs/                # scope to a subtree
-docmap --type spec          # only specs
-docmap --tag onboarding     # only docs tagged onboarding
-docmap --status active      # skip archived/superseded (the staleness filter grep can't do)
+python3 .agents/skills/docmap/docmap.py                 # every doc: path · type · status · tags · H1
+python3 .agents/skills/docmap/docmap.py docs/           # scope to a subtree
+python3 .agents/skills/docmap/docmap.py --type spec     # only specs
+python3 .agents/skills/docmap/docmap.py --tag onboarding
+python3 .agents/skills/docmap/docmap.py --status active # skip archived/superseded (grep can't)
+python3 .agents/skills/docmap/docmap.py --check         # exit != 0 on missing-frontmatter / dangling links
 ```
+(From a subdir, resolve the root: `python3 "$(git rev-parse --show-toplevel)/.agents/skills/docmap/docmap.py"`.)
 
 Read the lines, pick the doc, open only that body. Filters combine.
 
