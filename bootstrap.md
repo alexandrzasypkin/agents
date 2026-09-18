@@ -373,11 +373,20 @@ same name, different places. Steps:
    extended per project per `env-setup`. `.gitattributes` and `.editorconfig` (LF, UTF-8) are created
    only on a fresh `git init` (otherwise they'd override a parent repo's convention) — before the
    first commit. The `.agents/generated/.agents.lock.yaml` is committed (provenance), not ignored.
-   **Lint/typecheck exclude (when the project has JS/TS quality tooling):** the `.agents/` layer ships
-   `.ts` hook fragments (`opencode.ts`) that sit outside the project's `tsconfig` scope — MERGE
-   **`.agents/**`** (and `.claude/**`) into the project's eslint `ignores` (and `tsconfig` `exclude` if
-   its `include` globs `**/*.ts`), appending, never clobbering. Skip it and a type-aware lint/`tsc` gate
-   parse-errors on the new layer (see `quality-js`). Same merge discipline as the `.gitignore` step.
+   **Lint/typecheck exclude — `.agents/`+`.claude/` is VENDORED library code, not the project's; every
+   linter the project runs must skip it.** MERGE **`.agents/**`** and **`.claude/**`** into each present
+   linter's ignore, appending, never clobbering:
+   - **eslint** `ignores` (+ `tsconfig` `exclude` if its `include` globs `**/*.ts`) — the layer ships
+     `.ts` hook fragments (`opencode.ts`) outside `tsconfig` scope (see `quality-js`);
+   - **ruff** — add them to `[tool.ruff] exclude` (or `ruff.toml`) **with `force-exclude = true`** [!]:
+     the gate passes ruff EXPLICIT paths (`ruff check -- <file>`), and a plain `exclude` is IGNORED for
+     explicit paths — without `force-exclude` the exclusion does NOTHING. The layer ships `.py`
+     skills/hooks (e.g. `docmap.py`) the project did not write.
+   Skip this and the gate lints code the project does not own — a `.ts`/`.py` under `.agents/` fails the
+   project's OWN gate ("the baseline ships code the baseline rejects"). Same merge discipline as the
+   `.gitignore` step; record the intent in `REGISTRY`/`AGENTS.md` before the first such file lands, so it
+   is not rediscovered per project. (The library keeps its own shipped scripts linter-clean regardless —
+   the exclude protects the PROJECT gate from vendored code, it is not a licence to ship dirty code.)
    Then **install the git hooks
    unconditionally** (not a survey option): `pre-commit` (light gate on staged files + secret
    scan), `pre-push` (full quality gate), and `commit-msg` (reject AI/tool attribution trailers —
