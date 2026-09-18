@@ -92,16 +92,24 @@ incident lost a project's REGISTRY on a machine change exactly this way.
   `type:` · `status:` (active|in_progress|done|archived) · `tags: [...]` · `project:`. Type vocabulary:
   `reference` (architecture / infra / source-of-truth) · `spec` (specification / ТЗ) · `runbook`
   (step-by-step ops procedure) · `guide` (role how-to) · `decision` (ADR / manifest) · `research` ·
-  `note` · `plan`.
+  `report` (delivered findings / analysis / status for a client or stakeholder audience) · `note` · `plan`.
   A `docs-frontmatter` PostToolUse hook *reminds* when a `docs/*.md` is saved without it (a nudge, not a
   gate). Model to copy: `task_center/docs` (frontmatter on every doc + ADR). **Filenames — kebab-case.**
 - **Links — standard Markdown relative links** `[text](path.md)` (portable, render on GitHub, exact path).
   NOT `[[wiki-links]]` (Obsidian-only — plain text on GitHub) unless the project actually runs Obsidian.
+  A link to a file that no longer exists is a **dangling** reference — mechanically checkable (`docmap
+  --check`), unlike a hand-maintained doc *graph*, which lags reality and would look authoritative while
+  lying (that's why we lint dangling links but do not build a document link-graph).
 - **Diagrams — inline as code, not linked files (default).** Embed the diagram *source* as a fenced
   ` ```mermaid ` block in the doc — single source of truth, diffable, GitHub renders it natively. NOT
   `![](diagram.svg)` links to external image files (orphan assets, drift). Render to an image only at
   **export** time (PDF/docx — see `md2pdf`); externalize a diagram only to reuse one across N docs.
-- **Read frontmatter first**, filter by `type`/`tags`/`status`, then read only the relevant bodies.
+- **Read frontmatter first**, filter by `type`/`tags`/`status`, then read only the relevant bodies —
+  run **`docmap`** (the skill: one call → `path · type · status · tags · H1`, with `--type/--tag/--status`
+  filters) so the metadata pass is **cheaper than a blind grep** and honest: grep over bodies matches a
+  hit regardless of `status`, walking you into **archived / superseded** docs. `docmap --check` also
+  flags docs with NO frontmatter (a filter that lies silently) and dangling links. *The intention needs
+  an action: without a cheap reader the "read frontmatter first" rule loses to one-call grep every time.*
   The write only pays off on the read: knowledge stored but **not retrieved** (missed read), or
   retrieved but **not applied**, fails as if never written — the index exists so "didn't find it" is
   no excuse (mirrors the read-before-act rule in the canon's behavioral seed).
