@@ -18,6 +18,42 @@ miss()    { printf 'git-quality-gate: %s not found - skipped (install per env-se
 run()     { echo "+ $*" >&2; "$@" || fail=1; }
 # like run(), but pytest exit 5 = "no tests were collected" — not a failure (e.g. after excluding a marker).
 run_tests(){ echo "+ $*" >&2; "$@"; local rc=$?; [ "$rc" -eq 0 ] || [ "$rc" -eq 5 ] || fail=1; }
+
+# --- Node runtime: run under the version the PROJECT targets (.nvmrc / package.json engines), not the
+# machine default. A gate on the wrong Node verifies in an environment the project cannot run in
+# (wrangler/vite/eslint refuse an old Node) — a wrong-Node result is a false pass/fail (the "verdict
+# lies" class). Switch via nvm (it reads .nvmrc); if the target cannot be provided, BLOCK with a fix —
+# never certify under the wrong runtime. .nvmrc = an exact pin; engines.node = a `>=` minimum. ---
+if have node; then
+  pin=""; min=""
+  [ -f .nvmrc ] && pin="$(grep -oE '[0-9]+' .nvmrc | head -1)"
+  [ -f package.json ] && min="$(grep -oE '"node"[^,}]*' package.json | grep -oE '[0-9]+' | head -1)"
+  target="${pin:-$min}"
+  if [ -n "$target" ]; then
+    cur="$(node -v 2>/dev/null | grep -oE '[0-9]+' | head -1)"
+    need=0
+    { [ -n "$pin" ] && [ "$cur" != "$pin" ]; } && need=1
+    { [ -z "$pin" ] && [ -n "$min" ] && { [ -z "$cur" ] || [ "$cur" -lt "$min" ]; }; } && need=1
+    if [ "$need" = 1 ]; then
+      nvmsh="${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+      if [ -s "$nvmsh" ]; then
+        # shellcheck disable=SC1090,SC1091
+        . "$nvmsh" >/dev/null 2>&1
+        if [ -f .nvmrc ]; then nvm use >/dev/null 2>&1 || nvm use "$target" >/dev/null 2>&1
+        else nvm use "$target" >/dev/null 2>&1; fi
+        cur="$(node -v 2>/dev/null | grep -oE '[0-9]+' | head -1)"
+      fi
+      ok=0
+      { [ -n "$pin" ] && [ "$cur" = "$pin" ]; } && ok=1
+      { [ -z "$pin" ] && [ -n "$min" ] && [ -n "$cur" ] && [ "$cur" -ge "$min" ]; } && ok=1
+      if [ "$ok" != 1 ]; then
+        echo "git-quality-gate: this project targets Node ${pin:->=$min} (.nvmrc/engines) but the gate is on Node ${cur:-none} — a wrong-Node run gives a false pass/fail. Run it under the target (\`nvm use\`, fnm, volta, or install it); refusing to certify under the wrong runtime." >&2
+        exit 2
+      fi
+    fi
+  fi
+fi
+
 # Files IN SCOPE: check the CHANGE, not the repo. commit = staged (light gate). push = the range not
 # yet on the branch's upstream (@{u}..HEAD) — a doc-only push must not re-run lint/tsc/build/tests over
 # unchanged code. tsc/build/tests are whole-tree BY NATURE, so any code file in the range still triggers
