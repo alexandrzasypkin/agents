@@ -40,43 +40,23 @@ playwright:
   #   fully close it, THEN start headed MCP via Explorer-owned `cmd /k … --user-data-dir <that profile>`.
   #   codex: if it started while the ports were down, reconnect/restart it once the servers are back.
 
-codex-agent:
-  scope: global               # the codex binary is machine-level; a delegation tool tied to no project
-  transport: stdio-spawn      # `codex mcp-server` — spawned per call (a fresh codex thread), NOT a persistent server
-  # Claude/opencode (the LEAD) add codex as an MCP server and DELEGATE a coding subtask to it — structured
-  # JSON-RPC, not tmux screen-scraping (which races on timing, prompt-detection and ANSI noise). This is
-  # the reverse of the usual "each agent configures itself": here the lead adds codex as a TOOL. codex
-  # `mcp-server` exposes two tools:
-  #   codex        — run a task, returns the result + a `threadId`;
-  #   codex-reply  — pass that threadId to continue the SAME codex thread (context persists in-session).
-  # Claude client config (GLOBAL/user scope, so delegation works in any project — stdio means it only
-  # runs on a call). Add it with the CLI, which writes the right file:
-  #   claude mcp add codex-agent -s user -- codex mcp-server   (native Windows: -- cmd /c codex mcp-server)
-  # [!] `claude mcp add -s user` writes ~/.claude.json, NOT ~/.claude/settings.json — same user scope,
-  #   different file. Hand-editing ~/.claude/settings.json `mcpServers: {"codex-agent":{"command":"codex",
-  #   "args":["mcp-server"]}}` also works, but the CLI is the supported path; do NOT do both for one name
-  #   (two files, one wins — confusing). Added once at Setup (like playwright / baseline-guard), not
-  #   rendered per-project.
-  # WHEN: a second opinion / an independent implementation, or context-heavy work kept off the lead's
-  #   context. NOT for trivial lookups — each call is a FULL codex agent (its own auth/model, tokens, latency).
-  # SAME-TREE [!]: codex operates on the current working tree. Read/analysis is clean; for concurrent
-  #   EDITS isolate it in a git worktree (same rule as parallel workflow agents), or the two race on files.
-  # ONE-SHOT alternative (no MCP): `codex exec "<prompt>"` — headless CLI → stdout, zero config; use when
-  #   you don't need a persistent thread. Reserve tmux for when a HUMAN must watch a live codex TUI.
-  # MODEL [!]: on a **ChatGPT-account** codex, call the tool **WITHOUT a `model` param** — it uses the
-  #   account default (works). Pinning a model can be REJECTED ("model not supported when using Codex with
-  #   a ChatGPT account" / 404), and the allowed set DRIFTS with account/plan/time — so if a pinned model
-  #   errors, **drop the `model` param first, do not guess another name**. (Available set is external live
-  #   state — don't freeze it here; dated example, drifts: 2026-09-14 `gpt-5.1-codex` / `gpt-5.2*` /
-  #   `gpt-5.5` were rejected on a ChatGPT account. Source: orchestrator live Codex-review run.)
+# codex-agent — REMOVED (was: codex-as-an-MCP-server). codex ≥ 0.155 dropped the `mcp-server` mode:
+#   the subcommand is gone, `codex mcp-server` is parsed as a prompt → interactive → `stdin is not a
+#   terminal` → the MCP client sees CONNECTION_CLOSED. `codex mcp` is now a CLIENT manager
+#   (list/get/add/remove); `app-server`/`exec-server` are codex's OWN protocol, not MCP. So codex
+#   cannot be run as an MCP server on current CLIs. Measured 2026-09-26, codex-cli 0.155.1 (it worked at
+#   0.149.1 — the server mode is version-volatile; do NOT re-add a `codex mcp-server` MCP entry).
+#   The advisor did not go away — it is now a COMMAND, not a server: consult codex via `codex exec`
+#   (see the **`codex-consult`** skill). If the owner still has a dead codex-agent in ~/.claude.json,
+#   it fails every session — remove it: `claude mcp remove codex-agent -s user`.
 
 claude-agent:
   scope: global               # the claude binary is machine-level; exposes Claude's tools to an MCP client
   transport: stdio-spawn      # `claude mcp serve` — stdio MCP server, spawned per call
-  # The REVERSE of codex-agent: codex/opencode (the LEAD) add Claude as an MCP server to drive it. Note
-  # the ASYMMETRY with codex-agent —
-  #   codex mcp-server → a DELEGATION interface (task in → result + threadId; codex self-manages inside);
-  #   claude mcp serve → exposes Claude's RAW TOOLSET (read/write/edit/bash), not a "run a task" tool.
+  # codex/opencode (the LEAD) add Claude as an MCP server to DRIVE it — the reverse direction from
+  # consulting codex (which is now `codex exec`, see the `codex-consult` skill). Note what this exposes:
+  #   claude mcp serve → Claude's RAW TOOLSET (read/write/edit/bash), NOT a "run a task" interface —
+  #   the client drives Claude's tools directly, so it needs to gate them itself (below).
   # codex client config (~/.codex/config.toml):
   #   [mcp_servers.claude-code]
   #   command = "claude"        # or the full path from `which claude` if not on PATH
@@ -85,9 +65,10 @@ claude-agent:
   # [!] NO PERMISSION GATING: as an MCP server Claude does NOT prompt for tool approval — the CONNECTING
   #   client is responsible for confirming each call. So codex driving claude-code can make it write files
   #   / run bash WITHOUT Claude's usual prompts. Only wire this where the client gates tool calls, or in a
-  #   sandbox / worktree you accept it operating in unattended. Same-tree + cost cautions as codex-agent.
-  # Direction: use this for codex-as-lead → Claude. For the common Claude-as-lead → codex case use
-  #   codex-agent instead — a cleaner task interface with its own internal gating.
+  #   sandbox / worktree you accept it operating in unattended. Same-tree + cost cautions apply (a full
+  #   agent per call; isolate concurrent edits in a worktree).
+  # Direction: this is for codex-as-lead → Claude. For the common Claude-as-lead → codex case, codex has
+  #   NO MCP server on current CLIs — consult it via `codex exec` (the `codex-consult` skill), not MCP.
 
 # ── PROJECT-BOUND (rendered per-project on demand; record in REGISTRY) ─────────
 # - cloudflare: claude.ai-managed integration for Claude (account-level, no local command);
