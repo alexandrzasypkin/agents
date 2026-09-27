@@ -45,12 +45,18 @@ and not by what's cheapest to reach for.** Three lanes, by what you are actually
    reading dozens of files to learn who calls whom. When a graph MCP exists, use structural search
    (who-calls, what-breaks, symbol lookup) over grep. A **template-literal / bundled blob is opaque** to
    the indexer (it sees a string, not an AST) — grep the string there.
-   - **Provision it where duplication actually hurts — but this tier is NOT install-on-absence.** Unlike
-     the LSP layer (cheap, install the moment you need it), the graph is a heavier index (a build + a DB);
-     stand it up on **measured pain** — observed cross-cutting duplication or real grep-scan cost — not
-     because a one-off who-calls found no graph (that question is LSP's, not a fresh index's). When the
-     pain is real: set up the graph tier (a codegraph MCP + the LSP binaries) so the right tool is one
-     call away — per-project self-config, recorded in `./.agents/REGISTRY.md`. Regenerable cache
+   - **The trigger is reuse DENSITY, not repo SIZE.** Stand the graph up on either of two independent,
+     each-sufficient signals: **(a) reuse density** — high fan-in, shared helpers, near-identical flows
+     across modules, code that connects more than it sprawls — which qualifies **regardless of repo
+     size**; a small, densely-reused tree is the *highest*-duplication-risk case, not the lowest, because
+     every new function likely overlaps an existing one, and the overlap is semantic (who-calls), invisible
+     to grep-by-name. **(b) grep-scan cost** — a large tree where reading to learn who-calls-whom is itself
+     expensive. A 2k-line tightly-woven repo qualifies on (a) even though it never hits (b). What does NOT
+     qualify: a one-off who-calls that found no graph — that question is LSP's (tier 2, always on, no gate),
+     not a fresh index's. **This tier is NOT install-on-absence** — unlike the cheap LSP layer, the graph is
+     a heavier index (a build + a DB), so provision it on (a) or (b), not reflexively. When one holds: set
+     up the graph tier (a codegraph MCP + the LSP binaries) so the right tool is one call away — per-project
+     self-config, recorded in `./.agents/REGISTRY.md`. Regenerable cache
      (`.codegraph/` or equivalent): gitignored, never committed; keep the SQLite DB on a **local**
      filesystem (network / cross-OS mounts → lock errors).
 
