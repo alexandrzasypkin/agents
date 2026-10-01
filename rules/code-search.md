@@ -32,13 +32,26 @@ and not by what's cheapest to reach for.** Three lanes, by what you are actually
      plugin): install it and proceed, don't skip the question you actually have.
    - **Validate before you finish:** on the files you changed, check LSP diagnostics (types / imports)
      and fix what the server flags — an independent check closes the task, not your assertion.
-   - **"Exact" holds only once the server is WARM — warm the area before trusting a COUNT or a MISS.**
-     The server indexes lazily: a first query into a cold area answers from what it has loaded and
-     signals the incompleteness *in no way* — `workspaceSymbol` can return "1 symbol" where three exist,
-     then all three when repeated after touching a neighbouring file. A **positive hit is trustworthy; a
-     count or an absence is not.** Touch a file in the target area, or repeat the query, before
-     concluding "only one" / "none" — decisive for the anti-duplication search below, where a false
-     "none" reads as "no duplicates" and closes the search.
+   - **"Exact" holds only within what the server has LOADED — and it signals incompleteness in NO way.**
+     Two independent limits, one silent symptom (a too-small count, a false "none" — a wrong answer that
+     reads as a clean one, worse than a slow one):
+     - **in TIME (cold index):** the server indexes lazily — a first query into a cold area answers from
+       what it has loaded; `workspaceSymbol` returns "1 symbol" where three exist, then all three when
+       repeated after touching a neighbour. **Cure:** touch a file in the target area / repeat the query
+       — warming closes this one.
+     - **in SCOPE (project boundary):** the server spans only the project(s) it loaded. A workspace that
+       is several DISCONNECTED projects (several configs with no project-references link, separate venvs
+       / modules) → `findReferences` / who-calls silently drops every call site in a project the server
+       never loaded, and **warming does NOT help** — those refs are outside its graph. **Cure:** make the
+       server SPAN the workspace (link the projects / point it at the whole tree / open a file in each),
+       not cross-check by hand forever.
+     So: a **positive hit is trustworthy; a count or an absence is not.** When a who-calls DRIVES a
+     decision (dedup, rename, delete), widen with a text search for the name — but **rg is the DETECTOR,
+     LSP the RESOLVER** (this does not reopen "never grep to trace code"): a file rg hits that LSP's
+     reference list omitted is a **flag, not an answer** — a name collision (two defs, above) or a
+     project the server never loaded — resolve each flagged file with LSP *from that file* (go-to-def at
+     the call site). Decisive for the anti-duplication search below, where a false "none" reads as "no
+     duplicates" and closes the search.
 3. **The macro shape** — where does this live, the call-chain across files, what breaks if I change X,
    how far a concern is spread → a **structural graph** (CodeGraph light/local; Gortex for multi-repo).
    This is a **FIRST** move for architecture / impact, **not a last resort** — query the graph instead of
