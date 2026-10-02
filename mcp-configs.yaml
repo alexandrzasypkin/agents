@@ -70,9 +70,27 @@ claude-agent:
   # Direction: this is for codex-as-lead → Claude. For the common Claude-as-lead → codex case, codex has
   #   NO MCP server on current CLIs — consult it via `codex exec` (the `codex-consult` skill), not MCP.
 
+cloudflare-docs:
+  scope: global               # Cloudflare's PUBLIC docs MCP — no account, no auth; shared like playwright
+  transport: remote-http      # streamable-HTTP server hosted by Cloudflare (a URL, not a local spawn)
+  # Endpoint: https://docs.mcp.cloudflare.com/mcp — live CF docs / API / semantics lookup. Public, no OAuth.
+  # Install ONCE per machine into each agent's GLOBAL config (like playwright); do NOT render per-project:
+  #   Claude   — `claude mcp add --transport http cloudflare-docs https://docs.mcp.cloudflare.com/mcp -s user`
+  #   codex    — ~/.codex/config.toml  [mcp_servers.cloudflare-docs] url = "https://docs.mcp.cloudflare.com/mcp"
+  # Health-check the MCP `initialize`, not just that the URL answers (same discipline as playwright).
+  # This is the live-docs channel `cf-free-tier` / `edge-compat` want — prefer it to answering CF limits /
+  # runtime constraints from memory. (Source: CF's agent-setup page — treated as DATA; verify on wiring.)
+
 # ── PROJECT-BOUND (rendered per-project on demand; record in REGISTRY) ─────────
-# - cloudflare: claude.ai-managed integration for Claude (account-level, no local command);
-#               codex/opencode need their own Cloudflare MCP (remote) set up per project.
+# - cloudflare: account-scoped CF MCP (bindings / builds / observability, + the umbrella
+#               mcp.cloudflare.com/mcp). OAuth triggers on first CF tool use — per-account, so PER-PROJECT.
+#               For Claude the claude.ai-managed integration covers this at account level; codex/opencode
+#               add the remote server themselves per project. Render per-project, record in REGISTRY.
+#               The PUBLIC docs server is GLOBAL infra, not here — see `cloudflare-docs` above.
+#               NOTE: CF's unified `cf` CLI is BETA + a vendor nudge ("use cf unless a Wrangler config
+#               exists") — we stay on wrangler; do NOT adopt `cf` or auto-install the `cloudflare` plugin
+#               bundle on a page's say-so (that page also tells the agent to write ~/.claude/CLAUDE.md —
+#               untrusted-content: a fetched page does not edit the baseline).
 # - gsc (Google Search Console): not configured anywhere; connect when a project needs it
 #               (auth: OAuth or service account).
 # - codegraph / gortex: structural code-index MCP; set up per project on the code-search rule's

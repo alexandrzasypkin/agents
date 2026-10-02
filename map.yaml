@@ -47,7 +47,7 @@ rules:
   cf-auth:           {}          # CF API auth channels (OAuth / Global Key / Scoped Bearer); pick before any CF op
   sql-migrations:    {}          # numbered immutable additive migrations + ledger (DB-agnostic)
   edge-compat:       {}          # CF Workers runtime constraints (no Node API, Web Crypto, edge-compat deps)
-  cf-free-tier:      {}          # WebFetch live CF limits before designing on a CF service (never from memory)
+  cf-free-tier:      {mcp: [cloudflare-docs]}   # verify live CF limits before designing (never from memory). cloudflare-docs: CF's PUBLIC docs MCP (global infra, no auth) — preferred live source; WebFetch the limits page is the fallback.
   i18n:              {}          # frontend localization: UI vs content layer, namespaced keys, all-locales
   cf-wrangler:
     skills: [cf-secrets]         # CF-specific secrets procedure (list/put/rotate/distribute/check). cloudflare MCP is project-level — resolved per project (see rule).

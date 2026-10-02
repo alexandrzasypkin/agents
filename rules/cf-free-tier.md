@@ -10,7 +10,9 @@ Email, Stream, AI, Queues, Cron) from memory of its limits. LLM knowledge of CF 
 systematically stale — quotas change, beta→GA moves features and pricing between plans.
 
 Before any design decision or code:
-1. **WebFetch** the live limits page: `developers.cloudflare.com/<service>/platform/limits/`.
+1. **The `cloudflare-docs` MCP** (global infra, public / no-auth — see `mcp-configs.yaml`) is the
+   preferred live-docs channel when wired: query it for the current limit. **WebFetch** the live limits
+   page (`developers.cloudflare.com/<service>/platform/limits/`) is the always-works fallback.
 2. **WebSearch** "Cloudflare <service> free tier <year>" if the page is incomplete.
 3. Record the numbers with the source URL + date — in the discussion, the plan, or a code
    comment next to the binding/fetch.
