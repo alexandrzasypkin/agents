@@ -20,6 +20,11 @@ echo "<long prompt or piped diff>" | codex exec --sandbox read-only -   # prompt
   trivial lookup.
 - **Model:** on a ChatGPT-account codex, pass **no** model flag — the account default works; a pinned
   model can be rejected and the allowed set drifts (see the same note that was on the old MCP recipe).
+- **node / PATH:** codex is a global CLI installed under ONE node version. Do **not** `nvm use <another>`
+  in the same command / shell that calls codex — it drops codex off PATH, and the failure reads as a codex
+  error (`timeout: … codex`, "command not found"), not the env problem it is. Invoke codex under the node
+  it was installed on. (A failure that looks like the TOOL but is the ENVIRONMENT — verify which before
+  blaming codex.)
 
 ## When
 - a **second opinion** on a diff, a design, or a decision you're unsure of;
