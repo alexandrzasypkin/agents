@@ -10,8 +10,9 @@ duplicates because a blind search found nothing. **The tier is picked by the QUE
 and not by what's cheapest to reach for.** Three lanes, by what you are actually asking:
 
 1. **A literal string** — a log line, a config key, an error message, a comment → **`rg`/grep**. Only
-   this: grep is for TEXT you already know, at any repo size. **Never grep to find or trace CODE** — it
-   answers by NAME, and a name is not a symbol (see below).
+   this: grep is for TEXT you already know, at any repo size. **Never grep to find or trace CODE *as the
+   answer*** — it answers by NAME, and a name is not a symbol (see below); as a DETECTOR that corroborates
+   an LSP who-calls / count / "unused" it is standard order, not an exception (tier 2).
 2. **A symbol, locally** — this file's types, a definition, references, who-calls, rename impact,
    post-edit diagnostics → the **LSP tool** (a language server via the project's config): zero-setup,
    exact, symbol-resolved.
@@ -32,26 +33,26 @@ and not by what's cheapest to reach for.** Three lanes, by what you are actually
      plugin): install it and proceed, don't skip the question you actually have.
    - **Validate before you finish:** on the files you changed, check LSP diagnostics (types / imports)
      and fix what the server flags — an independent check closes the task, not your assertion.
-   - **"Exact" holds only within what the server has LOADED — and it signals incompleteness in NO way.**
-     Two independent limits, one silent symptom (a too-small count, a false "none" — a wrong answer that
-     reads as a clean one, worse than a slow one):
-     - **in TIME (cold index):** the server indexes lazily — a first query into a cold area answers from
-       what it has loaded; `workspaceSymbol` returns "1 symbol" where three exist, then all three when
-       repeated after touching a neighbour. **Cure:** touch a file in the target area / repeat the query
-       — warming closes this one.
-     - **in SCOPE (project boundary):** the server spans only the project(s) it loaded. A workspace that
-       is several DISCONNECTED projects (several configs with no project-references link, separate venvs
-       / modules) → `findReferences` / who-calls silently drops every call site in a project the server
-       never loaded, and **warming does NOT help** — those refs are outside its graph. **Cure:** make the
-       server SPAN the workspace (link the projects / point it at the whole tree / open a file in each),
-       not cross-check by hand forever.
-     So: a **positive hit is trustworthy; a count or an absence is not.** When a who-calls DRIVES a
-     decision (dedup, rename, delete), widen with a text search for the name — but **rg is the DETECTOR,
-     LSP the RESOLVER** (this does not reopen "never grep to trace code"): a file rg hits that LSP's
-     reference list omitted is a **flag, not an answer** — a name collision (two defs, above) or a
-     project the server never loaded — resolve each flagged file with LSP *from that file* (go-to-def at
-     the call site). Decisive for the anti-duplication search below, where a false "none" reads as "no
-     duplicates" and closes the search.
+   - **Trust LSP by OPERATION — a reference answer can be silently incomplete even when the symbol is
+     fully visible.** A POSITIVE existence result — definition, hover, type, "this symbol is here" — is
+     trustworthy. **who-calls, the reference COUNT, and "used nowhere" are not:** `findReferences` can
+     return the definition and 0 of N real callers with no signal that it is partial — a wrong answer that
+     reads as a clean one, worse than a slow one. Warming cures only the COLD-index case (a first query
+     into a cold area undercounts — `workspaceSymbol` returns "1" where three exist, then all three after
+     you touch a neighbour / repeat). It is **not** a general fix: measured (a TypeScript / CF-Workers
+     project, 2026-10-01) a fresh function the server plainly sees — `workspaceSymbol` finds it,
+     `documentSymbol` returns its whole file — still gave **0 of 4** references, unchanged after full
+     warming. The cause is not always
+     knowable (multi-root scope, a server limitation, a stale index); the discipline does not depend on
+     naming it: **do not trust a reference count or an absence on faith, warm or not.**
+   - **So the three questions that gate a dedup / rename / delete — who-calls, reference COUNT, "unused
+     anywhere" — are corroborated with a text search as the STANDARD order, not an exception.** **rg is
+     the DETECTOR, LSP the RESOLVER** (this does not reopen "never grep to trace code"): rg widens the
+     candidate set; a file it hits that LSP's references omitted is a **flag, not an answer** — a name
+     collision (two defs, above) or a caller LSP dropped — resolve each *from that file* (go-to-def at the
+     call site). The positive hit stays LSP's; it is the COUNT and the ABSENCE that rg corroborates.
+     Decisive for the anti-duplication search below, where a false "none" reads as "no duplicates" and
+     closes the search.
 3. **The macro shape** — where does this live, the call-chain across files, what breaks if I change X,
    how far a concern is spread → a **structural graph** (CodeGraph light/local; Gortex for multi-repo).
    This is a **FIRST** move for architecture / impact, **not a last resort** — query the graph instead of
