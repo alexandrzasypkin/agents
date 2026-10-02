@@ -24,9 +24,12 @@ When a new project is initialized:
 4. **The project becomes autonomous** — all dependencies are pinned locally, the
    version is controlled via git.
 
-Result: the rule set = `base` ∪ the rules of the selected domains. Two projects that
-select the same domains get the same linters, formatters, hooks, and pipelines. Uniformity
-is delivered not by manual choice, but by the **link map** in the library.
+Result: the rule set = `base` ∪ the rules of the selected domains ∪ **condition-pulled** rules.
+A condition-pulled rule lives in `map.yaml` `rules:` but in no domain — it is pulled by a **survey
+answer or project detection**, not by a domain pick: `repo-collaboration` when the repo is shared
+(asked at survey), `delegation` / `astro` by detection. Two projects that select the same domains get
+the same linters, formatters, hooks, and pipelines. Uniformity is delivered not by manual choice, but by
+the **link map** in the library.
 
 ---
 
@@ -260,6 +263,10 @@ same name, different places. Steps:
    data and lives in the map. This is the `planning` meta-step: a dialog that combines the
    chosen domains (a project may be multi-domain, e.g. coding+web+devops). The always-on
    `base` is added unconditionally — it is not one of the selectable domains.
+   Also ask ONE repo-level **condition** question (not a domain): **"is this repo shared with other
+   actors — >1 human/agent writing it?"** A yes pulls the condition-pulled `repo-collaboration` rule; it
+   can also be pulled later, when a solo repo becomes shared (the deploy ladder). Ask once — the repo is
+   shared or not regardless of which domains it has.
    Clarify: which MCP to attach — show the list of names from `./.agents/mcp-configs.yaml`
    (the local copy); if the user is unsure — offer a preset by domain. Whether environment
    variables (`PYTHONPATH`, etc.) and extra skills are needed. Do not impose — the user
@@ -267,7 +274,8 @@ same name, different places. Steps:
    configures only itself (step 4); another agent's environment is activated by running that agent.
 
 3. **Fill `./.agents/` and write the snapshot.** Resolve the rule set = `base` ∪ the rules
-   of the selected domains (from `./.agents/map.yaml`). For each rule in that set,
+   of the selected domains ∪ condition-pulled rules (e.g. `repo-collaboration` if the shared-repo
+   answer was yes), from `./.agents/map.yaml`. For each rule in that set,
    `./.agents/map.yaml` (the local copy) is read, and into `./.agents/{rules,skills,agents,templates,hooks}`
    the rule itself and its linked chain are copied. Names in the map are files or folders
    in the corresponding library folder: a file is copied with its extension, a folder
@@ -423,8 +431,9 @@ reproducibility and provenance without reaching into `~/.agents`:
 source: /home/<user>/.agents   # absolute path (not ~); OS-resolved (Windows: C:\Users\<user>\.agents)
 commit: abc123                # git rev-parse HEAD (if ~/.agents is a git repo; otherwise empty or a date)
 generated_at: 2026-06-26T12:00:00Z
-domains:  [research]          # multi-select; base is always included on top
-rules:    [md2pdf]
+domains:    [research]        # multi-select; base is always included on top
+conditions: [repo-collaboration]  # condition-pulled (survey answer / detection), NOT domains — recorded so refresh knows why they exist
+rules:      [md2pdf]
 skills:   [md2pdf-convert]
 agents:   [doc-converter]
 mcp:      [pandoc-mcp]

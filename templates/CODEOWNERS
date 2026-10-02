@@ -1,0 +1,29 @@
+# CODEOWNERS — starter. Copy to a PLATFORM-RECOGNIZED path and fill with REAL owners.
+# Platform-AGNOSTIC: the CODEOWNERS format is shared across GitHub / GitLab / Gitea (Bitbucket uses its
+# own "default reviewers" instead). The recognized PATH and the protection setting differ per platform —
+# verify yours; do NOT assume GitHub.
+#
+# [!] INERT WITHOUT PROTECTION. This file ALONE enforces nothing. To actually hold:
+#     1. place it at a path your platform recognizes — commonly a repo-root `CODEOWNERS`, or under
+#        `.github/` (GitHub), `.gitlab/` (GitLab), `.gitea/` (Gitea), or `docs/`; AND
+#     2. configure the platform so the protected branch REQUIRES review/approval from the owners
+#        (GitHub: branch protection "require review from Code Owners"; GitLab: protected branch +
+#        "Code Owner approval required"; Gitea: branch protection "enable code owners"; others vary).
+#     Without step 2 it is advisory decoration. A LOCAL git / agent hook CANNOT enforce review ownership
+#     across other actors — only the remote platform can. (See `repo-collaboration`, principle 2.)
+#
+# Owners are REAL platform identities or teams with write access (`@user`, `@org/team`) — not prose names.
+# PRECEDENCE is platform-dependent: on GitHub / GitLab / Gitea the LAST matching pattern wins, so put the
+# broad fallback FIRST and specific overrides LATER — but VERIFY for your platform. One rule per line:
+# `<path-glob>  <owner> [<owner>...]`.
+#
+# [!] Required review can DEADLOCK (a PR/MR left waiting). Pair it with an escalation valve
+#     (see `repo-collaboration` — "review starvation"): agree a wait, then ping / split / arbitrate;
+#     never bypass the guard to beat the wait.
+
+# --- fill below; these are EXAMPLES — replace or delete ---
+# *                     @org/maintainers        # broad fallback (first = lowest precedence; last match wins)
+# /src/shared/          @org/contract-owners     # the shared contract — one authoritative write path
+# /migrations/          @org/db-owners           # the schema ledger
+# /ui/                  @the-frontend-owner      # a zone owned by a single actor
+# /ci/                  @org/maintainers         # CI config (path varies: .github/workflows, .gitlab-ci.yml, ...)

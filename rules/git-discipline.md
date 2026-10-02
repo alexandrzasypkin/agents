@@ -25,6 +25,9 @@ description: Git hygiene. Apply in any project under version control.
   any uncommitted work; commit promptly (below). Stale local state on a shared remote is what causes
   wrong-branch commits and merge confusion — don't let it drift. (Pushing stays the user's call, but **flag
   when a push is due**.)
+- **A shared repo has actors you don't control — then see `repo-collaboration`** (condition-pulled when the
+  repo is shared). Local committed ≠ team-visible: a fact is team-obligating only once pushed / in a PR/MR /
+  merged, and a local hook cannot enforce anything across another actor — that needs a remote platform guardrail.
 - **Commit after each completed unit of plan/task work — MANDATORY, do NOT ask.** Git is cheap; the
   commit IS the checkpoint (the plan-step boundary / handoff point), so "should I commit?" is noise —
   just commit. Small, traceable commits. (**Pushing** is different — it still needs an explicit go; see below.)

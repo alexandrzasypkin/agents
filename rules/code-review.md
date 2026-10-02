@@ -18,6 +18,8 @@ The review side of `proof-loop` (independent verification, not self-certificatio
 4. **Schema/migrations** — a schema change is a new migration, not an edit to a committed one.
 5. **Tests** — coverage matches the change, by the project's standard.
 6. **The project's own rules** — boundaries, conventions, ownership.
+7. **In a shared repo, review is MUTUAL** — if you request acceptance on your PRs/MRs you owe the same on
+   the other side's; enumerate inbound reviews, don't demand one-way (see `repo-collaboration`).
 
 ## Feedback
 - **Critical** — blocks merge: security, edge-compat, schema drift, broken build.

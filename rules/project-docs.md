@@ -120,6 +120,9 @@ incident lost a project's REGISTRY on a machine change exactly this way.
 - Contract-first: update the doc (schema/contract/behavior) **before** the code change, then code — and
   **sweep every occurrence of the contract in the same change** (no stragglers left pointing at the old shape).
 - Keep docs consistent with the code; mark assumptions. A plan: `active/` → `done/` on completion (drop its backlog item).
+- **In a SHARED repo, a mutable doc needs one owner per region.** An append-to-end shared journal (a plan
+  both sides extend) conflicts on every parallel session — give each side its own file, or own sections, or
+  make it append-only + owned. (Pulled in only when the repo is shared — see `repo-collaboration`.)
 - **Staleness is a first-class failure — a drifted doc actively misleads, worse than none.** Acting
   *from* a doc that contradicts the code you touch → reconcile the doc **as part of the task**, never
   proceed on the stale version (the read-side trap: retrieved, but no longer valid). `status:` carries
