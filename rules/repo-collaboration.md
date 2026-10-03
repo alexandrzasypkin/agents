@@ -22,8 +22,8 @@ Keep it thin: the rule POINTS to mechanisms, it inlines none.
    never hard-fail into "edit their file or merge a red main".
 2. **A cross-actor invariant is held REMOTELY — not by discipline, not by a local hook.** The holder for a
    must-hold shared-path invariant is a **platform guardrail**: the platform's protected-branch +
-   required-review feature + `CODEOWNERS` (GitHub / GitLab / Gitea / … — names and paths differ, the
-   mechanism is the same; verify yours). Not prose, not a local git/agent hook. *Remote/shared enforcement belongs at the
+   required-review feature + `CODEOWNERS` (the term differs per platform, the mechanism is the same). Not
+   prose, not a local git/agent hook. *Remote/shared enforcement belongs at the
    platform / source-of-truth layer; a local hook only protects the current checkout and the current
    agent* — advisory across actors. (Canon law 2: a rule asks, a hook guarantees — here only a REMOTE
    guardrail guarantees.)
@@ -58,10 +58,10 @@ escalate, do not merge to beat the wait.
 ## Mechanisms (the chain)
 - **`CODEOWNERS` template + branch protection** — the remote guardrail for principle 2. The template is
   **inert** until installed at a platform-recognized path *and* the platform's protected-branch rule
-  requires review from the named owners (see `templates/CODEOWNERS` — platform-agnostic; GitHub / GitLab /
-  Gitea differ in path and setting, Bitbucket uses its own default-reviewers). The **`branch-protection`
-  skill** is the per-platform setup procedure (place CODEOWNERS → require owner review → verify it holds by
-  behaviour); it mutates remote settings, so the owner confirms — it is not auto-run.
+  requires review from the named owners. The **`branch-protection` skill** is the per-platform setup
+  procedure (place CODEOWNERS → require owner review → verify it holds by behaviour) and the
+  `templates/CODEOWNERS` starter carries the per-platform paths/settings — that specificity lives there,
+  not in this rule. It mutates remote settings, so the owner confirms — it is not auto-run.
 - **`boundary-guard` (reused, ADVISORY here)** — seed its `patterns.conf` with this repo's shared paths so a
   local Write/Edit to one *pauses for a reminder* ("shared path — is inbound checked, does branch protection
   hold?"). A local nudge, **not** the cross-actor guarantee — that is branch protection. Same hook as
