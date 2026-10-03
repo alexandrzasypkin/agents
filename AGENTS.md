@@ -26,11 +26,17 @@ author a NEW structure — rule, hook, agent, a whole layer — *in the same ima
 1. **The rule is the entry point — it DECLARES its chain, never contains it.** A capability is a
    layer-artifact (rule → skill → agent → hook → template) wired in `map.yaml`; it is never inlined
    into an anchor. A rule with no chain is self-contained text; a rule with a chain points.
-2. **A rule ASKS; a hook GUARANTEES — the mechanism follows the reliability required.** A judgment
-   call → a rule (nudges); a must-hold invariant → a hook (mechanically blocks the wrong act). A new
-   failure → ask *model-side (a rule can only nudge) or harness-side (a hook can enforce)?* and fix at
-   the layer that can hold it. Harness-engineering a model problem — or nudging what must be enforced —
-   is the classic mislocated fix.
+2. **A rule GUIDES judgment; a trigger GUARANTEES attention; a guardrail BLOCKS the wrong act — put
+   each invariant at the WEAKEST layer that reliably holds (under speed, and across actors).** A judgment
+   call → a **rule** (nudges). An invariant that fails only because the right surface was never looked at
+   → a **trigger**: it supplies no judgment, it guarantees you LOOK before acting (a *function*, not a new
+   artifact kind — the bootstrap triggers, docmap-before-grep, enumerate-inbound are triggers). A
+   must-hold invariant whose breach costs correctness or security → a **guardrail** (a hook) that
+   mechanically blocks it: **local** for your own checkout, **remote/platform** when it must bind another
+   actor (a local hook is only advisory across actors). A new failure → ask which layer reliably holds,
+   and fix there — don't escalate past the weakest that holds (over-triggering or over-hooking dilutes as
+   surely as nudging what must be enforced; grow the mechanism from a real miss, law 5).
+   Harness-engineering a model problem, or nudging what must be enforced, is the classic mislocated fix.
 3. **Reference for the universal, value for the local.** The shared canon delivers uniformity; a
    pinned local copy delivers autonomy. The baseline changes only by the owner — a project *proposes*
    (marks a universal lesson `PROJECT DELTA`); a refresh 3-way-merges it on the lock commit, so nothing
@@ -58,7 +64,7 @@ the map:
 - `skills/` — execution of the rule (the procedure);
 - `agents/` — the executor (subagent);
 - `templates/` — file templates (styles, configs);
-- `hooks/` — deterministic guardrails (git hooks + agent PreToolUse/PostToolUse); a rule asks, a hook guarantees;
+- `hooks/` — deterministic guardrails (git hooks + agent PreToolUse/PostToolUse); a rule asks, a hook guarantees (and a trigger guarantees attention — law 2);
 - `map.yaml` — the **link map** `rule ⇒ skills / agents / MCP / templates / hooks` (a logical graph, names only);
 - `mcp-configs.yaml` — MCP configurations by name (`command`, `args`, `type`); from these bootstrap generates the runtime formats.
 
