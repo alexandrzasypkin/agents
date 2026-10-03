@@ -59,8 +59,9 @@ escalate, do not merge to beat the wait.
 - **`CODEOWNERS` template + branch protection** — the remote guardrail for principle 2. The template is
   **inert** until installed at a platform-recognized path *and* the platform's protected-branch rule
   requires review from the named owners (see `templates/CODEOWNERS` — platform-agnostic; GitHub / GitLab /
-  Gitea differ in path and setting, Bitbucket uses its own default-reviewers). Standing this up on the
-  platform is a per-repo, owner-level action — the rule names it; it is not automated here.
+  Gitea differ in path and setting, Bitbucket uses its own default-reviewers). The **`branch-protection`
+  skill** is the per-platform setup procedure (place CODEOWNERS → require owner review → verify it holds by
+  behaviour); it mutates remote settings, so the owner confirms — it is not auto-run.
 - **`boundary-guard` (reused, ADVISORY here)** — seed its `patterns.conf` with this repo's shared paths so a
   local Write/Edit to one *pauses for a reminder* ("shared path — is inbound checked, does branch protection
   hold?"). A local nudge, **not** the cross-actor guarantee — that is branch protection. Same hook as
