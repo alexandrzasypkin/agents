@@ -24,6 +24,34 @@ A visible browser; the agent acts on the page like a user.
   does not commit a consequential action itself (submit, pay, delete, deploy); it stages it
   and hands the click to the user.
 
+## Which browser: own instance vs attach to your daily Chrome
+Both lanes are the SAME driver (`@playwright/mcp`); the difference is whose browser and who owns it. The
+binary defaults to **headed + persistent** (not headless, not isolated), so either lane can carry a login —
+but the canon's SHARED server (`mcp-configs`) runs `--headless --shared-browser-context`, so logging in
+needs a HEADED instance with a visible window.
+- **Own browser** (the `playwright` server, no `--cdp-endpoint`) — Playwright owns a DEDICATED browser with
+  its own persistent profile, separate from your daily Chrome; log in once (headed) and the session persists
+  across calls until it expires. **Primary lane** for authed work: the owner logs in (types the password),
+  the agent then rides the session.
+- **Attach to your daily Chrome** (the `chrome` server, `--cdp-endpoint http://127.0.0.1:9222`) — Playwright
+  launches nothing; it drives the real Chrome YOU started on :9222 (everyday profile, extensions, existing
+  logins). Optional, only when you need that profile; start Chrome with `--remote-debugging-port=9222` first
+  or the tools cannot attach.
+
+## The shared browser is single-context — only the lead drives it
+A browser MCP server exposes ONE shared browser; two actors driving it fight over tabs (a subagent has
+hijacked the lead's open tab mid-session). A subagent with an explicit `tools:` allowlist that omits
+`mcp__playwright__*` / `mcp__chrome__*` is kept out by that list; a subagent WITHOUT an explicit allowlist
+(`general-purpose`, `Explore`, `Plan`, `claude`, `fork`) inherits the session's tools — **both** browsers,
+and `chrome`/CDP is the worse one, it is your daily Chrome. (Whether a frontmatter allowlist also excludes
+MCP for a BACKGROUND subagent is runtime-dependent and unverified — treat the allowlist as the design, not a
+proven lock.)
+
+[CRITICAL] The lead owns the browser. Never add the shared browser MCP to a subagent's tools, and do not
+spawn a broad-capability subagent to act while a lead browser session is open. A subagent that genuinely
+needs its own browser (isolated E2E) gets a SEPARATE isolated instance (its own server / `--isolated`
+profile), never the lead's shared one.
+
 ## Before any action
 - Confirm destructive operations (delete, bulk, deploy, pay) with the user; use dry-run where available.
 - Log the result in the conversation (audit trail).

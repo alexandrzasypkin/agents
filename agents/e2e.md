@@ -1,7 +1,7 @@
 ---
 name: e2e
 description: Read-only browser E2E / smoke tester subagent (Playwright). Use to exercise a running app through its UI and report pass/fail — no code edits.
-tools: [Read, Grep, Glob, mcp__playwright__*]   # browser tools for UI testing; never Edit/Write/Bash
+tools: [Read, Grep, Glob]   # browser tools are PROJECT-provisioned from an ISOLATED instance (see below); never Edit/Write/Bash
 ---
 
 # e2e
@@ -9,9 +9,13 @@ tools: [Read, Grep, Glob, mcp__playwright__*]   # browser tools for UI testing; 
 Read-only. Drives the app through its **UI only**, like a user, produces a test report, and
 **edits nothing** (no code, no config, no schema). Exploratory / smoke testing — not CI.
 
-Permissions: Read the whole project (to know the expected behavior) + the browser tools
-(`browser-use` / Playwright). No writes. **No direct API calls** — test through the UI, so the
-result reflects what a user actually sees.
+Permissions: Read the whole project (to know the expected behavior) + browser tools. No writes.
+**No direct API calls** — test through the UI, so the result reflects what a user actually sees.
+
+[CRITICAL] **The browser must be an ISOLATED instance, never the lead's shared `playwright` server.** A
+subagent driving the shared browser hijacks the lead's open tab (the shared browser is lead-only — see
+`browser-use`). A project that runs E2E provisions its own isolated playwright instance (a separate server
+/ `--isolated` profile) and grants this agent that `mcp__<instance>__*`; until then, browser E2E is the lead's.
 
 ## Protocol
 - Drive in **UI mode** (`browser-use`): the agent fills prepared data; the **user** types passwords

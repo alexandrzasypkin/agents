@@ -18,9 +18,11 @@ rule fights.
 
 Information research (`search-escalation`) — equipped with `WebSearch` + `WebFetch`:
 - ladder: websearch → fetch the page → full browser; do not stop at level 1;
-- levels 1-2 (websearch, fetch) run here; **level 3 and CLI retrieval go to the lead** — the full browser's
-  interactive auth (captcha / 2FA / password) needs a user channel a subagent lacks, and yt-dlp / whisper
-  need Bash this read-only agent does not carry; escalate back rather than claim "not found";
+- levels 1-2 (websearch, fetch) run here; **level 3 and CLI retrieval go to the lead** — the shared browser
+  is the lead's (a subagent driving it hijacks the lead's tab, so this allowlist omits the browser MCP by
+  design — see `browser-use`), its interactive auth (captcha / 2FA / password) needs a user channel a
+  subagent lacks, and yt-dlp / whisper need Bash this read-only agent does not carry; escalate back rather
+  than claim "not found";
 - "not found" only after the ladder; report which level produced the result.
 
 Returns a tight result; edits nothing.
