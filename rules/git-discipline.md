@@ -18,9 +18,23 @@ description: Git hygiene. Apply in any project under version control.
   concluding anything is unreachable, ask **who am I** (`gh auth status`) and switch if needed
   (`gh auth switch --hostname <host> --user <who>`). Switching is **machine-global** — it changes every
   other project on the box, so say so, record it, and put it back if it was not yours to change.
-- **A repo can push to more than one remote.** `git remote -v` may list several push URLs, so "I pushed"
-  does not mean "it arrived where CI/the reviewer looks". Verify with `git ls-remote <remote> <ref>` when
-  it matters (a workflow must fire, someone must see the branch).
+- **A repo can push to more than one remote, and "I pushed" ≠ "it arrived where CI / the reviewer looks".**
+  `git remote -v` may list several remotes/URLs; a workflow fires, or a reviewer sees a branch, only on the
+  remote they actually watch. Verify the ref landed where it must (`git ls-remote <remote-or-url> <ref>`),
+  not just that `git push` printed something.
+- **A multi-pushurl remote pushes to each URL in listed ORDER, and the failure modes differ.** A non-ff
+  **rejection** fails just that URL (exit 1) while earlier URLs already landed — buried among success lines,
+  so a **non-zero exit after an apparently-successful push is the detector**; never read only the last line.
+  An **unreachable** URL is worse: git `die()`s (exit 128) at that point and **never tries the URLs listed
+  after it** — so a dead mirror wedges the push, and a dead mirror listed FIRST means nothing lands at all.
+  No one can guarantee a mirror never dies, so the fix is not to block harder (git already over-blocks) but
+  to order and prune: put the **authoritative URL first** (it lands even if a later mirror is dead), and
+  **remove a permanently-dead pushurl** — git will not route around it. Because the exit code alone can't
+  tell "all landed" from "a later mirror died", after any such push verify each URL — `git remote get-url
+  --push --all <remote>`, then `git ls-remote <url> <ref>` vs `git rev-parse <ref>`. On a mismatch:
+  **ahead/diverged** (remote has commits you lack) → fetch/merge/re-push that URL; **behind but reachable**
+  → the remote DECLINED (e.g. a pre-receive hook or branch protection), satisfy the gate, don't fetch/merge;
+  **unreachable** → infrastructure, fix or drop the mirror.
 - **Keep git actual, especially on a remote.** `git fetch` to see where origin is; surface ahead/behind and
   any uncommitted work; commit promptly (below). Stale local state on a shared remote is what causes
   wrong-branch commits and merge confusion — don't let it drift. (Pushing stays the user's call, but **flag
