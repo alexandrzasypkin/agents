@@ -15,6 +15,7 @@ rules:
   quality-perl:      {hooks: [light-lint]}
   quality-cpp:       {hooks: [light-lint]}
   code-search:       {agents: [searcher]}      # prefer structural index over grep; codegraph/gortex is project-level
+  no-hardcode:       {}          # values with a source (API data, rates/schemes/thresholds, user-facing text) are referenced, not frozen as code literals; new case = data INSERT, not code edit+deploy
 
   # --- behavioral ---
   env-setup:         {}
@@ -72,13 +73,13 @@ base: [rule-format, env-setup, project-docs, proof-loop, secrets, untrusted-cont
 # Selectable domains (survey multi-selects; a project may pick several).
 # Final rule set = base ∪ rules of the selected domains (union dedups shared rules).
 types:
-  coding:   [quality-py, quality-js, quality-bash, quality-perl, quality-cpp, code-search, code-review, user-docs]
-  web:      [quality-js, css-practices, seo, cf-wrangler, cf-auth, edge-compat, cf-free-tier, i18n, browser-use, user-docs]
+  coding:   [quality-py, quality-js, quality-bash, quality-perl, quality-cpp, code-search, no-hardcode, code-review, user-docs]
+  web:      [quality-js, css-practices, seo, cf-wrangler, cf-auth, edge-compat, cf-free-tier, i18n, no-hardcode, browser-use, user-docs]
   research: [search-escalation, extract-docs, md2pdf, writing-style]
   office:   [md2pdf, extract-docs]
-  data:     [viz-data, extract-docs]
-  devops:   [deploy-models, cf-wrangler, cf-auth, sql-migrations, cf-free-tier]
-  db:       [cf-wrangler, cf-auth, sql-migrations, cf-free-tier]
+  data:     [viz-data, extract-docs, no-hardcode]
+  devops:   [deploy-models, cf-wrangler, cf-auth, sql-migrations, cf-free-tier, no-hardcode]
+  db:       [cf-wrangler, cf-auth, sql-migrations, cf-free-tier, no-hardcode]
   content:  [seo, seo-analytics, md2pdf, writing-style, media, content-vault]
   design:   [media]   # CLI media (ffmpeg/imagemagick); AI-gen models resolved per project
   qa:       [browser-use]   # E2E/UI verification; proof-loop is in base

@@ -20,6 +20,9 @@ The review side of `proof-loop` (independent verification, not self-certificatio
 6. **The project's own rules** — boundaries, conventions, ownership.
 7. **In a shared repo, review is MUTUAL** — if you request acceptance on your PRs/MRs you owe the same on
    the other side's; enumerate inbound reviews, don't demand one-way (see `repo-collaboration`).
+8. **No frozen sources** — user-facing text as a literal in code instead of the locale/content layer, or
+   data/config with an authoritative source (an API, a table) inlined; a new case should be a data/config
+   change, not a code edit + redeploy (see `no-hardcode`, `i18n`).
 
 ## Feedback
 - **Critical** — blocks merge: security, edge-compat, schema drift, broken build.
