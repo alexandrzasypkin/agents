@@ -33,11 +33,14 @@ Keep it thin: the rule POINTS to mechanisms, it inlines none.
 4. **A shared mutable doc needs one mutable region per owner.** An append-to-end shared journal with no
    section owner conflicts on every parallel session. Give each side its own file, or own sections, or make
    it append-only + owned. (P4 is principle 1 applied to docs — ties `project-docs`.)
-5. **Inbound work discovery is first-class.** The mono model sees only work it started or was asked for; a
-   peer's PRs, review requests, and merged-but-undeployed work are **invisible** unless you go look. **At
-   session start in a shared repo, and before editing shared facts, check inbound work from the repo's
-   source of truth when available:** open PRs / MRs, review requests, assigned issues, active branches
-   touching the same area. Review is **mutual** — if you request acceptance on your PRs you owe the same on theirs.
+5. **Open-work discovery is first-class — inbound AND your own.** The mono model sees only work it started
+   or was asked for, and treats "PR opened" as done; a peer's PRs, review requests, and merged-but-undeployed
+   work are **invisible** unless you go look — and your OWN open PRs silently rot, the review→merge step
+   never completing while you move on. Enumerate both; a PR you opened is finished only when merged and on
+   the rung the team can act from (P3), or explicitly escalated. **At session start in a shared repo, and
+   before editing shared facts, check open work from the repo's source of truth when available:** open PRs /
+   MRs (yours and others'), review requests, assigned issues, active branches touching the same area. Review
+   is **mutual** — if you request acceptance on your PRs you owe the same on theirs.
    (Model judgment held by a *trigger* — enumerate so you never skip for lack of visibility; stays
    rule-described, promoted to a hook only after repeated misses.)
 
