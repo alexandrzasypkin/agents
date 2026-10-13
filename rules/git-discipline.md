@@ -69,7 +69,14 @@ description: Git hygiene. Apply in any project under version control.
   genuinely needs it overrides the hook.*
 - Do not push to `main` directly without an explicit request — work via a branch/PR or an
   explicit merge after review.
-- Do not skip pre-commit / pre-push hooks without an explicit request.
+- **Never disarm the commit gate — commit with plain `git commit`.** A local hook guards only the
+  invocation that runs it, and you control the invocation, so a local hook is advisory *even to you*:
+  `--no-verify` / `-n`, `git -c core.hooksPath=<dir>` (a wrong or empty dir runs NO hook, silently), a
+  `git config core.hooksPath`, or a `HUSKY=0` env all route around it. **The error is the route around the
+  check, not the trailer or lint it would have caught** — a mechanism quietly disarmed leaves silence, a
+  rule knowingly broken leaves a trace. If a hook is genuinely in the way, say so and FIX the hook; bypass
+  only on an explicit owner request. *The `no-git-add-all` PreToolUse guard now denies these disabling
+  forms; the only backstop a local bypass can't reach is the remote (pre-receive / CI).*
 
 [CRITICAL] Never `git push --force` on `main`.
 [CRITICAL] Never commit secrets (`.env`, `.dev.vars`, tokens) or generated artifacts
