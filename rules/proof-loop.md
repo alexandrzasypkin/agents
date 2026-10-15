@@ -1,6 +1,6 @@
 ---
 name: proof-loop
-description: Verify work independently, do not self-certify. Apply when claiming a task is done or correct.
+description: Verify work independently, do not self-certify. Apply when claiming a task done or correct, or asserting external/system behavior.
 ---
 
 # proof-loop
@@ -21,6 +21,13 @@ check passes:
   (Incident: task-center 2026-09-10 — code sent `reply_to`, the Cloudflare Email binding wanted `replyTo`
   and dropped the unknown field silently; the hand-declared type carried the same invented name, so 344
   green tests proved only the shared mistake — caught by the first real send.)
+- **Don't answer from assumption — the trigger is the act of asserting, not a felt doubt.** The
+  dangerous miss is the *confident* claim where no question ever arose, so a check you run only when
+  unsure stays silent exactly then. Before you write a claim about external or system behavior into a
+  durable artifact (a rule, the canon, a commit) — or act consequentially on it — cite a **measurement
+  or a primary source**, not reasoning. A reviewer (a human, or a stronger model reading your transcript)
+  checks your *process*; only a test, the real docs, or a primary source settles the *fact* — "a reviewer
+  agreed" is not the last rung, running it is.
 
 [CRITICAL] "It works" without an independent verification is not a completion. Give
 yourself a way to *prove* the work, not arguments that it works.
