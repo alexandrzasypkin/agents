@@ -46,8 +46,9 @@ author a NEW structure — rule, hook, agent, a whole layer — *in the same ima
    retrieving ≠ applying — the discipline pays off only when the next session reads the one home first.
 5. **Grow from incident, not speculation** — a structure earns its place after a real failure, and
    enters at the layer that can hold it.
-6. **Done = an independent check confirms it AND you diffed it against what it replaced.** Assertion
-   is not evidence; a whole-section rewrite silently drops what you did not consciously re-type.
+6. **Done = an independent check confirms it AND you diffed it against what it replaced — and a claim
+   you assert is grounded in a measurement or primary source, not in your reasoning.** Assertion is not
+   evidence; a whole-section rewrite silently drops what you did not consciously re-type.
 7. **An artifact exists only if it is wired and referenced** — present-but-unwired is dead, a
    reference to a removed artifact dangles; both directions are conformance.
 
