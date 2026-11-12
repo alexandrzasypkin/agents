@@ -74,7 +74,10 @@ cloudflare-docs:
   scope: global               # Cloudflare's PUBLIC docs MCP — no account, no auth; shared like playwright
   transport: remote-http      # streamable-HTTP server hosted by Cloudflare (a URL, not a local spawn)
   # Endpoint: https://docs.mcp.cloudflare.com/mcp — live CF docs / API / semantics lookup. Public, no OAuth.
-  # Install ONCE per machine into each agent's GLOBAL config (like playwright); do NOT render per-project:
+  # Install ONCE per machine into each agent's GLOBAL config (like playwright); do NOT render per-project.
+  # WHO installs = the OWNER (a home-config, machine-wide write); a project NEVER runs it — it proposes, the
+  # owner lands it. The install's one home is the live machine config (`claude mcp list` / ~/.claude.json /
+  # ~/.codex/config.toml), not any project REGISTRY — a project records only the dependency (cf-free-tier → this).
   #   Claude   — `claude mcp add --transport http cloudflare-docs https://docs.mcp.cloudflare.com/mcp -s user`
   #   codex    — ~/.codex/config.toml  [mcp_servers.cloudflare-docs] url = "https://docs.mcp.cloudflare.com/mcp"
   # Health-check the MCP `initialize`, not just that the URL answers (same discipline as playwright).
