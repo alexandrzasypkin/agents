@@ -3,6 +3,8 @@
 # user's explicit approval. Reading/copying FROM ~/.agents is free.
 # On a write it returns permissionDecision "ask", so the agent surfaces the action and YOU
 # approve or refuse it natively in the conversation. No env flags — permission is your spoken yes.
+# Arg `--deny`: hard-block instead (exit 2 + stderr) for an agent that ignores "ask" and honors
+# only a deny (kimi — measured; like opencode's plugin, which also cannot "ask").
 [ -n "${AGENTS_DEBUG:-}" ] && set -x
 # shellcheck disable=SC2016  # the python program is single-quoted on purpose (no shell expansion)
 verdict="$(python3 -c '
@@ -41,5 +43,10 @@ print("ALLOW")
 ' 2>/dev/null)"
 [ "$verdict" = ASK ] || exit 0
 reason="baseline-guard: this writes to the ~/.agents library (the shared baseline). Approve only if you intend a baseline change. Reading/copying FROM it is free."
+# --deny: hard block (exit 2 + stderr) for an agent that ignores "ask" (kimi / opencode).
+if [ "${1:-}" = --deny ]; then
+  printf 'baseline-guard: a write to the ~/.agents baseline is owner-only, not done from a project/agent session. Propose the change; the owner lands it in the canon session. Reading/copying FROM ~/.agents is free.\n' >&2
+  exit 2
+fi
 printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"%s"}}\n' "$reason"
 exit 0

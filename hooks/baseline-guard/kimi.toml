@@ -1,0 +1,9 @@
+# Merge into the GLOBAL ~/.kimi-code/config.toml (not a project file).
+# No matcher: guard.sh inspects tool_input and exits 0 (allow) for anything not under ~/.agents.
+# `--deny` because kimi honors only a hard deny (exit 2); it IGNORES permissionDecision "ask"
+# (measured: an "ask" verdict let the write through in -p/auto mode). Like opencode, kimi
+# therefore hard-blocks — to land a baseline change, do it from the owner's canon session.
+[[hooks]]
+event = "PreToolUse"
+command = 'bash "$HOME/.agents/hooks/baseline-guard/guard.sh" --deny'
+timeout = 10

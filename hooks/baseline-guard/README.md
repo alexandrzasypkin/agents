@@ -20,5 +20,10 @@ or a shell command (`rm`/`mv`/`>`/`tee`/`sed -i`/`cp … ~/.agents`, etc.). A pr
 - **opencode** → copy `opencode.ts` to `~/.config/opencode/plugin/baseline-guard.ts`
   (opencode has no native "ask" from a plugin, so there it hard-blocks; disable the plugin to
   edit the baseline).
+- **kimi** → merge `kimi.toml` into `~/.kimi-code/config.toml` (`[[hooks]]`). kimi ignores
+  `permissionDecision: "ask"` and honors only a deny, so the fragment calls `guard.sh --deny`
+  (hard block via exit 2) — like opencode. A baseline change is landed from the owner's canon
+  session, not a kimi project session.
 
-`guard.sh` is the shared detector. python3 absent → fail-open (allow).
+`guard.sh` is the shared detector (arg `--deny` → hard block for agents that can't "ask").
+python3 absent → fail-open (allow).
