@@ -43,3 +43,5 @@ applied to the on-disk file) and counts the block there.
 - A write via **Bash** (`echo >> AGENTS.md`) bypasses a file-tool matcher. Agents don't edit the
   anchor that way; add a pre-commit backstop only if it proves a real problem (canon: after an
   incident, not speculatively).
+
+- **kimi** → merge `kimi.toml` into the GLOBAL `~/.kimi-code/config.toml` (kimi has no project hooks). It is a dispatcher: runs this project's `.agents/hooks/agents-md-guard/` copy if present, else no-op. Payload fields `Bash`/`tool_input.command|path` measured on kimi 2.6.2; kimi ignores "ask", so ask-style guards use `--deny`.

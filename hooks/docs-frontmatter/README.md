@@ -24,3 +24,5 @@ missing a required key. **Model to copy: `task_center/docs`** (frontmatter on ev
 
 `check.sh` is the shared checker (path + codex-patch parsing, frontmatter validation); the
 per-agent files wire it in. Opt-in trace: `AGENTS_DEBUG=1`.
+
+- **kimi** → merge `kimi.toml` into the GLOBAL `~/.kimi-code/config.toml` (kimi has no project hooks). It is a dispatcher: runs this project's `.agents/hooks/docs-frontmatter/` copy if present, else no-op. Payload fields `Bash`/`tool_input.command|path` measured on kimi 2.6.2; kimi ignores "ask", so ask-style guards use `--deny`.

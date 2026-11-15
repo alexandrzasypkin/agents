@@ -48,3 +48,5 @@ be undone. Hence: prove it safe (whitelist) or deny it.
 Path- and command-based, with a heuristic on the final pipeline stage. A secret pasted as a literal
 value into a tool arg is not caught here — the `secrets` rule + the git-quality-gate staged-secret
 scan cover commits.
+
+- **kimi** → merge `kimi.toml` into the GLOBAL `~/.kimi-code/config.toml` (kimi has no project hooks). It is a dispatcher: runs this project's `.agents/hooks/secrets-guard/` copy if present, else no-op. Payload fields `Bash`/`tool_input.command|path` measured on kimi 2.6.2; kimi ignores "ask", so ask-style guards use `--deny`.

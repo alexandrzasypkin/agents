@@ -18,6 +18,11 @@ elif printf '%s' "$cmd" | grep -qE 'wrangler[[:space:]]+d1[[:space:]]+execute.*-
 fi
 
 if [ "$mutating" = yes ]; then
+  # --deny: hard block (exit 2) for an agent that ignores "ask" (kimi — measured; like opencode).
+  if [ "${1:-}" = --deny ]; then
+    echo "cf-prod-guard: MUTATING production Cloudflare op blocked (deploy / d1 --remote write / migrations apply --remote / secret put|delete). Default prod path is CI (push -> deploy.yml); the owner runs it manually." >&2
+    exit 2
+  fi
   cat <<'JSON'
 {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"MUTATING production Cloudflare op (deploy / d1 --remote write / migrations apply --remote / secret put|delete). Approve or deny. Read-only d1 --remote is NOT gated. Default prod path is CI (push -> deploy.yml)."}}
 JSON

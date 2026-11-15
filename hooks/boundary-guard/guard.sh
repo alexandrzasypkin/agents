@@ -7,11 +7,13 @@
 # No patterns.conf -> no-op.
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; conf="$here/patterns.conf"
 [ -f "$conf" ] || exit 0
-path="$(python3 -c 'import json,sys;print(json.load(sys.stdin).get("tool_input",{}).get("file_path",""))' 2>/dev/null)" || exit 0
+path="$(python3 -c 'import json,sys;ti=json.load(sys.stdin).get("tool_input",{});print(ti.get("file_path") or ti.get("path") or "")' 2>/dev/null)" || exit 0
 [ -n "$path" ] || exit 0
 while IFS=$'\t' read -r pat reason; do
   case "$pat" in ''|\#*) continue;; esac
   if printf '%s' "$path" | grep -qE "$pat"; then
+    # --deny: hard block (exit 2) for an agent that ignores "ask" (kimi — measured; like opencode).
+    if [ "${1:-}" = --deny ]; then echo "boundary-guard: ${reason:-boundary-sensitive path}" >&2; exit 2; fi
     printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"boundary-guard: %s"}}\n' "${reason:-boundary-sensitive path}"
     exit 0
   fi

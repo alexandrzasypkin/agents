@@ -33,3 +33,5 @@ the attribution trailer, and lint must actually run):
 Override is by design friction: to stage everything, name the paths; to skip the gate, don't — fix the
 hook instead (an owner may run the command themselves). There is no `--no-verify` for an agent, by design.
 The remote (pre-receive / CI) is the only backstop a local bypass cannot reach.
+
+- **kimi** → merge `kimi.toml` into the GLOBAL `~/.kimi-code/config.toml` (kimi has no project hooks). It is a dispatcher: runs this project's `.agents/hooks/no-git-add-all/` copy if present, else no-op. Payload fields `Bash`/`tool_input.command|path` measured on kimi 2.6.2; kimi ignores "ask", so ask-style guards use `--deny`.

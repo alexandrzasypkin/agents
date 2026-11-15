@@ -28,3 +28,5 @@ occasional direct prod op. Attached via the `cf-wrangler` rule.
   is **advisory** (warns, does not block).
 
 `guard.sh` is the shared detector; the per-agent files only wire it in.
+
+- **kimi** → merge `kimi.toml` into the GLOBAL `~/.kimi-code/config.toml` (kimi has no project hooks). It is a dispatcher: runs this project's `.agents/hooks/cf-prod-guard/` copy if present, else no-op. Payload fields `Bash`/`tool_input.command|path` measured on kimi 2.6.2; kimi ignores "ask", so ask-style guards use `--deny`.

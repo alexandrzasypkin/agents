@@ -45,3 +45,5 @@ that path's decision to `"deny"` in `guard.sh` — default is `"ask"`.
   `patterns.conf` from the project root.
 
 Without `patterns.conf` every agent's variant is a no-op.
+
+- **kimi** → merge `kimi.toml` into the GLOBAL `~/.kimi-code/config.toml` (kimi has no project hooks). It is a dispatcher: runs this project's `.agents/hooks/boundary-guard/` copy if present, else no-op. Payload fields `Bash`/`tool_input.command|path` measured on kimi 2.6.2; kimi ignores "ask", so ask-style guards use `--deny`.

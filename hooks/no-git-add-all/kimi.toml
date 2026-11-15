@@ -1,0 +1,10 @@
+# Merge into the GLOBAL ~/.kimi-code/config.toml (kimi has NO project-level hooks — measured/doc'd).
+# Project-scoped DISPATCHER: kimi runs hooks with cwd = the project dir (measured), so this runs the
+# project's own copy if it bootstrapped this hook and is a silent no-op (exit 0) elsewhere — keeps the
+# per-project semantics of the canon. Payload (measured, kimi 2.6.2): tool_name Bash|Write|Edit,
+# tool_input.command / tool_input.path (+content | old_string,new_string).
+# --claude = exit 2 + stderr, which kimi honors (measured).
+[[hooks]]
+event = "PreToolUse"
+command = 'f=".agents/hooks/no-git-add-all/guard.sh"; [ -f "$f" ] && exec bash "$f" --claude; exit 0'
+timeout = 10
