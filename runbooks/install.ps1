@@ -59,11 +59,15 @@ Link-Agent 'codex'  'codex'  (Join-Path $HOME '.codex')  (Join-Path $HOME '.code
 if (Get-Command 'opencode' -ErrorAction SilentlyContinue) {
     Write-Host '== opencode: detected -- reads ~/.agents natively, no symlink =='
 }
+# kimi reads ~/.agents/AGENTS.md natively -- a ~/.kimi-code/AGENTS.md link would load the canon TWICE (measured).
+if (Get-Command 'kimi' -ErrorAction SilentlyContinue) {
+    Write-Host '== kimi: detected -- reads ~/.agents natively, no symlink (a link would double-load the canon) =='
+}
 
 # 3. baseline-guard -- the ONE global guardrail bootstrap never writes. Auto-install ONLY with
 #    -InstallBaselineGuard (or $env:AGENTS_BASELINE_GUARD=1 for the one-shot); else guide. Idempotent.
 $GuardDir = Join-Path $Dest 'hooks\baseline-guard'
-$configs  = @((Join-Path $HOME '.claude\settings.json'), (Join-Path $HOME '.codex\config.toml'))
+$configs  = @((Join-Path $HOME '.claude\settings.json'), (Join-Path $HOME '.codex\config.toml'), (Join-Path $HOME '.kimi-code\config.toml'))
 $hasGuard = $false
 foreach ($c in $configs) {
     if ((Test-Path $c) -and (Select-String -Quiet -Pattern 'baseline-guard' -Path $c)) { $hasGuard = $true }
@@ -104,6 +108,18 @@ if ($DoGuard) {
             }
         }
     }
+    # kimi -- append the TOML section to the GLOBAL config (no project hooks; array-of-tables, safe at EOF).
+    # kimi.toml uses --deny: kimi ignores permissionDecision "ask" and honors only exit 2.
+    if ((Get-Command kimi -ErrorAction SilentlyContinue) -or (Test-Path (Join-Path $HOME '.kimi-code'))) {
+        $cfg = Join-Path $HOME '.kimi-code\config.toml'
+        if ((Test-Path $cfg) -and (Select-String -Quiet 'baseline-guard' $cfg)) {
+            Write-Host '   kimi: already present -- skipped'
+        } else {
+            New-Item -ItemType Directory -Force -Path (Split-Path $cfg) | Out-Null
+            "`n" + (Get-Content (Join-Path $GuardDir 'kimi.toml') -Raw) | Add-Content -Path $cfg
+            Write-Host "   kimi: appended -> $cfg"
+        }
+    }
     # opencode -- copy plugin file (safe: standalone .ts)
     if ((Get-Command opencode -ErrorAction SilentlyContinue) -or (Test-Path (Join-Path $HOME '.config\opencode'))) {
         $pdir = Join-Path $HOME '.config\opencode\plugin'
@@ -124,7 +140,7 @@ if ($DoGuard) {
 } else {
     Write-Host '== baseline-guard NOT installed -- the guardrail that makes writes to ~/.agents need your approval =='
     Write-Host '   auto-install: re-run with -InstallBaselineGuard   (one-shot: $env:AGENTS_BASELINE_GUARD=1; irm <url> | iex)'
-    Write-Host "   by hand: merge $GuardDir\{claude.json,codex.toml}; copy opencode.ts -> ~/.config/opencode/plugin (README > Setup)"
+    Write-Host "   by hand: merge $GuardDir\{claude.json,codex.toml,kimi.toml}; copy opencode.ts -> ~/.config/opencode/plugin (README > Setup)"
 }
 
 # 4. Integrity -- dynamic (no hardcoded SHA); trust anchor = commit SHA over HTTPS/TLS.
