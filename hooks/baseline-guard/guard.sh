@@ -30,15 +30,29 @@ if tool in ("edit","write","apply_patch","create","str_replace_editor","multiedi
         for m in re.findall(r"(?m)^\*\*\* (?:Update|Add|Delete) File: (.+)$",patch)+re.findall(r"(?m)^\+\+\+ b/(.+)$",patch):
             if under_lib(m): print("ASK"); sys.exit(0)
 cmd=ti.get("command")
-if isinstance(cmd,str) and cmd:
+if isinstance(cmd,str) and cmd and LIB in cmd.replace("$HOME",HOME).replace("~",HOME):
+    import shlex
     cl=cmd.replace("$HOME",HOME).replace("~",HOME)
-    if LIB in cl:
-        lib=re.escape(LIB)
-        if (re.search(r"\b(rm|rmdir|mv|tee|truncate|chmod|chown|mkdir|ln|shred)\b[^|;&]*"+lib,cl)
-            or re.search(r">>?\s*"+lib,cl)
-            or re.search(r"\bsed\b[^|;&]*-i[^|;&]*"+lib,cl)
-            or re.search(r"\bcp\b\s+\S+\s+"+lib,cl)):
-            print("ASK"); sys.exit(0)
+    lib=re.escape(LIB)
+    if re.search(r">>?\|?\s*[\"\x27]?"+lib,cl): print("ASK"); sys.exit(0)
+    DEST={"cp","install","rsync","scp","ln"}            # write = the DESTINATION (last non-flag arg / -t DIR)
+    ANYARG={"rm","rmdir","mkdir","touch","tee","truncate","chmod","chown","shred","unlink","mv","mkfifo"}  # any arg under lib is written/removed
+    for seg in re.split(r"\n|;|&&|\|\||\||&",cl):
+        try: tk=shlex.split(seg)
+        except Exception: tk=seg.split()
+        while tk and (tk[0] in ("sudo","env","command","nice","time") or re.match(r"\w+=",tk[0])): tk=tk[1:]
+        if not tk: continue
+        verb=os.path.basename(tk[0]); args=tk[1:]
+        paths=[x.split("=",1)[-1] for x in args if x.startswith("-") and "=" in x]   # --target-directory=…
+        pos=[x for x in args if not x.startswith("-")]
+        if verb in DEST:
+            if "-t" in args:
+                i=args.index("-t"); paths+=args[i+1:i+2]
+            elif pos: paths.append(pos[-1])
+        elif verb in ANYARG: paths+=pos
+        elif verb in ("sed","perl") and any(re.match(r"-\w*i",x) for x in args): paths+=pos
+        elif verb=="dd": paths+=[x[3:] for x in args if x.startswith("of=")]
+        if any(under_lib(p) for p in paths if p): print("ASK"); sys.exit(0)
 print("ALLOW")
 ' 2>/dev/null)"
 [ "$verdict" = ASK ] || exit 0

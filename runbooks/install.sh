@@ -50,6 +50,8 @@ link_agent() {  # name  cli  dir  link
 link_agent claude claude "$HOME/.claude" "$HOME/.claude/CLAUDE.md"
 link_agent codex  codex  "$HOME/.codex"  "$HOME/.codex/AGENTS.md"
 command -v opencode >/dev/null 2>&1 && echo "== opencode: detected — reads ~/.agents natively, no symlink =="
+# kimi reads ~/.agents/AGENTS.md natively — a ~/.kimi-code/AGENTS.md symlink would load the canon TWICE (measured).
+command -v kimi >/dev/null 2>&1 && echo "== kimi: detected — reads ~/.agents natively, no symlink (a link would double-load the canon) =="
 
 # 3. baseline-guard — the ONE global guardrail bootstrap never writes (README Guardrails).
 #    Auto-install ONLY with --install-baseline-guard (idempotent, per present agent); else guide.
@@ -83,6 +85,13 @@ print("   claude: merged ->", cfg_path)
 PY
     else echo "   claude: python3 missing — merge $GUARD_DIR/claude.json by hand"; fi
   fi
+  # kimi — append the TOML section to the GLOBAL config (kimi has no project hooks; array-of-tables, safe at EOF).
+  # kimi.toml uses --deny: kimi ignores permissionDecision "ask" and honors only exit 2.
+  if command -v kimi >/dev/null 2>&1 || [ -d "$HOME/.kimi-code" ]; then
+    cfg="$HOME/.kimi-code/config.toml"
+    if [ -f "$cfg" ] && grep -q baseline-guard "$cfg"; then echo "   kimi: already present — skipped"
+    else mkdir -p "$HOME/.kimi-code"; { echo; cat "$GUARD_DIR/kimi.toml"; } >> "$cfg"; echo "   kimi: appended -> $cfg"; fi
+  fi
   # opencode — copy the plugin file (safe: standalone .ts, no merge)
   if command -v opencode >/dev/null 2>&1 || [ -d "$HOME/.config/opencode" ]; then
     pdir="$HOME/.config/opencode/plugin"; mkdir -p "$pdir"
@@ -92,12 +101,12 @@ PY
 if [ "$INSTALL_GUARD" = 1 ]; then
   echo "== installing baseline-guard (--install-baseline-guard) =="
   install_guard
-elif grep -rq "baseline-guard" "$HOME/.claude/settings.json" "$HOME/.codex/config.toml" 2>/dev/null; then
+elif grep -rq "baseline-guard" "$HOME/.claude/settings.json" "$HOME/.codex/config.toml" "$HOME/.kimi-code/config.toml" 2>/dev/null; then
   echo "== baseline-guard: already present in a global agent config =="
 else
   echo "== baseline-guard NOT installed — the guardrail that makes writes to ~/.agents need your approval =="
   echo "   auto-install: re-run with  --install-baseline-guard   (one-shot: curl -fsSL <raw>/install.sh | sh -s -- --install-baseline-guard)"
-  echo "   by hand: merge $GUARD_DIR/{claude.json,codex.toml} into ~/.claude/settings.json · ~/.codex/config.toml; copy opencode.ts -> ~/.config/opencode/plugin/ (README > Setup)"
+  echo "   by hand: merge $GUARD_DIR/{claude.json,codex.toml,kimi.toml} into ~/.claude/settings.json · ~/.codex/config.toml · ~/.kimi-code/config.toml; copy opencode.ts -> ~/.config/opencode/plugin/ (README > Setup)"
 fi
 
 # 4. Integrity — report what was pulled. Trust anchor = commit SHA over HTTPS/TLS (SHA-only model).

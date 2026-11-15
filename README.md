@@ -108,10 +108,12 @@ install it once per machine, either way:
 - **Automated (opt-in):** `sh runbooks/install.sh --install-baseline-guard` — one-shot
   `curl -fsSL <raw>/install.sh | sh -s -- --install-baseline-guard`; native Windows
   `$env:AGENTS_BASELINE_GUARD=1; irm <raw>/install.ps1 | iex`. Idempotent, per present agent: appends
-  the Codex TOML section, merges the Claude JSON hook (skips a malformed file), copies the opencode plugin.
+  the Codex TOML section, merges the Claude JSON hook (skips a malformed file), copies the opencode plugin,
+  appends the kimi TOML section (`kimi.toml`, `--deny`) to `~/.kimi-code/config.toml`. (`install.sh` only —
+  `install.ps1` does not do kimi yet.)
 - **By hand:** merge `hooks/baseline-guard/codex.toml` → `~/.codex/config.toml`,
   `hooks/baseline-guard/claude.json` → `~/.claude/settings.json`, copy `hooks/baseline-guard/opencode.ts`
-  → `~/.config/opencode/plugin/`.
+  → `~/.config/opencode/plugin/`, merge `hooks/baseline-guard/kimi.toml` → `~/.kimi-code/config.toml`.
 
 The fragments run a bash script (`bash "…/guard.sh"`); on **native Windows** the hook fires only through
 Git Bash (`bash` reachable on PATH), or the agent adapts it to its shell — hooks are POSIX, no per-OS
