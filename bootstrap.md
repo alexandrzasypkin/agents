@@ -288,7 +288,7 @@ same name, different places. Steps:
 4. **Create the runtime anchors — SHARED once; per-agent config ONLY for the running agent.**
    **Shared (whichever agent bootstraps first creates it; all agents reuse it):** `./AGENTS.md` —
    the project's OWN source of truth (pointer + behavioral rules + self-config), a **real file**
-   (codex and opencode read it natively). Plus the `.agents/` skeleton (steps 1/3) and git + hooks
+   (codex, opencode and kimi read it natively). Plus the `.agents/` skeleton (steps 1/3) and git + hooks
    (step 5).
    **Per-agent — an agent writes ONLY its OWN native config, never another agent's.** An agent is
    part of the environment and owns its own format; it renders its own MCP/hooks from the chain into
@@ -312,11 +312,15 @@ same name, different places. Steps:
    - **codex** (when codex runs) → `./.codex/config.toml` (chain hooks + project-bound MCP; trust).
    - **opencode** (when opencode runs) → `./opencode.json` (canon pointer + MCP) and
      `./.opencode/plugin/*.ts` (hooks).
+   - **kimi** (when kimi runs) → no project config of its own: it reads `./AGENTS.md` and `.agents/skills`
+     natively, and its hooks are GLOBAL dispatchers (`kimi.toml` → `~/.kimi-code/config.toml`) that run
+     this project's copied `.agents/hooks/<name>/` script, or no-op if absent. Global MCP lives in
+     `~/.kimi-code/mcp.json`. Verified by a kimi-bootstrap run (uninitialized dir → full bootstrap, no global writes).
    The per-agent formats:
 
    | File | Purpose |
    |------|---------|
-   | `./AGENTS.md` | Autonomous project source of truth. Read natively by codex and opencode. Holds the pointer and the self-configuration rule (below). |
+   | `./AGENTS.md` | Autonomous project source of truth. Read natively by codex, opencode and kimi. Holds the pointer and the self-configuration rule (below). |
    | `./CLAUDE.md` | A **symlink → `./AGENTS.md`** (next to it). Needed because Claude Code does not read `AGENTS.md` natively — only `CLAUDE.md`; the link feeds it the project's own `AGENTS.md`. The global canon arrives separately via the global `~/.claude/CLAUDE.md` symlink. |
    | `./opencode.json` | Root required (opencode searches upward to the git root). `instructions` (the **OS-resolved** absolute path to the canon — `/home/<user>/.agents/AGENTS.md` on Linux/WSL2, `C:\Users\<user>\.agents\AGENTS.md` on Windows; resolve it for this machine, do not copy the example literally) + an `mcp` block. Returns the canon to context and does not expose `~`. **Written by opencode itself when it runs** (never by another agent). |
    | `./.mcp.json` | **Project-bound** MCP for Claude Code (read separately from `CLAUDE.md`). **Only if the project has project-bound MCP** — shared infra like playwright is global, not written here. |
@@ -359,7 +363,7 @@ same name, different places. Steps:
    **Config assembly (uniform across agents).** Hooks are attached **by the `map.yaml` chain**
    (`secrets → secrets-guard`, `quality-* → light-lint`, `git-discipline → no-git-add-all`, `project-docs → agents-md-guard`) — a project gets a hook only when its
    rule is active. Each hook in `./.agents/hooks/<name>/` ships per-agent fragments —
-   `claude.json`, `codex.toml`, `opencode.ts` — whose command points at the project's **own**
+   `claude.json`, `codex.toml`, `opencode.ts`, `kimi.toml` — whose command points at the project's **own**
    copied script: `bash "$CLAUDE_PROJECT_DIR/.agents/hooks/<name>/…sh"` (Claude), a project-relative
    `bash ".agents/hooks/<name>/…sh"` (codex). `bash <posix-path>` is portable on Windows under Git
    Bash, so no per-OS variant is needed. When several fragments target one agent file — permissions,
@@ -618,7 +622,7 @@ from that procedure. This section records only THIS project's self-config *speci
 `AGENTS.md` present) that has **no native config of its own** renders its own part from the chain —
 its hooks/MCP/**chain-skill symlinks** into its own place (Claude → `.claude/settings.json` + the
 `CLAUDE.md` symlink + `.claude/skills/<name>` → `../../.agents/skills/<name>` per chain skill; codex →
-`.codex/config.toml`; opencode → `opencode.json` + `.opencode/plugin/`), logged in REGISTRY. No agent
+`.codex/config.toml`; opencode → `opencode.json` + `.opencode/plugin/`; kimi → nothing per-project, its hooks are global dispatchers), logged in REGISTRY. No agent
 sets up another agent's environment; each activates itself the first time it runs there. (This is also
 what a **refresh** repairs: a chain skill with no `.claude/skills/` symlink is present-but-unwired — the
 wiring check catches it.)

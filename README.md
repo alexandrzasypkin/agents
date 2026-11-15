@@ -1,6 +1,6 @@
 # ~/.agents — agent environment library
 
-A cross-agent environment for Claude, Codex, and opencode. One choice — the project's
+A cross-agent environment for Claude, Codex, opencode, and kimi. One choice — the project's
 domains — deploys a consistent set of rules, skills, subagents, and hooks into a project; the
 agent then self-configures and adapts. `AGENTS.md` is the normative spec (the canon); this
 README is the overview.
@@ -20,7 +20,7 @@ slash-commands, the `.claude/agents` registry). They live in `./.agents/` and ar
 - the **chain** in `map.yaml`: a rule names its skill / subagent / MCP, so a skill is pulled in
   *because its rule is active*, not because it sits in a native menu.
 
-Why: this makes the system identical across Claude / Codex / opencode and independent of any one
+Why: this makes the system identical across Claude / Codex / opencode / kimi and independent of any one
 agent's folder conventions. A role is used two ways, **both from `.agents/`**: the main agent
 **reads** it and follows it (non-spawned), or — for `delegation` on a large project — a **lead loads
 the role from `.agents/agents/` and spawns a subagent** with it (real isolation/parallelism via the
@@ -82,6 +82,10 @@ ln -sfn ~/.agents/AGENTS.md ~/.claude/CLAUDE.md   # Claude reads CLAUDE.md (no n
 
 opencode reads `~/.agents` natively and gets the canon path from each project's `opencode.json`
 (written at bootstrap) — no global symlink needed.
+
+kimi also reads `~/.agents/AGENTS.md` and `~/.agents/skills` natively — **do NOT symlink it into
+`~/.kimi-code/`** (measured: that loads the canon twice). kimi has no project-level hooks: each hook's
+`kimi.toml` is a global dispatcher merged into `~/.kimi-code/config.toml` (see the hook READMEs).
 
 On native Windows the `ln` form works from Git Bash / WSL2. In cmd or PowerShell create the
 links directly — needs Developer Mode on (or an elevated shell), the parent dirs must exist,
