@@ -6,7 +6,7 @@
 import type { Plugin } from "@opencode-ai/plugin"
 
 const ALWAYS_MUTATING =
-  /wrangler\s+pages\s+deploy|wrangler\s+d1\s+migrations\s+apply.*--remote|wrangler\s+pages\s+secret\s+(put|delete)/
+  /wrangler(\s+(pages|versions))?\s+deploy|wrangler\s+d1\s+migrations\s+apply.*--remote|wrangler(\s+pages)?\s+secret\s+(put|delete)/
 const REMOTE_EXEC = /wrangler\s+d1\s+execute.*--remote/
 // a write in the SQL, or applying a file — a read-only SELECT is not gated
 const SQL_WRITE = /(^|[^a-z])(insert|update|delete|drop|alter|create|replace|truncate)([^a-z]|$)|--file/i
@@ -16,7 +16,8 @@ export const CfProdGuard: Plugin = async () => ({
     const a = (output && (output as { args?: Record<string, unknown> }).args) || {}
     const cmd = typeof a.command === "string" ? a.command : ""
     if (!cmd) return
-    const mutating = ALWAYS_MUTATING.test(cmd) || (REMOTE_EXEC.test(cmd) && SQL_WRITE.test(cmd))
+    const dryRun = /wrangler\s+(pages\s+)?deploy/.test(cmd) && /--dry-run/.test(cmd)
+    const mutating = (ALWAYS_MUTATING.test(cmd) && !dryRun) || (REMOTE_EXEC.test(cmd) && SQL_WRITE.test(cmd))
     if (mutating) {
       console.warn(
         "[cf-prod-guard] MUTATING production Cloudflare op (deploy / d1 --remote write / migrations " +

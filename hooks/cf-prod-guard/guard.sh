@@ -8,9 +8,11 @@ cmd="$(python3 -c 'import json,sys;print(json.load(sys.stdin).get("tool_input",{
 [ -n "$cmd" ] || exit 0
 
 mutating=no
-# Always mutating: deploy, remote migration apply, secret put|delete.
-if printf '%s' "$cmd" | grep -qE 'wrangler[[:space:]]+pages[[:space:]]+deploy|wrangler[[:space:]]+d1[[:space:]]+migrations[[:space:]]+apply.*--remote|wrangler[[:space:]]+pages[[:space:]]+secret[[:space:]]+(put|delete)'; then
+# Always mutating: deploy (Worker `wrangler deploy`, `versions deploy`, `pages deploy`), remote migration apply, secret put|delete.
+if printf '%s' "$cmd" | grep -qE 'wrangler([[:space:]]+(pages|versions))?[[:space:]]+deploy|wrangler[[:space:]]+d1[[:space:]]+migrations[[:space:]]+apply.*--remote|wrangler([[:space:]]+pages)?[[:space:]]+secret[[:space:]]+(put|delete)'; then
   mutating=yes
+  # `deploy --dry-run` builds only, mutates nothing -> not gated.
+  if printf '%s' "$cmd" | grep -qE 'wrangler[[:space:]]+(pages[[:space:]]+)?deploy' && printf '%s' "$cmd" | grep -qE -- '--dry-run'; then mutating=no; fi
 # d1 execute --remote: gate ONLY a write (SQL DML/DDL or a --file). A read-only SELECT/PRAGMA passes.
 elif printf '%s' "$cmd" | grep -qE 'wrangler[[:space:]]+d1[[:space:]]+execute.*--remote' \
    && printf '%s' "$cmd" | grep -qiE '(^|[^a-z])(insert|update|delete|drop|alter|create|replace|truncate)([^a-z]|$)|--file'; then

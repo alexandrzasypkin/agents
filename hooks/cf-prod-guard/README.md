@@ -3,10 +3,10 @@
 PreToolUse `Bash` guard: pauses **mutating production Cloudflare operations** for the user's approval
 (`permissionDecision: "ask"`, not a hard `exit 2` — a hard block leaves no door). Gates:
 
-- `wrangler pages deploy`
+- `wrangler deploy` (Worker), `wrangler versions deploy`, `wrangler pages deploy` (not with `--dry-run`)
 - `wrangler d1 migrations apply … --remote`
 - `wrangler d1 execute … --remote` **only when it writes** (SQL `INSERT/UPDATE/DELETE/DROP/ALTER/CREATE/REPLACE/TRUNCATE` or `--file`)
-- `wrangler pages secret put|delete`
+- `wrangler secret put|delete`, `wrangler pages secret put|delete`
 
 ## Two things it deliberately does NOT do
 - **Read-only prod is not gated.** `d1 execute --remote "SELECT …"` and `migrations list --remote` pass
