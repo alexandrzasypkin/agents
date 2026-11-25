@@ -39,6 +39,10 @@ playwright:
   #   `%LOCALAPPDATA%\Playwright-MCP\headed-profile` — log in via a detached Chrome (Explorer shortcut),
   #   fully close it, THEN start headed MCP via Explorer-owned `cmd /k … --user-data-dir <that profile>`.
   #   codex: if it started while the ports were down, reconnect/restart it once the servers are back.
+  # WEDGED SERVER (Linux user unit `playwright-mcp-shared`): a session calling `browser_close` closes the
+  #   shared context for everyone and the server hangs. Recover: `systemctl --user restart playwright-mcp-shared`.
+  #   Keep `--shared-browser-context` (its point: warm shared auth) — the fix is the rule (browser-use: never
+  #   `browser_close`), not dropping the flag; revisit the flag only if it recurs despite the rule.
 
 # codex-agent — REMOVED (was: codex-as-an-MCP-server). codex ≥ 0.155 dropped the `mcp-server` mode:
 #   the subcommand is gone, `codex mcp-server` is parsed as a prompt → interactive → `stdin is not a

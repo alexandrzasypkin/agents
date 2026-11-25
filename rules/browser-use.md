@@ -19,7 +19,11 @@ an authed endpoint, read the return value / console). The user sees the outcome,
 - Diagnose from **console and network** (`browser_console_messages`, `browser_network_requests`) before any
   image; a screenshot is for layout/visual checks, or as evidence when the `e2e` agent asks for one.
 - Prefer `browser_snapshot` (text) over a screenshot to read page state.
-- Close only the tabs **you opened** — the shared browser's other tabs belong to the lead/user (see below).
+- Close only the tabs **you opened**, via `browser_tabs` (action close) — the shared browser's other tabs
+  belong to the lead/user (see below).
+- [CRITICAL] **Never call `browser_close` on the shared server.** With `--shared-browser-context` it closes the
+  context for EVERY session and wedges the server (incident). End a session by closing your own tab, not the
+  browser. If it is already wedged: `systemctl --user restart playwright-mcp-shared`, then reconnect.
 
 ## UI mode — agent prepares, the user commits
 A visible browser; the agent acts on the page like a user.
