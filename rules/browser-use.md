@@ -15,6 +15,12 @@ an authed endpoint, read the return value / console). The user sees the outcome,
 - Authed/session work goes through the user's **already-logged-in browser**, NOT curl (an
   agent-shell curl fails fingerprint/cookie checks → 401). No secret or token is passed to the agent.
 
+## Economy — read cheap signals first
+- Diagnose from **console and network** (`browser_console_messages`, `browser_network_requests`) before any
+  image; a screenshot is for layout/visual checks, or as evidence when the `e2e` agent asks for one.
+- Prefer `browser_snapshot` (text) over a screenshot to read page state.
+- Close only the tabs **you opened** — the shared browser's other tabs belong to the lead/user (see below).
+
 ## UI mode — agent prepares, the user commits
 A visible browser; the agent acts on the page like a user.
 
