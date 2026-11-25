@@ -21,9 +21,11 @@ an authed endpoint, read the return value / console). The user sees the outcome,
 - Prefer `browser_snapshot` (text) over a screenshot to read page state.
 - Close only the tabs **you opened**, via `browser_tabs` (action close) — the shared browser's other tabs
   belong to the lead/user (see below).
-- [CRITICAL] **Never call `browser_close` on the shared server.** With `--shared-browser-context` it closes the
-  context for EVERY session and wedges the server (incident). End a session by closing your own tab, not the
-  browser. If it is already wedged: `systemctl --user restart playwright-mcp-shared`, then reconnect.
+- **Do not call `browser_close` on the shared server** — it is not needed and once wedged the headless server
+  for all sessions (observed; cause NOT reproduced — a 2-client test on the same version only closed the
+  caller's page). End a session by closing your own tab. If the server is wedged:
+  `systemctl --user restart playwright-mcp-shared`, then reconnect; capture
+  `journalctl --user -u playwright-mcp-shared` and the exact call first, to find the real cause.
 
 ## UI mode — agent prepares, the user commits
 A visible browser; the agent acts on the page like a user.
